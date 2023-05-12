@@ -9,6 +9,7 @@
 
 #include <string>
 #include <vector>
+#include <wininet.h>
 
 // IDs for menu items except lib-predefined
 enum
@@ -23,7 +24,8 @@ enum
     ID_URL_Field,
     ID_Button,
     ID_Frame,
-    ID_AlertOnDone
+    ID_AlertOnDone,
+    ID_URL_Artwork_Field
 };
 
 unsigned int ClientWidth, ClientHeight;
@@ -93,6 +95,7 @@ private:
     TextBox* tracks_Field;
 
     TextBox* URL_Field;
+    TextBox* URL_Artwork_Field;
 
     wxCheckBox* checkAlert;
 
@@ -111,6 +114,8 @@ private:
     void LoadTrackTitles();
     void RunScript();
     void ResetTracksFile();
+
+    void GetArtwork();
 };
 
 // The main() function, invoking the entry-point of the program
@@ -127,7 +132,7 @@ bool MyApp::OnInit()
 
     MyFrame* frame = new MyFrame();
     frame->SetClientSize(ClientWidth, ClientHeight);
-    frame->SetPosition(wxPoint(350, 50));
+    frame->SetPosition(wxPoint(650, 20));
     frame->Show(true);
     return true;
 }
@@ -186,6 +191,9 @@ MyFrame::MyFrame() : wxFrame(NULL, ID_Frame, "Main window")
 
     URL_Field = new TextBox("Playlist URL", ID_URL_Field,
                             wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel);
+
+    URL_Artwork_Field = new TextBox("Playlist URL with proper artwork", ID_URL_Artwork_Field,
+                                    wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel);
 
 
 
@@ -309,7 +317,8 @@ void MyFrame::OnHello(wxCommandEvent& event)
 
 void MyFrame::OnButtonPress(wxCommandEvent& event)
 {
-    RunScript();
+    //RunScript();
+    GetArtwork();
 }
 
 void MyFrame::RunScript()
@@ -326,6 +335,12 @@ void MyFrame::RunScript()
     std::wstring albumYear = albumYear_Field->textField->GetValue().ToStdWstring();
 
 
+    // TODO:
+    // -check for slash at end in paths and add the slash if needed
+    // -updating not only screen but events during console process execution
+    // -playlist with artowrk URL field
+    // -getting the artwork directly from requested HTML from the URL (based on cover.js)
+    // -tracks field buffer width checking to avoid title wrapping
 
 
 
@@ -801,4 +816,102 @@ void MyFrame::LoadTrackTitles()
     }
 
     ResetTracksFile();
+}
+
+void MyFrame::GetArtwork()
+{
+    HINTERNET hConnection = InternetOpen(L"Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36",
+                  INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, INTERNET_FLAG_ASYNC);
+
+    if (hConnection == NULL)
+    {
+        MessageBoxA(NULL, std::string("InternetOpen() failed: " + std::to_string(GetLastError())).c_str(), "", MB_OK);
+        return;
+    }
+
+    std::wstring URL = L""; URL += URL_Artwork_Field->textField->GetValue().ToStdWstring();
+    HINTERNET hResource = InternetOpenUrl(hConnection, URL.c_str(), NULL, 0,
+                    INTERNET_FLAG_RELOAD | INTERNET_FLAG_SECURE | INTERNET_FLAG_NO_COOKIES | INTERNET_FLAG_PRAGMA_NOCACHE, NULL);
+    if (hResource == NULL)
+    {
+        unsigned long size = 1024;
+        char* buf = (char*)calloc(size, sizeof(char));
+        if (buf == nullptr)
+        {
+            MessageBoxA(NULL, std::string("InternetOpenUrl() failed: " + std::to_string(GetLastError())).c_str(), "", MB_OK);
+            InternetCloseHandle(hConnection);
+            return;
+        }
+        unsigned long error_code = 0;
+        InternetGetLastResponseInfoA(&error_code, buf, &size);
+
+        MessageBoxA(NULL, std::string("InternetOpenUrl() failed: " + std::to_string(GetLastError()) + '\n'
+                                        + "Response: " + std::string(buf)).c_str(), "", MB_OK);
+        InternetCloseHandle(hConnection);
+        free(buf);
+        return;
+    }
+
+    unsigned long bytesRead = 0;
+    unsigned long size = 0;
+    unsigned char* buf = (unsigned char*)calloc(size, sizeof(unsigned char));
+    if (buf == nullptr)
+    {
+        InternetCloseHandle(hResource);
+        InternetCloseHandle(hConnection);
+        return;
+    }
+
+    const unsigned long chunkSize = 1024;
+    BOOL rv;
+    do
+    {
+        size = chunkSize;
+        unsigned char* ptr = (unsigned char*)realloc(buf, size * sizeof(unsigned char));
+        if (ptr == nullptr)
+        {
+            free(buf);
+            InternetCloseHandle(hResource);
+            InternetCloseHandle(hConnection);
+            return;
+        }
+        buf = ptr;
+
+        rv = InternetReadFile(hResource, buf, size, &bytesRead);
+        if (rv == FALSE)
+        {
+            MessageBox(NULL, std::wstring(L"InternetReadFile() failed: " + std::to_string(GetLastError()) + '\n').c_str(), L"", MB_OK);
+
+            InternetCloseHandle(hResource);
+            InternetCloseHandle(hConnection);
+            return;
+        }
+
+        FILE* resourceFile = nullptr;
+        fopen_s(&resourceFile, "index", "w+");
+        if (resourceFile != nullptr)
+        {
+            for (int i = 0; i < size; i++)
+            {
+                putc(buf[i], resourceFile);
+            }
+
+            fclose(resourceFile);
+        }
+        else
+        {
+            free(buf);
+            MessageBox(NULL, std::wstring(L"Failed to open \"index\"").c_str(), L"", MB_OK);
+
+            InternetCloseHandle(hResource);
+            InternetCloseHandle(hConnection);
+            return;
+        }
+
+
+    } while(rv == TRUE && bytesRead != 0);
+
+    free(buf);
+    InternetCloseHandle(hResource);
+    InternetCloseHandle(hConnection);
 }
