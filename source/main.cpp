@@ -219,6 +219,7 @@ MyFrame::MyFrame() : wxFrame(NULL, ID_Frame, "Main window")
     ClientHeight = mainOffset.y;
 
     OpenSettings();
+    URL_Artwork_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_kULt5j2pKzT5PtLz1RGW7EO-IWDwqVtHw");
 
     artist_Field->textField->SetFocus();
 }
@@ -818,100 +819,448 @@ void MyFrame::LoadTrackTitles()
     ResetTracksFile();
 }
 
-void MyFrame::GetArtwork()
-{
-    HINTERNET hConnection = InternetOpen(L"Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36",
-                  INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, INTERNET_FLAG_ASYNC);
 
+
+void PrintConsole(std::string text)
+{
+    unsigned long charsWritten = 0;
+    WriteConsoleA(GetStdHandle(STD_OUTPUT_HANDLE), text.c_str(), text.size(), &charsWritten, NULL);
+}
+
+void PrintConsole(std::wstring text)
+{
+    unsigned long charsWritten = 0;
+    WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), text.c_str(), text.size(), &charsWritten, NULL);
+}
+
+int GetResource(const char* host, const char* resource, const char* outputFilename)
+{
+    // Figure out what does the "Retrieves configuration from the registry" mean for INTERNET_OPEN_TYPE_PRECONFIG
+    // dwAccessType: INTERNET_OPEN_TYPE_PRECONFIG or INTERNET_OPEN_TYPE_DIRECT
+    // dwFlags: INTERNET_FLAG_ASYNC or NULL
+    HINTERNET hInternet = InternetOpenA("Mozilla/5.0", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, NULL);
+    if (hInternet == NULL)
+    {
+        PrintConsole("InternetOpen() failed: " + std::to_string(GetLastError()) + "\n");
+
+        return 1;
+    }
+
+
+    HINTERNET hConnection = InternetConnectA(hInternet, host, INTERNET_DEFAULT_HTTPS_PORT, NULL, NULL, INTERNET_SERVICE_HTTP,
+                                             INTERNET_FLAG_SECURE, INTERNET_NO_CALLBACK);
     if (hConnection == NULL)
     {
-        MessageBoxA(NULL, std::string("InternetOpen() failed: " + std::to_string(GetLastError())).c_str(), "", MB_OK);
-        return;
+        PrintConsole("InternetConnection() failed: " + std::to_string(GetLastError()) + "\n");
+        InternetCloseHandle(hInternet);
+
+        return 2;
     }
 
-    std::wstring URL = L""; URL += URL_Artwork_Field->textField->GetValue().ToStdWstring();
-    HINTERNET hResource = InternetOpenUrl(hConnection, URL.c_str(), NULL, 0,
-                    INTERNET_FLAG_RELOAD | INTERNET_FLAG_SECURE | INTERNET_FLAG_NO_COOKIES | INTERNET_FLAG_PRAGMA_NOCACHE, NULL);
-    if (hResource == NULL)
+
+    const char* acceptTypes[] = { "text/*", "image/avif", "image/webp", "image/apng", "*/*", NULL };
+    // Investigate flags
+    HINTERNET hRequest = HttpOpenRequestA(hConnection, "GET", resource, "HTTP/1.1", NULL, acceptTypes,
+                                          INTERNET_FLAG_KEEP_CONNECTION | INTERNET_FLAG_SECURE, INTERNET_NO_CALLBACK);
+    if (hRequest == NULL)
     {
-        unsigned long size = 1024;
-        char* buf = (char*)calloc(size, sizeof(char));
+        PrintConsole("HttpOpenRequest() failed: " + std::to_string(GetLastError()) + "\n");
+        InternetCloseHandle(hConnection);
+        InternetCloseHandle(hInternet);
+
+        return 3;
+    }
+
+    // lpszHeaders: "host: en.wikipedia.org" or NULL
+    BOOL bResult;
+    bResult = HttpSendRequestA(hRequest, NULL, 0, NULL, 0);
+    if (bResult != TRUE)
+    {
+        PrintConsole("HttpSendRequest() failed: " + std::to_string(GetLastError()) + "\n");
+        InternetCloseHandle(hRequest);
+        InternetCloseHandle(hConnection);
+        InternetCloseHandle(hInternet);
+
+        return 4;
+    }
+
+    unsigned long totalBytesRead = 0;
+    bool bContinue = true;
+
+    FILE* outputFile = nullptr;
+    fopen_s(&outputFile, outputFilename, "w");
+    if (outputFile == nullptr)
+    {
+        PrintConsole("Failed to open: " + std::string(outputFilename) + "\n");
+        InternetCloseHandle(hRequest);
+        InternetCloseHandle(hConnection);
+        InternetCloseHandle(hInternet);
+
+        return 9;
+    }
+    fclose(outputFile);
+
+    PrintConsole("Bytes available:\n");
+    while (bContinue)
+    {
+        unsigned long bytes = 0;
+        bResult = InternetQueryDataAvailable(hRequest, &bytes, NULL, NULL);
+        if (bResult != TRUE)
+        {
+            PrintConsole("InternetQueryDataAvailable() failed: " + std::to_string(GetLastError()) + "\n");
+            InternetCloseHandle(hRequest);
+            InternetCloseHandle(hConnection);
+            InternetCloseHandle(hInternet);
+
+            return 5;
+        }
+        if (bytes == 0)
+        {
+            bContinue = false;
+            break;
+        }
+        PrintConsole(std::to_string(bytes) + ' ');
+
+
+        unsigned char* buf = (unsigned char*)calloc(bytes, sizeof(unsigned char));
         if (buf == nullptr)
         {
-            MessageBoxA(NULL, std::string("InternetOpenUrl() failed: " + std::to_string(GetLastError())).c_str(), "", MB_OK);
+            PrintConsole("Failed to allocate memory.\n");
+            InternetCloseHandle(hRequest);
             InternetCloseHandle(hConnection);
-            return;
+            InternetCloseHandle(hInternet);
+
+            return 6;
         }
-        unsigned long error_code = 0;
-        InternetGetLastResponseInfoA(&error_code, buf, &size);
 
-        MessageBoxA(NULL, std::string("InternetOpenUrl() failed: " + std::to_string(GetLastError()) + '\n'
-                                        + "Response: " + std::string(buf)).c_str(), "", MB_OK);
-        InternetCloseHandle(hConnection);
-        free(buf);
-        return;
-    }
-
-    unsigned long bytesRead = 0;
-    unsigned long size = 0;
-    unsigned char* buf = (unsigned char*)calloc(size, sizeof(unsigned char));
-    if (buf == nullptr)
-    {
-        InternetCloseHandle(hResource);
-        InternetCloseHandle(hConnection);
-        return;
-    }
-
-    const unsigned long chunkSize = 1024;
-    BOOL rv;
-    do
-    {
-        size = chunkSize;
-        unsigned char* ptr = (unsigned char*)realloc(buf, size * sizeof(unsigned char));
-        if (ptr == nullptr)
+        unsigned long bytesRead;
+        bResult = InternetReadFile(hRequest, buf, bytes, &bytesRead);
+        if (bResult != TRUE)
         {
             free(buf);
-            InternetCloseHandle(hResource);
+            PrintConsole("InternetReadFile() failed: " + std::to_string(GetLastError()) + "\n");
+            InternetCloseHandle(hRequest);
             InternetCloseHandle(hConnection);
-            return;
-        }
-        buf = ptr;
+            InternetCloseHandle(hInternet);
 
-        rv = InternetReadFile(hResource, buf, size, &bytesRead);
-        if (rv == FALSE)
-        {
-            MessageBox(NULL, std::wstring(L"InternetReadFile() failed: " + std::to_string(GetLastError()) + '\n').c_str(), L"", MB_OK);
-
-            InternetCloseHandle(hResource);
-            InternetCloseHandle(hConnection);
-            return;
+            return 7;
         }
 
-        FILE* resourceFile = nullptr;
-        fopen_s(&resourceFile, "index", "w+");
-        if (resourceFile != nullptr)
+        FILE* outputFile = nullptr;
+        fopen_s(&outputFile, outputFilename, "a");
+        if (outputFile == nullptr)
         {
-            for (int i = 0; i < size; i++)
+            free(buf);
+            PrintConsole("Failed to open: " + std::string(outputFilename) + "\n");
+            InternetCloseHandle(hRequest);
+            InternetCloseHandle(hConnection);
+            InternetCloseHandle(hInternet);
+
+            return 8;
+        }
+
+        for (int i = 0; i < bytesRead; i++)
+        {
+            putc(buf[i], outputFile);
+        }
+        fclose(outputFile);
+
+
+        totalBytesRead += bytesRead;
+        free(buf);
+    }
+
+
+    PrintConsole("\nBytes read: " + std::to_string(totalBytesRead) + '\n');
+
+
+    InternetCloseHandle(hRequest);
+    InternetCloseHandle(hConnection);
+    InternetCloseHandle(hInternet);
+    PrintConsole("Success.\n");
+
+    return 0;
+}
+
+int GetThumbnailURL(std::string* URL, const char* inputFilename)
+{
+    FILE* resourceFile = nullptr;
+    fopen_s(&resourceFile, inputFilename, "r");
+    if (resourceFile == nullptr)
+    {
+        PrintConsole("Failed to open: " + std::string(inputFilename) + "\n");
+        return 1;
+    }
+
+    char currentChar;
+    std::string currentWord = "";
+    std::string searchQuery[] = { "PlaylistThumbnail", "\"url\":\"", "maxresdefault.jpg", "\\u0026" };
+    unsigned int count = 0;
+
+    unsigned int currentIndex = 0;
+    unsigned int queryIndex = 0;
+    do
+    {
+        currentChar = getc(resourceFile);
+
+        if (searchQuery[queryIndex] == "maxresdefault.jpg")
+        {
+            if (currentChar == '\"')
             {
-                putc(buf[i], resourceFile);
-            }
+                currentIndex = 0;
+                bool bFound = false;
+                std::string testWord = "";
+                for (int j = 0; j < currentWord.size(); j++)
+                {
+                    if (currentWord[j] == searchQuery[queryIndex][currentIndex])
+                    {
+                        testWord += currentWord[j];
+                        if (testWord == searchQuery[queryIndex])
+                        {
+                            bFound = true;
+                            queryIndex++;
+                            break;
+                        }
+                        else
+                        {
+                            currentIndex++;
+                        }
+                    }
+                    else
+                    {
+                        testWord = "";
+                        currentIndex = 0;
+                    }
+                }
 
-            fclose(resourceFile);
+                if (bFound)
+                {
+                    break;
+                }
+                else
+                {
+                    currentWord = "";
+                    currentIndex = 0;
+                    queryIndex--;
+                }
+            }
+            else
+            {
+                currentWord += currentChar;
+            }
+        }
+        else if (currentChar == searchQuery[queryIndex][currentIndex])
+        {
+            currentWord += currentChar;
+            if (currentWord == searchQuery[queryIndex])
+            {
+                currentWord = "";
+                currentIndex = 0;
+
+                queryIndex++;
+            }
+            else
+            {
+                currentIndex++;
+            }
         }
         else
         {
-            free(buf);
-            MessageBox(NULL, std::wstring(L"Failed to open \"index\"").c_str(), L"", MB_OK);
+            currentWord = "";
+            currentIndex = 0;
+        }
+    } while (currentChar != EOF);
 
-            InternetCloseHandle(hResource);
-            InternetCloseHandle(hConnection);
-            return;
+    fclose(resourceFile);
+
+    ///*
+    std::string target = currentWord;
+    currentWord = "";
+    currentIndex = 0;
+    count = 0;
+    std::string targetCorrect = "";
+    for (int i = 0; i < target.size(); i++)
+    {
+        targetCorrect += target[i];
+        if (target[i] == searchQuery[queryIndex][currentIndex])
+        {
+            currentWord += target[i];
+            if (currentWord == searchQuery[queryIndex])
+            {
+                currentWord = "";
+                currentIndex = 0;
+
+                count++;
+
+                for (int j = 0; j < searchQuery[queryIndex].size(); j++)
+                {
+                    targetCorrect.pop_back();
+                }
+                targetCorrect += '&';
+            }
+            else
+            {
+                currentIndex++;
+            }
+        }
+        else
+        {
+            currentIndex = 0;
+            currentWord = "";
+        }
+    }
+
+    *URL = targetCorrect;
+    PrintConsole("target:\n" + target + "\n\n");
+    PrintConsole("targetCorrect:\n" + targetCorrect + "\n\n");
+    PrintConsole("queryIndex: " + std::to_string(queryIndex) + '\n');
+    PrintConsole("count: " + std::to_string(count) + '\n');
+    //*/
+
+    return 0;
+}
+
+void MyFrame::GetArtwork()
+{
+    FreeConsole();
+    AllocConsole();
+
+    std::string URL = URL_Artwork_Field->textField->GetValue().ToStdString();
+    std::string host = "";
+    std::string resource = "";
+
+    unsigned int cFragment = 0;
+
+    for (int i = 0; i < URL.size(); i++)
+    {
+        if (cFragment == 0)
+        {
+            if (URL[i] == ':')
+            {
+                host = "";
+                i += 2;
+                continue;
+            }
+            else if (URL[i] == '/')
+            {
+                cFragment++;
+            }
+            else
+            {
+                host += URL[i];
+            }
         }
 
+        if (cFragment == 1)
+        {
+            resource += URL[i];
+        }
+    }
 
-    } while(rv == TRUE && bytesRead != 0);
+    PrintConsole("host: " + host + '\n');
+    PrintConsole("resource: " + resource + '\n');
+    PrintConsole("\n");
 
-    free(buf);
-    InternetCloseHandle(hResource);
-    InternetCloseHandle(hConnection);
+    GetResource(host.c_str(), resource.c_str(), "index2.html");
+    std::string thumbnailURL = "";
+    GetThumbnailURL(&thumbnailURL, "index2.html");
+    PrintConsole("\n\n");
+
+
+
+
+    std::wstring albumsDirectory = albumsDir_Field->textField->GetValue().ToStdWstring();
+    std::wstring workingDirectory = workingDir_Field->textField->GetValue().ToStdWstring();
+    std::wstring execName = L"yt-dlp.exe";
+
+    std::wstring artist = artist_Field->textField->GetValue().ToStdWstring();
+    std::wstring albumName = albumName_Field->textField->GetValue().ToStdWstring();
+    std::wstring albumYear = albumYear_Field->textField->GetValue().ToStdWstring();
+
+
+    // TODO:
+    // -tracks field buffer width checking to avoid title wrapping
+
+
+
+    std::wstring albumsDirBackslashes = L"";
+    for (int i = 0; i < albumsDirectory.size(); i++)
+    {
+        if (albumsDirectory[i] != '/')
+        {
+            albumsDirBackslashes += albumsDirectory[i];
+        }
+        else if (!(i == albumsDirectory.size() - 1 && albumsDirectory[i] == '/'))
+        {
+            albumsDirBackslashes += L"\\";
+        }
+    }
+
+    std::wstring albumPathBackslashes = albumsDirBackslashes + L"\\" + artist + L" - " + albumName + L" (" + albumYear + L")";
+
+    std::wstring workingDirBackslashes = L"";
+    for (int i = 0; i < workingDirectory.size(); i++)
+    {
+        if (workingDirectory[i] != '/')
+        {
+            workingDirBackslashes += workingDirectory[i];
+        }
+        else if (!(i == workingDirectory.size() - 1 && workingDirectory[i] == '/'))
+        {
+            workingDirBackslashes += L"\\";
+        }
+    }
+
+    std::wstring output = L"";
+    unsigned long charsWritten;
+
+
+    // DOWNLOAD
+    ///*
+    {
+        FreeConsole();
+        AllocConsole();
+
+        std::wstring args = L"";
+        args += L"-o \"" + workingDirectory + L"artwork.png\" \"" + thumbnailURL + "\"";
+
+        std::wstring fullCommand = L""; fullCommand += workingDirectory + execName + ' ' + args;
+        output = fullCommand + L"\n\n";
+        WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+
+
+        unsigned long bufSize = fullCommand.size() + 1;
+        wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
+        for (int i = 0; i < bufSize - 1; i++)
+        {
+            buf[i] = fullCommand[i];
+        }
+        buf[bufSize - 1] = '\0';
+
+
+        STARTUPINFO startupinfo = { };
+        PROCESS_INFORMATION process_information = { };
+        BOOL rv = CreateProcess(NULL, (wchar_t*)buf, NULL, NULL, true, STARTF_USESTDHANDLES, NULL, NULL, &startupinfo, &process_information);
+        unsigned long exit_code;
+        do
+        {
+            Update();
+            GetExitCodeProcess(process_information.hProcess, &exit_code);
+        } while (exit_code == STILL_ACTIVE);
+
+        output = L"\n\n" + std::to_wstring(rv) + L", " + std::to_wstring(exit_code) + L", " + std::to_wstring(GetLastError()) + L"\n";
+
+
+        free(buf);
+        CloseHandle(startupinfo.hStdInput);
+        CloseHandle(startupinfo.hStdOutput);
+        CloseHandle(startupinfo.hStdError);
+        CloseHandle(process_information.hProcess);
+        CloseHandle(process_information.hThread);
+
+        SetStatusText("Finished DOWNLOAD ARTWORK stage, exit_code: " + std::to_string(exit_code));
+        WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+        //FreeConsole();
+    }
+    //*/
 }
