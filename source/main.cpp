@@ -14,7 +14,7 @@
 // IDs for menu items except lib-predefined
 enum
 {
-    ID_Hello = 1,
+    ID_Save = 1,
     ID_albumsDir_Field,
     ID_workingDir_Field,
     ID_artist_Field,
@@ -102,7 +102,7 @@ private:
 private:
     void OnButtonPress(wxCommandEvent& event);
     
-    void OnHello(wxCommandEvent& event);
+    void OnSave(wxCommandEvent& event);
     void OnExit(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
 
@@ -148,20 +148,20 @@ bool MyApp::OnInit()
 
     MyFrame* frame = new MyFrame();
     frame->SetClientSize(ClientWidth, ClientHeight);
-    frame->SetPosition(wxPoint(650, 20));
+    frame->SetPosition(wxPoint(1020, 20));
     frame->Show(true);
     return true;
 }
 
 
-MyFrame::MyFrame() : wxFrame(NULL, ID_Frame, "Main window")
+MyFrame::MyFrame() : wxFrame(NULL, ID_Frame, "Script manager")
 {
     // File:
     //      Hello
     wxMenu* menuFile = new wxMenu;
     // Characters preceded by an ampersand in menu item text are the mnemonic underlined-in-alt-mode acces-keys for these menu items
     // The \tShortcut specify the item shortcuts
-    menuFile->Append(ID_Hello, "&Hello...\tCtrl+H", "Status bar text for \"Hello\"");
+    menuFile->Append(ID_Save, "&Save directories\tCtrl+S", "Save Albums directory & Working directory");
     menuFile->AppendSeparator();
     //      Exit
     menuFile->Append(wxID_EXIT, "&Exit\tEsc");
@@ -187,28 +187,28 @@ MyFrame::MyFrame() : wxFrame(NULL, ID_Frame, "Main window")
     wxPanel* mainPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 2621440L, "Main Panel");
 
 
-    albumsDir_Field = new TextBox("Albums directory", ID_albumsDir_Field,
+    albumsDir_Field = new TextBox("Albums directory:", ID_albumsDir_Field,
                                   wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel);
-    workingDir_Field = new TextBox("Working directory", ID_workingDir_Field,
+    workingDir_Field = new TextBox("Working directory:", ID_workingDir_Field,
                                   wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel);
 
     mainOffset.y += TextBoxSize.y + fieldBetweenSpace.y;
-    artist_Field = new TextBox("Artist", ID_artist_Field,
+    artist_Field = new TextBox("Artist:", ID_artist_Field,
                                    wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel);
-    albumName_Field = new TextBox("Album name", ID_albumName_Field,
+    albumName_Field = new TextBox("Album name:", ID_albumName_Field,
                                wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel);
-    albumYear_Field = new TextBox("Album year", ID_albumYear_Field,
+    albumYear_Field = new TextBox("Album year:", ID_albumYear_Field,
                                   wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel);
 
 
-    tracks_Field = new TextBox("Track titles (auto-filled)", ID_tracks_Field,
+    tracks_Field = new TextBox("Track titles (auto-filled):", ID_tracks_Field,
                                wxPoint(mainOffset.x, mainOffset.y), LargeBoxSize, mainPanel, true);
     tracks_Field->textField->Disable();
 
-    URL_Field = new TextBox("Playlist URL", ID_URL_Field,
+    URL_Field = new TextBox("Playlist URL:", ID_URL_Field,
                             wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel);
 
-    URL_Artwork_Field = new TextBox("Playlist URL with proper artwork", ID_URL_Artwork_Field,
+    URL_Artwork_Field = new TextBox("Playlist URL with proper artwork:", ID_URL_Artwork_Field,
                                     wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel);
 
 
@@ -225,7 +225,7 @@ MyFrame::MyFrame() : wxFrame(NULL, ID_Frame, "Main window")
     Bind(wxEVT_BUTTON, &MyFrame::OnButtonPress, this, ID_Button);
 
     
-    Bind(wxEVT_MENU, &MyFrame::OnHello, this, ID_Hello);
+    Bind(wxEVT_MENU, &MyFrame::OnSave, this, ID_Save);
     Bind(wxEVT_MENU, &MyFrame::OnAbout, this, wxID_ABOUT);
     Bind(wxEVT_MENU, &MyFrame::OnExit, this, wxID_EXIT);
     Bind(wxEVT_CLOSE_WINDOW, &MyFrame::OnClose, this);
@@ -236,13 +236,13 @@ MyFrame::MyFrame() : wxFrame(NULL, ID_Frame, "Main window")
 
     OpenSettings();
 
-    ///*
+    /*
     artist_Field->textField->SetValue("Big Black");
     albumName_Field->textField->SetValue("Lungs");
     albumYear_Field->textField->SetValue("1982");
     URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_lSCRmY_Qw8RCNnMKHcp05O1K8fAIyqLjs");
     URL_Artwork_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_lSCRmY_Qw8RCNnMKHcp05O1K8fAIyqLjs");
-    //*/
+    */
 
     artist_Field->textField->SetFocus();
 }
@@ -331,12 +331,13 @@ void MyFrame::OnExit(wxCommandEvent& event)
 
 void MyFrame::OnAbout(wxCommandEvent& event)
 {
-    wxMessageBox("This program does nothing.", "About", wxOK | wxICON_INFORMATION);
+    wxMessageBox("This program runs a series of youtube-dl (yt-dlp) scripts to download an album and moves it into given directory.", "About", wxOK | wxICON_INFORMATION);
 }
 
-void MyFrame::OnHello(wxCommandEvent& event)
+void MyFrame::OnSave(wxCommandEvent& event)
 {
-    wxLogMessage("Hello world!");
+    SaveSettings();
+    wxMessageBox("Directories have been saved.", "Script manager", wxOK | wxICON_NONE);
 }
 
 void MyFrame::OnButtonPress(wxCommandEvent& event)
@@ -376,9 +377,7 @@ void MyFrame::OnButtonPress(wxCommandEvent& event)
 void MyFrame::RunScript()
 {
     // TODO:
-    // -check for slash at end in paths and add the slash if needed
     // -updating not only screen but events during console process execution
-    // -global vector for tracks to avoid wrapping consequences
 
 
 
@@ -861,9 +860,12 @@ void MyFrame::RunScript()
 
 
     URL_Field->textField->SetValue("");
+    URL_Artwork_Field->textField->SetValue("");
     artist_Field->textField->SetValue("");
     albumName_Field->textField->SetValue("");
     albumYear_Field->textField->SetValue("");
+
+    artist_Field->textField->SetFocus();
     
     SetStatusText("Done");
     if (checkAlert->GetValue() == true) MessageBoxA(NULL, "Script has finished.", "Done", MB_OK);
