@@ -299,7 +299,7 @@ void MyFrame::OpenSettings()
             alertDone,
             none
         };
-        value_ID id = albumsDir;
+        unsigned int id = albumsDir;
         char currentChar;
         do
         {
@@ -312,35 +312,22 @@ void MyFrame::OpenSettings()
             {
                 if (currentWord.size() > 0)
                 {
-                    switch (id)
+                    if (id == albumsDir) albumsDir_Field->textField->SetValue(currentWord);
+                    if (id == workingDir) workingDir_Field->textField->SetValue(currentWord);
+                    if (id == windowX) SetPosition(wxPoint(std::stoi(currentWord), GetPosition().y));
+                    if (id == windowY) SetPosition(wxPoint(GetPosition().x, std::stoi(currentWord)));
+                    if (id == alertDone)
                     {
-                        case albumsDir:
-                            albumsDir_Field->textField->SetValue(currentWord);
-                            id = workingDir;
-                            break;
-                        case workingDir:
-                            workingDir_Field->textField->SetValue(currentWord);
-                            id = windowX;
-                            break;
-                        case windowX:
-                            SetPosition(wxPoint(std::stoi(currentWord), GetPosition().y));
-                            id = windowY;
-                            break;
-                        case windowY:
-                            SetPosition(wxPoint(GetPosition().x, std::stoi(currentWord)));
-                            id = alertDone;
-                            break;
-                        case alertDone:
-                            if (currentWord == "0") checkAlert->SetValue(false);
-                            if (currentWord == "1") checkAlert->SetValue(true);
-                            id = none;
-                            break;
+                        if (currentWord == "0") checkAlert->SetValue(false);
+                        if (currentWord == "1") checkAlert->SetValue(true);
                     }
                 }
+
                 currentWord = "";
+                id++;
             }
 
-            SetStatusText("Directory settings have beed loaded");
+            SetStatusText("Settings have beed loaded");
         } while (currentChar != EOF);
 
 
@@ -348,7 +335,7 @@ void MyFrame::OpenSettings()
     }
     else
     {
-        SetStatusText("Cannot load directory settings");
+        SetStatusText("Settings file not found");
     }
 }
 
@@ -372,7 +359,7 @@ void MyFrame::SaveSettings()
 
 
     fclose(settingsFile);
-    SetStatusText("Settings have been saved on hard drive");
+    SetStatusText("Settings have been saved");
 }
 
 void MyFrame::OnClose(wxCloseEvent& event)
