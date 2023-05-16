@@ -341,7 +341,6 @@ void MyFrame::OnHello(wxCommandEvent& event)
 
 void MyFrame::OnButtonPress(wxCommandEvent& event)
 {
-
     URL = URL_Field->textField->GetValue().ToStdWstring();
 
     albumsDirectory = albumsDir_Field->textField->GetValue().ToStdWstring();
@@ -368,6 +367,7 @@ void MyFrame::OnButtonPress(wxCommandEvent& event)
         workingDir_Field->textField->SetValue(workingDirectory);
     }
 
+    trackTitles.clear();
     artworkFilename = L"artwork.png";
 
     RunScript();
@@ -573,6 +573,7 @@ void MyFrame::RunScript()
     }
     //*/
 
+    ResetTracksFile();
     // DOWNLOAD TITLES
     ///*
     {
@@ -619,6 +620,7 @@ void MyFrame::RunScript()
     //*/
 
     LoadTrackTitles();
+    ResetTracksFile();
 
     // RENAME
     ///*
@@ -690,7 +692,7 @@ void MyFrame::RunScript()
     
     // DOWNLOAD ARTWORK
     GetArtwork();
-    // ATTACK ARTWORK
+    // ATTACH ARTWORK
     AllocConsole();
     for (int i = 0; i < trackTitles.size(); i++)
     {
@@ -752,7 +754,7 @@ void MyFrame::RunScript()
     }
     //*/
 
-    // MOVE
+    // MOVE AUDIO FILES
     ///*
     {
         AllocConsole();
@@ -804,7 +806,7 @@ void MyFrame::RunScript()
 
         FreeConsole();
     }
-    // ARTWORK
+    // MOVE ARTWORK
     {
         AllocConsole();
 
@@ -911,8 +913,6 @@ void MyFrame::LoadTrackTitles()
     {
         SetStatusText("Failed to load track titles from file");
     }
-
-    ResetTracksFile();
 }
 
 
@@ -1997,5 +1997,20 @@ int unsynchroTest()
 
 void MyFrame::AttachArtwork(std::wstring audioFile, std::wstring artworkFile)
 {
-    writeArtwork((const char*)audioFile.c_str(), (const char*)artworkFile.c_str());
+    static unsigned int index = 1;
+
+    artworkFile = workingDirectory + artworkFile;
+
+    std::string audioFileStr = "";
+    std::string artworkFileStr = "";
+    for (int i = 0; i < audioFile.size(); i++) audioFileStr += (unsigned char)audioFile[i];
+    for (int i = 0; i < artworkFile.size(); i++) artworkFileStr += (unsigned char)artworkFile[i];
+
+    PrintConsole(std::to_string(index) + ": " + audioFileStr.c_str() + "\n");
+    PrintConsole(std::to_string(index) + ": " + artworkFileStr.c_str() + "\n\n");
+
+    writeArtwork(audioFileStr.c_str(), artworkFileStr.c_str());
+
+    PrintConsole("---------------------------\n");
+    index++;
 }
