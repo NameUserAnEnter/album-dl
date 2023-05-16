@@ -40,7 +40,44 @@ wxSize ButtonSize(100, 25);
 RECT labelOffset;
 
 
+double power(double base, unsigned int exponent)
+{
+    double return_value = 0;
+    if (base != 0)
+    {
+        return_value = 1;
+    }
+    for (int i = 0; i < exponent; i++)
+    {
+        return_value *= base;
+    }
+    return return_value;
+}
 
+std::string NumToStr(unsigned int num, unsigned int base = 10, unsigned int min_digits = 1)
+{
+    std::string str = "";
+
+    unsigned int count_digits = 0;
+    while (power(base, count_digits) <= num) count_digits++;
+
+    unsigned int size = count_digits;
+    if (size < min_digits) size = min_digits;
+
+    for (int i = 0; i < size - count_digits; i++) str += '0';
+    for (int i = count_digits - 1; i >= 0; i--)
+    {
+        // 5248 % 10 = 8 -> 8 / 1 = 8
+        // 5248 % 100 = 48 -> 48 / 10 = 4
+        // 5248 % 1000 = 248 -> 248 / 100 = 2
+        // 5248 % 10000 = 5248 -> 5248 / 1000 = 5
+        unsigned int digit = (num % (unsigned int)power(base, i + 1)) / power(base, i);
+
+        if (digit < 10) str += (unsigned char)((unsigned int)'0' + digit);
+        else str += (unsigned char)((unsigned int)'A' + (digit - 10));
+    }
+    return str;
+}
 
 class TextBox
 {
@@ -107,10 +144,10 @@ private:
     void OnAbout(wxCommandEvent& event);
 
     void OnClose(wxCloseEvent& event);
-
+public:
     void SaveSettings();
     void OpenSettings();
-
+private:
     void LoadTrackTitles();
     void RunScript();
     void ResetTracksFile();
@@ -149,6 +186,7 @@ bool MyApp::OnInit()
     MyFrame* frame = new MyFrame();
     frame->SetClientSize(ClientWidth, ClientHeight);
     frame->SetPosition(wxPoint(1020, 20));
+    frame->OpenSettings();
     frame->Show(true);
     return true;
 }
@@ -161,7 +199,7 @@ MyFrame::MyFrame() : wxFrame(NULL, ID_Frame, "Script manager")
     wxMenu* menuFile = new wxMenu;
     // Characters preceded by an ampersand in menu item text are the mnemonic underlined-in-alt-mode acces-keys for these menu items
     // The \tShortcut specify the item shortcuts
-    menuFile->Append(ID_Save, "&Save directories\tCtrl+S", "Save Albums directory & Working directory");
+    menuFile->Append(ID_Save, "&Save settings\tCtrl+S", "Save Albums directory, Working directory, window position & alert check box");
     menuFile->AppendSeparator();
     //      Exit
     menuFile->Append(wxID_EXIT, "&Exit\tEsc");
@@ -234,8 +272,6 @@ MyFrame::MyFrame() : wxFrame(NULL, ID_Frame, "Script manager")
     ClientWidth = mainOffset.x + TextBoxSize.x + mainOffset.x;
     ClientHeight = mainOffset.y;
 
-    OpenSettings();
-
     /*
     artist_Field->textField->SetValue("Big Black");
     albumName_Field->textField->SetValue("Lungs");
@@ -258,6 +294,9 @@ void MyFrame::OpenSettings()
         enum value_ID {
             albumsDir = 1,
             workingDir,
+            windowX,
+            windowY,
+            alertDone,
             none
         };
         value_ID id = albumsDir;
@@ -271,16 +310,32 @@ void MyFrame::OpenSettings()
             }
             else
             {
-                switch (id)
+                if (currentWord.size() > 0)
                 {
-                    case albumsDir:
-                        albumsDir_Field->textField->SetValue(currentWord);
-                        id = workingDir;
-                        break;
-                    case workingDir:
-                        workingDir_Field->textField->SetValue(currentWord);
-                        id = none;
-                        break;
+                    switch (id)
+                    {
+                        case albumsDir:
+                            albumsDir_Field->textField->SetValue(currentWord);
+                            id = workingDir;
+                            break;
+                        case workingDir:
+                            workingDir_Field->textField->SetValue(currentWord);
+                            id = windowX;
+                            break;
+                        case windowX:
+                            SetPosition(wxPoint(std::stoi(currentWord), GetPosition().y));
+                            id = windowY;
+                            break;
+                        case windowY:
+                            SetPosition(wxPoint(GetPosition().x, std::stoi(currentWord)));
+                            id = alertDone;
+                            break;
+                        case alertDone:
+                            if (currentWord == "0") checkAlert->SetValue(false);
+                            if (currentWord == "1") checkAlert->SetValue(true);
+                            id = none;
+                            break;
+                    }
                 }
                 currentWord = "";
             }
@@ -302,24 +357,27 @@ void MyFrame::SaveSettings()
     FILE* settingsFile = nullptr;
     std::string path = "settings";
     fopen_s(&settingsFile, path.c_str(), "w");
-    if (settingsFile != nullptr)
+    if (settingsFile == nullptr)
     {
-        fputs(albumsDir_Field->textField->GetValue().c_str(), settingsFile); fputc('\n', settingsFile);
-        fputs(workingDir_Field->textField->GetValue().c_str(), settingsFile); fputc('\n', settingsFile);
+        SetStatusText("Cannot save settings");
+        return;
+    }
+    fputs(albumsDir_Field->textField->GetValue().c_str(), settingsFile); fputc('\n', settingsFile);
+    fputs(workingDir_Field->textField->GetValue().c_str(), settingsFile); fputc('\n', settingsFile);
+    fputs(NumToStr(GetPosition().x).c_str(), settingsFile); fputc('\n', settingsFile);
+    fputs(NumToStr(GetPosition().y).c_str(), settingsFile); fputc('\n', settingsFile);
+
+    if (checkAlert->GetValue() == true) fputc((unsigned char)'1', settingsFile);
+    else fputc((unsigned char)'0', settingsFile);
 
 
-        fclose(settingsFile);
-        SetStatusText("Directory settings have been saved");
-    }
-    else
-    {
-        SetStatusText("Cannot save directory settings");
-    }
+    fclose(settingsFile);
+    SetStatusText("Settings have been saved on hard drive");
 }
 
 void MyFrame::OnClose(wxCloseEvent& event)
 {
-    SaveSettings();
+    //SaveSettings();
     
     Destroy();
 }
@@ -331,13 +389,31 @@ void MyFrame::OnExit(wxCommandEvent& event)
 
 void MyFrame::OnAbout(wxCommandEvent& event)
 {
-    wxMessageBox("This program runs a series of youtube-dl (yt-dlp) scripts to download an album and moves it into given directory.", "About", wxOK | wxICON_INFORMATION);
+    wxMessageBox(std::string("\n\nThis program runs a series of youtube-dl (yt-dlp) scripts to download an album and then moves it into given directory.\n") +
+                 std::string("\nWorking directory requires the following files:\n") +
+                 std::string("    -yt-dlp.exe\n") + 
+                 std::string("    -ffmpeg.exe\n") +
+                 std::string("    -config.txt\n") +
+                 std::string("    -cookies.txt (optional)\n") +
+                 std::string("In case of age-restricted URL use youtube cookies dump in cookies.txt\n") +
+                 std::string("... uncomment (delete the prepended hash '#' character from the --cookies line\n\n\n") +
+                 std::string("Script stages after pressing \"Run script\":\n") +
+                 std::string("1) downloading best audio quality .mp4's\n") +
+                 std::string("2) converting into .mp3's\n") +
+                 std::string("3) removing .mp4's\n") +
+                 std::string("4) getting titles\n") +
+                 std::string("5) renaming the .mp3's\n") +
+                 std::string("6) downloading the artwork\n") +
+                 std::string("7) attaching the artwork.png to .mp3's metadata\n") +
+                 std::string("8) creating the album subfolder in albums directory\n") +
+                 std::string("9) moving .mp3's there\n") +
+                 std::string("10) moving the .png there\n"), "About", wxOK | wxICON_INFORMATION);
 }
 
 void MyFrame::OnSave(wxCommandEvent& event)
 {
     SaveSettings();
-    wxMessageBox("Directories have been saved.", "Script manager", wxOK | wxICON_NONE);
+    wxMessageBox("Settings have been saved.", "Script manager", wxOK | wxICON_NONE);
 }
 
 void MyFrame::OnButtonPress(wxCommandEvent& event)
@@ -1374,19 +1450,6 @@ void MyFrame::GetArtwork()
 
 
 
-double power(double base, unsigned int exponent)
-{
-    double return_value = 0;
-    if (base != 0)
-    {
-        return_value = 1;
-    }
-    for (int i = 0; i < exponent; i++)
-    {
-        return_value *= base;
-    }
-    return return_value;
-}
 
 unsigned int fromSynchsafe(unsigned char synchsafe[4])
 {
@@ -1406,30 +1469,7 @@ void toSynchsafe(unsigned int data, unsigned char* ptr)
     }
 }
 
-std::string NumToStr(unsigned int num, unsigned int base = 10, unsigned int min_digits = 1)
-{
-    std::string str = "";
 
-    unsigned int count_digits = 0;
-    while (power(base, count_digits) <= num) count_digits++;
-
-    unsigned int size = count_digits;
-    if (size < min_digits) size = min_digits;
-
-    for (int i = 0; i < size - count_digits; i++) str += '0';
-    for (int i = count_digits - 1; i >= 0; i--)
-    {
-        // 5248 % 10 = 8 -> 8 / 1 = 8
-        // 5248 % 100 = 48 -> 48 / 10 = 4
-        // 5248 % 1000 = 248 -> 248 / 100 = 2
-        // 5248 % 10000 = 5248 -> 5248 / 1000 = 5
-        unsigned int digit = (num % (unsigned int)power(base, i + 1)) / power(base, i);
-
-        if (digit < 10) str += (unsigned char)((unsigned int)'0' + digit);
-        else str += (unsigned char)((unsigned int)'A' + (digit - 10));
-    }
-    return str;
-}
 
 std::string HexToStr(unsigned int hex, unsigned int digits = 2)
 {
