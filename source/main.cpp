@@ -382,8 +382,8 @@ void MyFrame::OnAbout(wxCommandEvent& event)
                  std::string("    -ffmpeg.exe\n") +
                  std::string("    -config.txt\n") +
                  std::string("    -cookies.txt (optional)\n") +
-                 std::string("In case of age-restricted URL use youtube cookies dump in cookies.txt\n") +
-                 std::string("... uncomment (delete the prepended hash '#' character from the --cookies line\n\n\n") +
+                 std::string("in case of age-restricted URL use youtube cookies dump in cookies.txt\n") +
+                 std::string("... (delete the prepended hash '#' character from the --cookies line in config.txt and save it)\n\n\n") +
                  std::string("Script stages after pressing \"Run script\":\n") +
                  std::string("1) downloading best audio quality .mp4's\n") +
                  std::string("2) converting into .mp3's\n") +
@@ -584,6 +584,57 @@ void MyFrame::RunScript()
     // REMOVE
     ///*
     {
+        // CREATE TRASH SUBFOLDER IN CASE IT DOES NOT EXIST
+        {
+            AllocConsole();
+
+            std::wstring cmd = L"cmd /c \"MKDIR \"" + workingDirBackslashes + L"\\Trash" + L"\"\"";
+
+            output = cmd + L"\n\n";
+            WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+
+            unsigned int bufSize = cmd.size() + 1;
+            wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
+            for (int i = 0; i < bufSize - 1; i++)
+            {
+                buf[i] = cmd[i];
+            }
+            buf[bufSize - 1] = '\0';
+
+
+            STARTUPINFO startupinfo = { };
+            PROCESS_INFORMATION process_information = { };
+            BOOL rv = CreateProcess(NULL, (wchar_t*)buf, NULL, NULL, true, STARTF_USESTDHANDLES, NULL, NULL, &startupinfo, &process_information);
+            unsigned long exit_code;
+            do
+            {
+                Update();
+                GetExitCodeProcess(process_information.hProcess, &exit_code);
+            } while (exit_code == STILL_ACTIVE);
+
+            if (rv != 0)
+            {
+                output += L"\n\nSuccess, exit_code: " + std::to_string(exit_code);
+            }
+            else
+            {
+                output += L"Failure, GetLastError() returned: " + std::to_string(GetLastError());
+            }
+            output += '\n';
+
+
+
+            free(buf);
+            CloseHandle(startupinfo.hStdInput);
+            CloseHandle(startupinfo.hStdOutput);
+            CloseHandle(startupinfo.hStdError);
+            CloseHandle(process_information.hProcess);
+            CloseHandle(process_information.hThread);
+
+            SetStatusText("Finished CREATE TRASH SUBFOLDER stage, exit_code: " + std::to_string(exit_code));
+            FreeConsole();
+        }
+
         AllocConsole();
 
 
