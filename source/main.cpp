@@ -156,6 +156,7 @@ private:
     void AttachArtwork(std::wstring, std::wstring);
 private:
     std::wstring URL;
+    std::wstring artworkURL;
 
     std::wstring albumsDirectory;
     std::wstring workingDirectory;
@@ -403,9 +404,61 @@ void MyFrame::OnSave(wxCommandEvent& event)
     wxMessageBox("Settings have been saved.", "Script manager", wxOK | wxICON_NONE);
 }
 
+bool validField(std::wstring data)
+{
+    for (int i = 0; i < data.size(); i++)
+    {
+        if ((unsigned char)data[i] >= (unsigned char)32 && (unsigned char)data[i] <= (unsigned char)126)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool findInStr(std::wstring data, std::wstring query)
+{
+    unsigned int index = 0;
+    for (int i = 0; i < data.size(); i++)
+    {
+        if (data[i] == query[index])
+        {
+            index++;
+            if (index == query.size())
+            {
+                return true;
+            }
+        }
+        else
+        {
+            index = 0;
+        }
+    }
+    //wxMessageBox(data + "\n" + query);
+    return false;
+}
+
+bool validField(std::wstring data, std::wstring mandatoryFragment)
+{
+    if (!validField(data)) return false;
+    if (!findInStr(data, mandatoryFragment)) return false;
+    return true;
+}
+
+bool validField(std::wstring data, std::vector<std::wstring> allPossibleMandatoryFragments)
+{
+    if (!validField(data)) return false;
+    for (int i = 0; i < allPossibleMandatoryFragments.size(); i++)
+    {
+        if (findInStr(data, allPossibleMandatoryFragments[i])) return true;
+    }
+    return false;
+}
+
 void MyFrame::OnButtonPress(wxCommandEvent& event)
 {
     URL = URL_Field->textField->GetValue().ToStdWstring();
+    artworkURL = URL_Artwork_Field->textField->GetValue().ToStdWstring();
 
     albumsDirectory = albumsDir_Field->textField->GetValue().ToStdWstring();
     workingDirectory = workingDir_Field->textField->GetValue().ToStdWstring();
@@ -416,8 +469,56 @@ void MyFrame::OnButtonPress(wxCommandEvent& event)
     albumName = albumName_Field->textField->GetValue().ToStdWstring();
     albumYear = albumYear_Field->textField->GetValue().ToStdWstring();
 
-    if (albumsDirectory.size() - 1 < 0) return;
-    if (workingDirectory.size() - 1 < 0) return;
+
+    if (!validField(albumsDirectory))
+    {
+        wxMessageBox("Albums directory invalid.", "Error", wxOK | wxICON_ERROR);
+        return;
+    }
+    if (!validField(workingDirectory))
+    {
+        wxMessageBox("Working directory invalid.", "Error", wxOK | wxICON_ERROR);
+        return;
+    }
+
+
+
+    std::vector<std::wstring> validPlaylistURLs = {
+        L"https://youtube.com/", L"https://www.youtube.com/", L"http://youtube.com/", L"http://www.youtube.com/"
+    };
+    if (!validField(URL, validPlaylistURLs))
+    {
+        std::wstring output = L"Playlist URL invalid.\n\nRequires either of:";
+        for (int i = 0; i < validPlaylistURLs.size(); i++)
+        {
+            output += L"\n" + validPlaylistURLs[i];
+        }
+        wxMessageBox(output, "Error", wxOK | wxICON_ERROR);
+        return;
+    }
+
+    std::vector<std::wstring> validArtworkURLs = {
+        L"https://youtube.com/playlist?", L"https://www.youtube.com/playlist?", L"http://youtube.com/playlist?", L"http://www.youtube.com/playlist?"
+    };
+    if (!validField(artworkURL, validArtworkURLs))
+    {
+        if (!validField(URL, validArtworkURLs))
+        {
+            std::wstring output = L"Artwork Playlist URL invalid.\n\nRequires either of:";
+            for (int i = 0; i < validArtworkURLs.size(); i++)
+            {
+                output += L"\n" + validArtworkURLs[i];
+            }
+            wxMessageBox(output, "Error", wxOK | wxICON_ERROR);
+            return;
+        }
+        else
+        {
+            SetStatusText("Copying Playlist URL as Artwork Playlist URL");
+            URL_Artwork_Field->textField->SetValue(URL);
+            artworkURL = URL;
+        }
+    }
 
     if (albumsDirectory[albumsDirectory.size() - 1] != '/')
     {
@@ -1194,7 +1295,7 @@ int GetResource(const char* host, const char* resource, const char* outputFilena
     return 0;
 }
 
-int GetThumbnailURL(std::string* URL, const char* inputFilename)
+int GetThumbnailURL(std::string* returnURL, const char* inputFilename)
 {
     FILE* resourceFile = nullptr;
     fopen_s(&resourceFile, inputFilename, "r");
@@ -1322,7 +1423,7 @@ int GetThumbnailURL(std::string* URL, const char* inputFilename)
         }
     }
 
-    *URL = targetCorrect;
+    *returnURL = targetCorrect;
     PrintConsole("target:\n" + target + "\n\n");
     PrintConsole("targetCorrect:\n" + targetCorrect + "\n\n");
     PrintConsole("queryIndex: " + std::to_string(queryIndex) + '\n');
@@ -1342,29 +1443,29 @@ void MyFrame::GetArtwork()
 
     unsigned int cFragment = 0;
 
-    for (int i = 0; i < URL.size(); i++)
+    for (int i = 0; i < artworkURL.size(); i++)
     {
         if (cFragment == 0)
         {
-            if (URL[i] == ':')
+            if (artworkURL[i] == ':')
             {
                 host = "";
                 i += 2;
                 continue;
             }
-            else if (URL[i] == '/')
+            else if (artworkURL[i] == '/')
             {
                 cFragment++;
             }
             else
             {
-                host += URL[i];
+                host += artworkURL[i];
             }
         }
 
         if (cFragment == 1)
         {
-            resource += URL[i];
+            resource += artworkURL[i];
         }
     }
 
