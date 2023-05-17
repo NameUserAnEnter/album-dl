@@ -2087,7 +2087,7 @@ int writeArtwork(const char* audioFilename, const char* artworkFilename, const c
             break;
         }
 
-        if (i == 0 || i % 16 == 0) PrintConsole(": " + HexToStr(i, 8));
+        if (i == 0 || i % 16 == 0) PrintConsole(HexToStr(i, 8) + ": ");
         PrintConsole(HexToStr((unsigned char)newTag[i]));
         if ((i + 1) % 16 == 0) PrintConsole("\n");
         else if (i != newTag.size() - 1) PrintConsole(" ");
