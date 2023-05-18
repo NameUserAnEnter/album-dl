@@ -161,6 +161,9 @@ private:
 
     void GetArtwork();
     void AttachArtwork(std::wstring, std::wstring);
+
+    void ValidateFilesystemString(std::wstring& str);
+    void ValidateTrackTitles();
 private:
     std::wstring URL;
     std::wstring artworkURL;
@@ -502,6 +505,10 @@ void MyFrame::OnButtonPress(wxCommandEvent& event)
     albumName = albumName_Field->textField->GetValue().ToStdWstring();
     albumYear = albumYear_Field->textField->GetValue().ToStdWstring();
 
+    ValidateFilesystemString(artist);
+    ValidateFilesystemString(albumName);
+    ValidateFilesystemString(albumYear);
+
 
     if (!validField(albumsDirectory))
     {
@@ -831,7 +838,7 @@ void MyFrame::GetTitlesStage()
     std::wstring output = L"";
     unsigned long charsWritten;
 
-    ResetTracksFile();
+
 
     std::wstring cmd = L""; cmd += workingDirectory + execName + ' ' + L"-e --print-to-file %(title)s \"tracks\" " + URL;
     output = cmd + L"\n\n";
@@ -1138,10 +1145,11 @@ void MyFrame::RunScript()
     //RemoveLeftoverStage();
 
     // GET TRACK TITLES
-    // ResetTracksFile();
-    // GetTitlesStage();
+    //ResetTracksFile();
+    //GetTitlesStage();
     LoadTrackTitles();
-    // //ResetTracksFile();    // keep this line if GetTitlesStage() is deactivated for testing
+    ValidateTrackTitles();  // Remove unwanted & forbidden characters from the track titles
+    //ResetTracksFile();    // keep this line if GetTitlesStage() is deactivated for testing
     return;
     
     // RENAME
@@ -1174,6 +1182,91 @@ void MyFrame::RunScript()
     SetStatusText("Done");
     if (checkAlert->GetValue() == true) MessageBoxA(NULL, "Script has finished.", "Done", MB_OK);
     FreeConsole();
+}
+
+
+int whereSubStr(std::wstring str, std::wstring query)
+{
+    unsigned int index = 0;
+    for (int i = 0; i < str.size(); i++)
+    {
+        if (str[i] == query[index])
+        {
+            if (index + 1 == query.size())
+            {
+                return i - index;
+            }
+            index++;
+        }
+        else index = 0;
+    }
+    return -1;
+}
+
+void replaceSubStr(std::wstring& str, std::wstring query, std::wstring replacement)
+{
+    int start = whereSubStr(str, query);
+    std::wstring copy = L"";
+    for (int i = 0; i < start; i++)
+    {
+        copy += str[i];
+    }
+    for (int i = 0; i < replacement.size(); i++)
+    {
+        copy += replacement[i];
+    }
+    for (int i = start + query.size(); i < str.size(); i++)
+    {
+        copy += str[i];
+    }
+
+    str = copy;
+}
+
+void replaceAllSubStr(std::wstring& str, std::wstring query, std::wstring replacement)
+{
+    while (whereSubStr(str, query) != -1)
+    {
+        replaceSubStr(str, query, replacement);
+    }
+}
+
+void MyFrame::ValidateFilesystemString(std::wstring& str)
+{
+    // Restricted by system: \ / : * ? " < > |
+    // Restricted by choice: " - ", %
+
+    for (int i = 0; i < str.size(); i++)
+    {
+        if (whereSubStr(str, L"\\") == str.size() - 1) replaceAllSubStr(str, L"\\", L"");
+        else replaceAllSubStr(str, L"\\", L"; ");
+
+        if (whereSubStr(str, L"/") == str.size() - 1) replaceAllSubStr(str, L"/", L"");
+        else replaceAllSubStr(str, L"/", L"; ");
+
+        replaceAllSubStr(str, L":", L";");
+        replaceAllSubStr(str, L"*", L"");
+        replaceAllSubStr(str, L"?", L"");
+        replaceAllSubStr(str, L"\"", L"'");
+        replaceAllSubStr(str, L"<", L"");
+        replaceAllSubStr(str, L">", L"");
+        replaceAllSubStr(str, L"|", L"");
+
+        replaceAllSubStr(str, L" - ", L"; ");
+        //replaceAllSubStr(str, L"\%", L"");
+    }
+}
+
+void MyFrame::ValidateTrackTitles()
+{
+    SetStatusText("Analysing track titles in terms of forbidden & unwanted characters...");
+    for (int i = 0; i < trackTitles.size(); i++) ValidateFilesystemString(trackTitles[i]);
+
+    tracks_Field->textField->Clear();
+    for (int i = 0; i < trackTitles.size(); i++)
+    {
+        tracks_Field->textField->WriteText(trackTitles[i] + (wchar_t)'\n');
+    }
 }
 
 void MyFrame::ResetTracksFile()
