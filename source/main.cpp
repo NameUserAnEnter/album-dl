@@ -101,49 +101,6 @@ void PrintConsole(std::wstring text)
 
 void printHex(std::string, std::string = "");
 
-int GetFileData(const char* filename, std::string* returnData = nullptr)
-{
-    std::string data = "";
-
-    FILE* file;
-    fopen_s(&file, filename, "rb");
-    if (file == nullptr)
-    {
-        PrintConsole("Cannot open: " + std::string(filename) + '\n');
-        return 1;
-    }
-
-    int currentChar;
-    do
-    {
-        currentChar = getc(file);
-        if (currentChar != EOF) data += (unsigned char)currentChar;
-    } while (currentChar != EOF);
-    fclose(file);
-
-    if (returnData != nullptr) *returnData = data;
-    return 0;
-}
-
-int WriteDataToFile(std::string data, const char* filename)
-{
-    FILE* file;
-    fopen_s(&file, filename, "wb");
-    if (file == nullptr)
-    {
-        PrintConsole("Cannot open: " + std::string(filename) + '\n');
-        return 1;
-    }
-
-    for (int i = 0; i < data.size(); i++)
-    {
-        putc((unsigned char)data[i], file);
-    }
-    fclose(file);
-
-    return 0;
-}
-
 std::string EncodeToUTF8(std::wstring str)
 {
     std::string encoded = "";
@@ -171,6 +128,100 @@ std::string EncodeToUTF8(std::wstring str)
         }
     }
     return encoded;
+}
+
+std::wstring DecodeFromUTF8(std::string str)
+{
+    std::wstring decoded = L"";
+    for (int i = 0; i < str.size(); i++)
+    {
+        wchar_t currentChar = str[i];
+        if ((currentChar & 128) == 128 && (currentChar & 64) == 64)
+        {
+            if ((currentChar & 32) == 0 && i + 1 < str.size())
+            {
+                // 2-Byte encoded character
+                // 110xxxxx ...
+                unsigned char Byte[] = { (unsigned char)currentChar & 31, str[i + 1] & 63 };
+                i++;
+
+                // 16-bit decoded character:
+                currentChar = (Byte[1]) + (((unsigned short)Byte[0] << 8) >> 2);
+            }
+            else if ((currentChar & 32) == 32)
+            {
+                if ((currentChar & 16) == 0 && i + 2 < str.size())
+                {
+                    // 3-Byte encoded character
+                    // 1110xxxx ...
+                    unsigned char Byte[] = { (unsigned char)currentChar & 15, str[i + 1] & 63, str[i + 2] & 63 };
+                    i++;
+                    i++;
+
+                    // 16-bit decoded character:
+                    currentChar = (Byte[2]) + (((unsigned short)Byte[1] << 8) >> 2) + (((unsigned int)Byte[0] << 16) >> 4);
+                }
+                else if ((currentChar & 16) == 16 && i + 3 < str.size())
+                {
+                    if ((currentChar & 8) == 0)
+                    {
+                        //4-Byte encoded character
+                        // 11110xxx ...
+                        for (int i = 0; i < 3; i++) i++;
+
+                        // 16-bit substitue character:
+                        currentChar = 'e';
+                    }
+                }
+            }
+        }
+
+        decoded += currentChar;
+    }
+    return decoded;
+}
+
+int GetFileData(const wchar_t* filename, std::string* returnData = nullptr)
+{
+    std::string data = "";
+
+    FILE* file;
+    _wfopen_s(&file, filename, L"rb");
+    if (file == nullptr)
+    {
+        PrintConsole(L"Cannot open: " + std::wstring(filename) + L'\n');
+        return 1;
+    }
+
+    int currentChar;
+    do
+    {
+        currentChar = getc(file);
+        if (currentChar != EOF) data += (unsigned char)currentChar;
+    } while (currentChar != EOF);
+    fclose(file);
+
+    if (returnData != nullptr) *returnData = data;
+    return 0;
+}
+
+int WriteDataToFile(std::string data, const wchar_t* filename)
+{
+    FILE* file;
+    _wfopen_s(&file, filename, L"wb");
+    if (file == nullptr)
+    {
+        PrintConsole(L"Cannot open: " + std::wstring(filename) + L'\n');
+        return 1;
+    }
+
+    for (int i = 0; i < data.size(); i++)
+    {
+        putc((unsigned char)data[i], file);
+    }
+    fclose(file);
+
+    return 0;
 }
 
 
@@ -249,7 +300,7 @@ private:
     void RunScript();
     void ResetTracksFile();
 
-    void AttachArtwork(std::string, std::string);
+    void AttachArtwork(std::wstring, std::wstring);
 
     void ValidateFilesystemString(std::wstring& str);
     void ValidateTrackTitles();
@@ -1145,21 +1196,18 @@ void MyFrame::GetArtworkStage()
 
 void MyFrame::AttachArtworkStage()
 {
-    //SetStatusText("Attaching cover metadata");
-    //PrintConsole("Attaching cover metadata\n");
+    SetStatusText("Attaching cover metadata");
+    PrintConsole("Attaching cover metadata\n");
 
     for (int i = 0; i < trackTitles.size(); i++)
     {
         std::wstring trackFilepath = workingDirectory + std::to_wstring(i + 1) + L". " + artist + L" - " + trackTitles[i] + L".mp3";
-        
-        printHex(EncodeToUTF8(trackTitles[i]));
-        GetFileData(EncodeToUTF8(trackFilepath).c_str());
-        //AttachArtwork(EncodeToUTF8(trackFilepath), EncodeToUTF8(artworkFilename));
+        AttachArtwork(trackFilepath, artworkFilename);
     }
 
-    //SetStatusText("Finished attaching cover metadata");
-    //PrintConsole("Finished ataching cover metadata\n");
-    //PrintConsole(lineSeparator);
+    SetStatusText("Finished attaching cover metadata");
+    PrintConsole("Finished ataching cover metadata\n");
+    PrintConsole(lineSeparator);
 }
 
 void MyFrame::CreateAlbumDirectoryStage()
@@ -1896,7 +1944,7 @@ void toSynchsafe(unsigned int data, unsigned char* ptr)
 
 
 
-int FindTheTag(const char* filename, unsigned int* returnTagStartIndex = nullptr, unsigned int* returnSizeMinusHeader = nullptr,
+int FindTheTag(const wchar_t* filename, unsigned int* returnTagStartIndex = nullptr, unsigned int* returnSizeMinusHeader = nullptr,
                std::string* returnTag = nullptr)
 {
     std::string fileData;
@@ -1949,7 +1997,7 @@ int FindTheTag(const char* filename, unsigned int* returnTagStartIndex = nullptr
     for (int i = 0; i < 10; i++)
     {
         if (i != 0) PrintConsole(" ");
-        PrintConsole(HexToStr((unsigned int)tagHeader[i]));
+        PrintConsole(HexToStr((unsigned char)tagHeader[i]));
     }
 
     unsigned char tagSizeMinusHeaderSynchsafe[4] = { 0, 0, 0, 0 };
@@ -1995,7 +2043,7 @@ int UnsynchroData(std::string data, std::string* returnData)
     return 0;
 }
 
-int ConstructPictureFrame(const char* filename, std::string* returnFrame,
+int ConstructPictureFrame(const wchar_t* filename, std::string* returnFrame,
                           std::string* returnFrameHeader = nullptr,
                           std::string* returnInQuestionData = nullptr,
                           std::string* returnPictureData = nullptr)
@@ -2220,7 +2268,7 @@ int UpdateTagSize(std::string tag, std::string* returnTag)
     return 0;
 }
 
-int ReplaceTag(const char* filename, std::string tag, const char* outputFilename = nullptr)
+int ReplaceTag(const wchar_t* filename, std::string tag, const wchar_t* outputFilename = nullptr)
 {
     std::string fileData;
     if (GetFileData(filename, &fileData)) return 1;
@@ -2252,7 +2300,7 @@ int ReplaceTag(const char* filename, std::string tag, const char* outputFilename
     return 0;
 }
 
-int writeArtwork(const char* audioFilename, const char* artworkFilename, const char* outputAudioFilename = nullptr)
+int writeArtwork(const wchar_t* audioFilename, const wchar_t* artworkFilename, const wchar_t* outputAudioFilename = nullptr)
 {
     unsigned int oldTagSizeMinusHeader, foundAtIndex;
     std::string tag;
@@ -2393,32 +2441,16 @@ void printHex(std::string data, std::string stopQuery)
     }
 }
 
-int unsynchroTest()
-{
-    std::string testData, outputData;
-    if (GetFileData("artwork.png", &testData)) return 1;
-    UnsynchroData(testData, &outputData);
-    WriteDataToFile(outputData, "artwork_output.png");
 
 
-    PrintConsole("Checking outputData...\n");
-    std::string query = "";
-    query += (unsigned char)0xFF;
-    query += (unsigned char)0x00;
-    query += (unsigned char)0x00;
-    printHex(outputData, query);
-
-    return 0;
-}
-
-void MyFrame::AttachArtwork(std::string audioFile, std::string artworkFile)
+void MyFrame::AttachArtwork(std::wstring audioFile, std::wstring artworkFile)
 {
     static unsigned int index = 1;
 
     artworkFile = workingDirectory + artworkFile;
 
-    PrintConsole(std::to_string(index) + ": " + audioFile.c_str() + "\n");
-    PrintConsole(std::to_string(index) + ": " + artworkFile.c_str() + "\n\n");
+    PrintConsole(std::to_wstring(index) + L": " + audioFile.c_str() + L"\n");
+    PrintConsole(std::to_wstring(index) + L": " + artworkFile.c_str() + L"\n\n");
 
     writeArtwork(audioFile.c_str(), artworkFile.c_str());
 
