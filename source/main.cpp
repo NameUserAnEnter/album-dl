@@ -1242,6 +1242,8 @@ void MyFrame::MoveArtworkStage()
 }
 
 
+
+
 void MyFrame::RunScript()
 {
     // TODO:
@@ -1268,10 +1270,11 @@ void MyFrame::RunScript()
     //RenameFilesStage();
 
     // DOWNLOAD ARTWORK
-    GetArtworkStage();
-    return;
+    //GetArtworkStage();
+    
     // ATTACH ARTWORK
     AttachArtworkStage();
+    return;
 
     // CREATE DIRECTORY
     CreateAlbumDirectoryStage();
@@ -1296,6 +1299,9 @@ void MyFrame::RunScript()
     SetStatusText("Done");
     if (checkAlert->GetValue() == true) MessageBoxA(NULL, "Script has finished.", "Done", MB_OK);
 }
+
+
+
 
 
 int whereSubStr(std::wstring str, std::wstring query)
