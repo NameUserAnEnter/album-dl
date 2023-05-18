@@ -159,11 +159,13 @@ private:
     void RunScript();
     void ResetTracksFile();
 
-    void GetArtwork();
     void AttachArtwork(std::wstring, std::wstring);
 
     void ValidateFilesystemString(std::wstring& str);
     void ValidateTrackTitles();
+
+    void SetTracksField();
+    void CreateTrashDir();
 private:
     std::wstring URL;
     std::wstring artworkURL;
@@ -269,9 +271,10 @@ MyFrame::MyFrame() : wxFrame(NULL, ID_Frame, "Script manager")
                                   wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel);
 
 
-    tracks_Field = new TextBox("Track titles (auto-filled):", ID_tracks_Field,
+    tracks_Field = new TextBox("Tracks (auto-filled):", ID_tracks_Field,
                                wxPoint(mainOffset.x, mainOffset.y), LargeBoxSize, mainPanel, true);
-    tracks_Field->textField->Disable();
+    //tracks_Field->textField->Disable();
+    tracks_Field->textField->SetEditable(false);
 
     URL_Field = new TextBox("Playlist URL:", ID_URL_Field,
                             wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel);
@@ -315,6 +318,7 @@ MyFrame::MyFrame() : wxFrame(NULL, ID_Frame, "Script manager")
     albumName_Field->textField->SetValue("Tylko Dla Doros³ych");
     albumYear_Field->textField->SetValue("2010");
     URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=PLIKxxmyVA3HZ5vCNl3b0gQXDhuMWLz-mG");
+    URL_Artwork_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_l6DSlExq2EbVR7ILChbL9ZHn-1SbyKRO8");
     //*/
 
     artist_Field->textField->SetFocus();
@@ -573,6 +577,7 @@ void MyFrame::OnButtonPress(wxCommandEvent& event)
     }
 
     trackTitles.clear();
+    SetTracksField();
     artworkFilename = L"artwork.png";
 
 
@@ -629,6 +634,7 @@ void MyFrame::DownloadStage()
     std::wstring fullCommand = L""; fullCommand += workingDirectory + execName + ' ' + args;
     output = fullCommand + L"\n\n";
     WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+    output = L"";
 
 
     unsigned long bufSize = fullCommand.size() + 1;
@@ -650,7 +656,14 @@ void MyFrame::DownloadStage()
         GetExitCodeProcess(process_information.hProcess, &exit_code);
     } while (exit_code == STILL_ACTIVE);
 
-    output = L"\n" + std::to_wstring(rv) + L", " + std::to_wstring(exit_code) + L", 0x" + HexToStr(GetLastError());
+    if (rv != 0)
+    {
+        output += L"\n\nSuccess (0x" + HexToStr(exit_code) + L")";
+    }
+    else
+    {
+        output += L"\n\nFailure\nGetLastError() returned: 0x" + HexToStr(GetLastError());
+    }
     output += lineSeparator;
     WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
 
@@ -677,6 +690,7 @@ void MyFrame::ConvertStage()
 
     output = cmd + L"\n\n";
     WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+    output = L"";
 
     unsigned int bufSize = cmd.size() + 1;
     wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
@@ -720,7 +734,7 @@ void MyFrame::ConvertStage()
     SetStatusText("Finished converting track files (0x" + HexToStr(exit_code) + ")");
 }
 
-void CreateTrashDir(std::wstring workingDirBackslashes)
+void MyFrame::CreateTrashDir()
 {
     std::wstring output = L"";
     unsigned long charsWritten;
@@ -731,6 +745,7 @@ void CreateTrashDir(std::wstring workingDirBackslashes)
 
     output = cmd + L"\n\n";
     WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+    output = L"";
 
     unsigned int bufSize = cmd.size() + 1;
     wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
@@ -747,7 +762,7 @@ void CreateTrashDir(std::wstring workingDirBackslashes)
     unsigned long exit_code;
     do
     {
-        //Update();
+        Update();
         GetExitCodeProcess(process_information.hProcess, &exit_code);
     } while (exit_code == STILL_ACTIVE);
 
@@ -775,7 +790,7 @@ void CreateTrashDir(std::wstring workingDirBackslashes)
 void MyFrame::RemoveLeftoverStage()
 {
     // Execute mkdir in case /Trash/ doesn't exist
-    CreateTrashDir(workingDirBackslashes);
+    CreateTrashDir();
 
     SetStatusText("Moving leftover files to: " + workingDirectory + "Trash/");
 
@@ -787,6 +802,7 @@ void MyFrame::RemoveLeftoverStage()
 
     output = cmd + L"\n\n";
     WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+    output = L"";
 
     unsigned int bufSize = cmd.size() + 1;
     wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
@@ -843,6 +859,7 @@ void MyFrame::GetTitlesStage()
     std::wstring cmd = L""; cmd += workingDirectory + execName + ' ' + L"-e --print-to-file %(title)s \"tracks\" " + URL;
     output = cmd + L"\n\n";
     WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+    output = L"";
 
 
     unsigned long bufSize = cmd.size() + 1;
@@ -902,6 +919,7 @@ void MyFrame::RenameFilesStage()
 
         output = cmd + L"\n\n";
         WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+        output = L"";
 
         unsigned int bufSize = cmd.size() + 1;
         wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
@@ -972,6 +990,7 @@ void MyFrame::CreateAlbumDirectoryStage()
 
     output = cmd + L"\n\n";
     WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+    output = L"";
 
     unsigned int bufSize = cmd.size() + 1;
     wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
@@ -1028,6 +1047,7 @@ void MyFrame::MoveAudioStage()
 
     output = cmd + L"\n\n";
     WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+    output = L"";
 
     unsigned int bufSize = cmd.size() + 1;
     wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
@@ -1084,6 +1104,7 @@ void MyFrame::MoveArtworkStage()
 
     output = cmd + L"\n\n";
     WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+    output = L"";
 
     unsigned int bufSize = cmd.size() + 1;
     wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
@@ -1136,21 +1157,21 @@ void MyFrame::RunScript()
     AllocConsole();
     
     // DOWNLOAD
-    //DownloadStage();
+    DownloadStage();
+    return;
 
     // CONVERT
-    //ConvertStage();
+    ConvertStage();
 
     // REMOVE LEFTOVER FILES
-    //RemoveLeftoverStage();
+    RemoveLeftoverStage();
 
     // GET TRACK TITLES
-    //ResetTracksFile();
-    //GetTitlesStage();
+    ResetTracksFile();
+    GetTitlesStage();
     LoadTrackTitles();
     ValidateTrackTitles();  // Remove unwanted & forbidden characters from the track titles
-    //ResetTracksFile();    // keep this line if GetTitlesStage() is deactivated for testing
-    return;
+    ResetTracksFile();    // keep this line if GetTitlesStage() is deactivated for testing
     
     // RENAME
     RenameFilesStage();
@@ -1168,6 +1189,7 @@ void MyFrame::RunScript()
     // MOVE ARTWORK
     MoveArtworkStage();
 
+    FreeConsole();
 
     SetStatusText("Resetting");
     // Reset fields & set focus
@@ -1178,10 +1200,9 @@ void MyFrame::RunScript()
     albumYear_Field->textField->SetValue("");
 
     artist_Field->textField->SetFocus();
-    
+
     SetStatusText("Done");
     if (checkAlert->GetValue() == true) MessageBoxA(NULL, "Script has finished.", "Done", MB_OK);
-    FreeConsole();
 }
 
 
@@ -1262,10 +1283,17 @@ void MyFrame::ValidateTrackTitles()
     SetStatusText("Analysing track titles in terms of forbidden & unwanted characters...");
     for (int i = 0; i < trackTitles.size(); i++) ValidateFilesystemString(trackTitles[i]);
 
+    SetTracksField();
+    SetStatusText("Track titles validated");
+}
+
+
+void MyFrame::SetTracksField()
+{
     tracks_Field->textField->Clear();
     for (int i = 0; i < trackTitles.size(); i++)
     {
-        tracks_Field->textField->WriteText(trackTitles[i] + (wchar_t)'\n');
+        tracks_Field->textField->WriteText(NumToStr(i + 1) + L". " + artist + L" - " + trackTitles[i] + (wchar_t)'\n');
     }
 }
 
@@ -1356,8 +1384,8 @@ void MyFrame::LoadTrackTitles()
             {
                 if (currentWord.size() > 0)
                 {
-                    tracks_Field->textField->WriteText(currentWord + (wchar_t)'\n');
                     trackTitles.push_back(currentWord);
+                    SetTracksField();
                 }
                 currentWord = L"";
             }
