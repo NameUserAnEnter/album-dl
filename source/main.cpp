@@ -84,6 +84,20 @@ std::string HexToStr(unsigned int hex, unsigned int digits = 2)
     return NumToStr(hex, 16, digits);
 }
 
+int GetThumbnailURL(std::string* returnURL, const char* inputFilename);
+int GetResource(const char* host, const char* resource, const char* outputFilename);
+
+void PrintConsole(std::string text)
+{
+    unsigned long charsWritten = 0;
+    WriteConsoleA(GetStdHandle(STD_OUTPUT_HANDLE), text.c_str(), text.size(), &charsWritten, NULL);
+}
+
+void PrintConsole(std::wstring text)
+{
+    unsigned long charsWritten = 0;
+    WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), text.c_str(), text.size(), &charsWritten, NULL);
+}
 
 
 class TextBox
@@ -621,9 +635,6 @@ void MyFrame::DownloadStage()
 {
     SetStatusText("Downloading tracks");
 
-    std::wstring output = L"";
-    unsigned long charsWritten;
-
 
 
     std::wstring args = L"";
@@ -632,9 +643,8 @@ void MyFrame::DownloadStage()
     args += L"-o \"" + workingDirectory + L"td8_index%(playlist_index)s.mp4\" " + URL;
 
     std::wstring fullCommand = L""; fullCommand += workingDirectory + execName + ' ' + args;
-    output = fullCommand + L"\n\n";
-    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
-    output = L"";
+    PrintConsole(fullCommand);
+    PrintConsole("\n\n");
 
 
     unsigned long bufSize = fullCommand.size() + 1;
@@ -656,16 +666,18 @@ void MyFrame::DownloadStage()
         GetExitCodeProcess(process_information.hProcess, &exit_code);
     } while (exit_code == STILL_ACTIVE);
 
+
+    std::wstring output;
     if (rv != 0)
     {
-        output += L"\n\nSuccess (0x" + HexToStr(exit_code) + L")";
+        output = L"\n\nSuccess (0x" + HexToStr(exit_code) + L")";
     }
     else
     {
-        output += L"\n\nFailure\nGetLastError() returned: 0x" + HexToStr(GetLastError());
+        output = L"\n\nFailure\nGetLastError() returned: 0x" + HexToStr(GetLastError());
     }
-    output += lineSeparator;
-    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+    PrintConsole(output);
+    PrintConsole(lineSeparator);
 
 
     free(buf);
@@ -682,15 +694,10 @@ void MyFrame::ConvertStage()
 {
     SetStatusText("Converting track files to audio");
 
-    std::wstring output = L"";
-    unsigned long charsWritten;
-
 
     std::wstring cmd = L"forfiles /P \"" + workingDirBackslashes + L"\"" + L" /M td8_index*.mp4 /C \"cmd /c ffmpeg -i @file -c:a mp3 -b:a 192k -ar 44100 @fname.mp3\"";
-
-    output = cmd + L"\n\n";
-    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
-    output = L"";
+    PrintConsole(cmd);
+    PrintConsole("\n\n");
 
     unsigned int bufSize = cmd.size() + 1;
     wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
@@ -711,16 +718,17 @@ void MyFrame::ConvertStage()
         GetExitCodeProcess(process_information.hProcess, &exit_code);
     } while (exit_code == STILL_ACTIVE);
 
+    std::wstring output;
     if (rv != 0)
     {
-        output += L"\n\nSuccess (0x" + HexToStr(exit_code) + L")";
+        output = L"\n\nSuccess (0x" + HexToStr(exit_code) + L")";
     }
     else
     {
-        output += L"\n\nFailure\nGetLastError() returned: 0x" + HexToStr(GetLastError());
+        output = L"\n\nFailure\nGetLastError() returned: 0x" + HexToStr(GetLastError());
     }
-    output += lineSeparator;
-    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+    PrintConsole(output);
+    PrintConsole(lineSeparator);
 
 
 
@@ -736,17 +744,11 @@ void MyFrame::ConvertStage()
 
 void MyFrame::CreateTrashDir()
 {
-    std::wstring output = L"";
-    unsigned long charsWritten;
-
-
-
     std::wstring cmd = L"cmd /c \"MKDIR \"" + workingDirBackslashes + L"\\Trash" + L"\"\"";
+    PrintConsole(cmd);
+    PrintConsole("\n\n");
 
-    output = cmd + L"\n\n";
-    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
-    output = L"";
-
+    
     unsigned int bufSize = cmd.size() + 1;
     wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
     for (int i = 0; i < bufSize - 1; i++)
@@ -766,16 +768,17 @@ void MyFrame::CreateTrashDir()
         GetExitCodeProcess(process_information.hProcess, &exit_code);
     } while (exit_code == STILL_ACTIVE);
 
+    std::wstring output;
     if (rv != 0)
     {
-        output += L"\n\nSuccess (0x" + HexToStr(exit_code) + L")";
+        output = L"\n\nSuccess (0x" + HexToStr(exit_code) + L")";
     }
     else
     {
-        output += L"\n\nFailure\nGetLastError() returned: 0x" + HexToStr(GetLastError());
+        output = L"\n\nFailure\nGetLastError() returned: 0x" + HexToStr(GetLastError());
     }
-    output += lineSeparator;
-    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+    PrintConsole(output);
+    PrintConsole(lineSeparator);
 
 
 
@@ -791,18 +794,13 @@ void MyFrame::RemoveLeftoverStage()
 {
     // Execute mkdir in case /Trash/ doesn't exist
     CreateTrashDir();
-
     SetStatusText("Moving leftover files to: " + workingDirectory + "Trash/");
 
-    std::wstring output = L"";
-    unsigned long charsWritten;
-
-
     std::wstring cmd = L"cmd /c \"MOVE \"" + workingDirBackslashes + L"\\td8_index*.mp4\" \"" + workingDirBackslashes + L"\\Trash\"\"";
+    PrintConsole(cmd);
+    PrintConsole("\n\n");
 
-    output = cmd + L"\n\n";
-    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
-    output = L"";
+
 
     unsigned int bufSize = cmd.size() + 1;
     wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
@@ -823,16 +821,17 @@ void MyFrame::RemoveLeftoverStage()
         GetExitCodeProcess(process_information.hProcess, &exit_code);
     } while (exit_code == STILL_ACTIVE);
 
+    std::wstring output;
     if (rv != 0)
     {
-        output += L"\n\nSuccess (0x" + HexToStr(exit_code) + L")";
+        output = L"\n\nSuccess (0x" + HexToStr(exit_code) + L")";
     }
     else
     {
-        output += L"\n\nFailure\nGetLastError() returned: 0x" + HexToStr(GetLastError());
+        output = L"\n\nFailure\nGetLastError() returned: 0x" + HexToStr(GetLastError());
     }
-    output += lineSeparator;
-    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+    PrintConsole(output);
+    PrintConsole(lineSeparator);
 
 
 
@@ -851,15 +850,10 @@ void MyFrame::GetTitlesStage()
 {
     SetStatusText("Downloading track titles");
 
-    std::wstring output = L"";
-    unsigned long charsWritten;
-
-
-
     std::wstring cmd = L""; cmd += workingDirectory + execName + ' ' + L"-e --print-to-file %(title)s \"tracks\" " + URL;
-    output = cmd + L"\n\n";
-    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
-    output = L"";
+    PrintConsole(cmd);
+    PrintConsole("\n\n");
+
 
 
     unsigned long bufSize = cmd.size() + 1;
@@ -881,6 +875,18 @@ void MyFrame::GetTitlesStage()
         GetExitCodeProcess(process_information.hProcess, &exit_code);
     } while (exit_code == STILL_ACTIVE);
 
+    std::wstring output;
+    if (rv != 0)
+    {
+        output = L"\n\nSuccess (0x" + HexToStr(exit_code) + L")";
+    }
+    else
+    {
+        output = L"\n\nFailure\nGetLastError() returned: 0x" + HexToStr(GetLastError());
+    }
+    PrintConsole(output);
+    PrintConsole(lineSeparator);
+
 
 
     free(buf);
@@ -898,9 +904,6 @@ void MyFrame::RenameFilesStage()
 {
     SetStatusText("Renaming track files");
 
-    std::wstring output = L"";
-    unsigned long charsWritten;
-
     unsigned int maxNumDigits = std::to_string(trackTitles.size()).size();
 
     for (int i = 0; i < trackTitles.size(); i++)
@@ -914,13 +917,12 @@ void MyFrame::RenameFilesStage()
         std::wstring cmd = L"";
         cmd += L"cmd /c \"RENAME \"" + workingDirBackslashes + L"\\td8_index" + num + L".mp3\" \"";
         cmd += std::to_string(i + 1) + L". " + artist + L" - " + trackTitles[i] + L".mp3\"\"";
+        
+        PrintConsole(cmd);
+        PrintConsole("\n\n");
 
-
-
-        output = cmd + L"\n\n";
-        WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
-        output = L"";
-
+        
+        
         unsigned int bufSize = cmd.size() + 1;
         wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
         for (int i = 0; i < bufSize - 1; i++)
@@ -940,16 +942,17 @@ void MyFrame::RenameFilesStage()
             GetExitCodeProcess(process_information.hProcess, &exit_code);
         } while (exit_code == STILL_ACTIVE);
 
+        std::wstring output;
         if (rv != 0)
         {
-            output += L"\n\nSuccess (0x" + HexToStr(exit_code) + L")";
+            output = L"\n\nSuccess (0x" + HexToStr(exit_code) + L")";
         }
         else
         {
-            output += L"\n\nFailure\nGetLastError() returned: 0x" + HexToStr(GetLastError());
+            output = L"\n\nFailure\nGetLastError() returned: 0x" + HexToStr(GetLastError());
         }
-        output += lineSeparator;
-        WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+        PrintConsole(output);
+        PrintConsole(lineSeparator);
 
         free(buf);
         CloseHandle(startupinfo.hStdInput);
@@ -959,16 +962,115 @@ void MyFrame::RenameFilesStage()
         CloseHandle(process_information.hThread);
     }
 
-
-
-
     SetStatusText("Finished renaming track files");
 }
 
+void MyFrame::GetArtworkStage()
+{
+    std::string host = "";
+    std::string resource = "";
+
+    unsigned int cFragment = 0;
+
+    for (int i = 0; i < artworkURL.size(); i++)
+    {
+        if (cFragment == 0)
+        {
+            if (artworkURL[i] == ':')
+            {
+                host = "";
+                i += 2;
+                continue;
+            }
+            else if (artworkURL[i] == '/')
+            {
+                cFragment++;
+            }
+            else
+            {
+                host += artworkURL[i];
+            }
+        }
+
+        if (cFragment == 1)
+        {
+            resource += artworkURL[i];
+        }
+    }
+
+    PrintConsole("Downloading album artwork...\n");
+    PrintConsole("host: " + host + '\n');
+    PrintConsole("resource: " + resource + '\n');
+    PrintConsole("\n\n");
+
+    const char resourceFilename[] = "index.html";
+    GetResource(host.c_str(), resource.c_str(), resourceFilename);
+    std::string thumbnailURL = "";
+    GetThumbnailURL(&thumbnailURL, resourceFilename);
+
+
+
+
+
+    std::wstring args = L"";
+    args += L"-o \"" + workingDirectory + artworkFilename + "\" \"" + thumbnailURL + "\"";
+
+    std::wstring fullCommand = L""; fullCommand += workingDirectory + execName + ' ' + args;
+    PrintConsole(fullCommand);
+    PrintConsole("\n\n");
+
+
+    unsigned long bufSize = fullCommand.size() + 1;
+    wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
+    for (int i = 0; i < bufSize - 1; i++)
+    {
+        buf[i] = fullCommand[i];
+    }
+    buf[bufSize - 1] = '\0';
+
+
+    STARTUPINFO startupinfo = { };
+    PROCESS_INFORMATION process_information = { };
+    BOOL rv = CreateProcess(NULL, (wchar_t*)buf, NULL, NULL, true, STARTF_USESTDHANDLES, NULL, NULL, &startupinfo, &process_information);
+    unsigned long exit_code;
+    do
+    {
+        Update();
+        GetExitCodeProcess(process_information.hProcess, &exit_code);
+    } while (exit_code == STILL_ACTIVE);
+
+    std::wstring output;
+    if (rv != 0)
+    {
+        output = L"\n\nSuccess (0x" + HexToStr(exit_code) + L")";
+    }
+    else
+    {
+        output = L"\n\nFailure\nGetLastError() returned: 0x" + HexToStr(GetLastError());
+    }
+    PrintConsole(output);
+    PrintConsole(lineSeparator);
+
+
+    free(buf);
+    CloseHandle(startupinfo.hStdInput);
+    CloseHandle(startupinfo.hStdOutput);
+    CloseHandle(startupinfo.hStdError);
+    CloseHandle(process_information.hProcess);
+    CloseHandle(process_information.hThread);
+
+    // Erase the resource .html file data
+    FILE* resourceFile;
+    fopen_s(&resourceFile, resourceFilename, "w");
+    if (resourceFile != nullptr) fclose(resourceFile);
+
+    SetStatusText("Finished downloading album cover (0x" + HexToStr(exit_code) + ")");
+}
 
 void MyFrame::AttachArtworkStage()
 {
     SetStatusText("Attaching cover metadata");
+    PrintConsole("Attaching cover metadata\n");
 
     for (int i = 0; i < trackTitles.size(); i++)
     {
@@ -977,20 +1079,17 @@ void MyFrame::AttachArtworkStage()
     }
 
     SetStatusText("Finished attaching cover metadata");
+    PrintConsole("Finished ataching cover metadata\n");
+    PrintConsole(lineSeparator);
 }
 
 void MyFrame::CreateAlbumDirectoryStage()
 {
     SetStatusText("Creating album directory");
-
-    std::wstring output = L"";
-    unsigned long charsWritten;
-
     std::wstring cmd = L"cmd /c \"MKDIR \"" + albumPathBackslashes + L"\"\"";
+    PrintConsole(cmd);
+    PrintConsole("\n\n");
 
-    output = cmd + L"\n\n";
-    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
-    output = L"";
 
     unsigned int bufSize = cmd.size() + 1;
     wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
@@ -1011,16 +1110,17 @@ void MyFrame::CreateAlbumDirectoryStage()
         GetExitCodeProcess(process_information.hProcess, &exit_code);
     } while (exit_code == STILL_ACTIVE);
 
+    std::wstring output;
     if (rv != 0)
     {
-        output += L"\n\nSuccess (0x" + HexToStr(exit_code) + L")";
+        output = L"\n\nSuccess (0x" + HexToStr(exit_code) + L")";
     }
     else
     {
-        output += L"\n\nFailure\nGetLastError() returned: 0x" + HexToStr(GetLastError());
+        output = L"\n\nFailure\nGetLastError() returned: 0x" + HexToStr(GetLastError());
     }
-    output += lineSeparator;
-    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+    PrintConsole(output);
+    PrintConsole(lineSeparator);
 
 
 
@@ -1038,16 +1138,11 @@ void MyFrame::CreateAlbumDirectoryStage()
 void MyFrame::MoveAudioStage()
 {
     SetStatusText("Moving audio files");
-
-    std::wstring output = L"";
-    unsigned long charsWritten;
-
-
     std::wstring cmd = L"cmd /c \"MOVE \"" + workingDirBackslashes + L"\\*.mp3\" \"" + albumPathBackslashes + L"\"\"";
+    PrintConsole(cmd);
+    PrintConsole("\n\n");
 
-    output = cmd + L"\n\n";
-    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
-    output = L"";
+
 
     unsigned int bufSize = cmd.size() + 1;
     wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
@@ -1068,16 +1163,17 @@ void MyFrame::MoveAudioStage()
         GetExitCodeProcess(process_information.hProcess, &exit_code);
     } while (exit_code == STILL_ACTIVE);
 
+    std::wstring output;
     if (rv != 0)
     {
-        output += L"\n\nSuccess (0x" + HexToStr(exit_code) + L")";
+        output = L"\n\nSuccess (0x" + HexToStr(exit_code) + L")";
     }
     else
     {
-        output += L"\n\nFailure\nGetLastError() returned: 0x" + HexToStr(GetLastError());
+        output = L"\n\nFailure\nGetLastError() returned: 0x" + HexToStr(GetLastError());
     }
-    output += lineSeparator;
-    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+    PrintConsole(output);
+    PrintConsole(lineSeparator);
 
 
 
@@ -1095,16 +1191,11 @@ void MyFrame::MoveAudioStage()
 void MyFrame::MoveArtworkStage()
 {
     SetStatusText("Moving cover file");
-
-    std::wstring output = L"";
-    unsigned long charsWritten;
-
-
     std::wstring cmd = L"cmd /c \"MOVE \"" + workingDirBackslashes + L"\\" + artworkFilename + L"\" \"" + albumPathBackslashes + L"\"\"";
+    PrintConsole(cmd);
+    PrintConsole("\n\n");
 
-    output = cmd + L"\n\n";
-    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
-    output = L"";
+
 
     unsigned int bufSize = cmd.size() + 1;
     wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
@@ -1125,16 +1216,17 @@ void MyFrame::MoveArtworkStage()
         GetExitCodeProcess(process_information.hProcess, &exit_code);
     } while (exit_code == STILL_ACTIVE);
 
+    std::wstring output;
     if (rv != 0)
     {
-        output += L"\n\nSuccess (0x" + HexToStr(exit_code) + L")";
+        output = L"\n\nSuccess (0x" + HexToStr(exit_code) + L")";
     }
     else
     {
-        output += L"\n\nFailure\nGetLastError() returned: 0x" + HexToStr(GetLastError());
+        output = L"\n\nFailure\nGetLastError() returned: 0x" + HexToStr(GetLastError());
     }
-    output += lineSeparator;
-    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+    PrintConsole(output);
+    PrintConsole(lineSeparator);
 
 
 
@@ -1157,27 +1249,27 @@ void MyFrame::RunScript()
     AllocConsole();
     
     // DOWNLOAD
-    DownloadStage();
-    return;
+    //DownloadStage();
 
     // CONVERT
-    ConvertStage();
+    //ConvertStage();
 
     // REMOVE LEFTOVER FILES
-    RemoveLeftoverStage();
+    //RemoveLeftoverStage();
 
     // GET TRACK TITLES
-    ResetTracksFile();
-    GetTitlesStage();
-    LoadTrackTitles();
-    ValidateTrackTitles();  // Remove unwanted & forbidden characters from the track titles
-    ResetTracksFile();    // keep this line if GetTitlesStage() is deactivated for testing
+    //ResetTracksFile();
+    //GetTitlesStage();
+    //LoadTrackTitles();
+    //ValidateTrackTitles();  // Remove unwanted & forbidden characters from the track titles
+    //ResetTracksFile();
     
     // RENAME
-    RenameFilesStage();
+    //RenameFilesStage();
 
     // DOWNLOAD ARTWORK
     GetArtworkStage();
+    return;
     // ATTACH ARTWORK
     AttachArtworkStage();
 
@@ -1401,18 +1493,6 @@ void MyFrame::LoadTrackTitles()
 }
 
 
-
-void PrintConsole(std::string text)
-{
-    unsigned long charsWritten = 0;
-    WriteConsoleA(GetStdHandle(STD_OUTPUT_HANDLE), text.c_str(), text.size(), &charsWritten, NULL);
-}
-
-void PrintConsole(std::wstring text)
-{
-    unsigned long charsWritten = 0;
-    WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), text.c_str(), text.size(), &charsWritten, NULL);
-}
 
 int GetResource(const char* host, const char* resource, const char* outputFilename)
 {
@@ -1699,156 +1779,6 @@ int GetThumbnailURL(std::string* returnURL, const char* inputFilename)
     //*/
 
     return 0;
-}
-
-void MyFrame::GetArtworkStage()
-{
-    FreeConsole();
-    AllocConsole();
-
-    std::string host = "";
-    std::string resource = "";
-
-    unsigned int cFragment = 0;
-
-    for (int i = 0; i < artworkURL.size(); i++)
-    {
-        if (cFragment == 0)
-        {
-            if (artworkURL[i] == ':')
-            {
-                host = "";
-                i += 2;
-                continue;
-            }
-            else if (artworkURL[i] == '/')
-            {
-                cFragment++;
-            }
-            else
-            {
-                host += artworkURL[i];
-            }
-        }
-
-        if (cFragment == 1)
-        {
-            resource += artworkURL[i];
-        }
-    }
-
-    PrintConsole("host: " + host + '\n');
-    PrintConsole("resource: " + resource + '\n');
-    PrintConsole("\n");
-
-    const char resourceFilename[] = "index.html";
-    GetResource(host.c_str(), resource.c_str(), resourceFilename);
-    std::string thumbnailURL = "";
-    GetThumbnailURL(&thumbnailURL, resourceFilename);
-    PrintConsole("\n\n");
-
-
-
-
-    std::wstring albumsDirectory = albumsDir_Field->textField->GetValue().ToStdWstring();
-    std::wstring workingDirectory = workingDir_Field->textField->GetValue().ToStdWstring();
-    std::wstring execName = L"yt-dlp.exe";
-
-    std::wstring artist = artist_Field->textField->GetValue().ToStdWstring();
-    std::wstring albumName = albumName_Field->textField->GetValue().ToStdWstring();
-    std::wstring albumYear = albumYear_Field->textField->GetValue().ToStdWstring();
-
-
-    // TODO:
-    // -tracks field buffer width checking to avoid title wrapping
-
-
-
-    std::wstring albumsDirBackslashes = L"";
-    for (int i = 0; i < albumsDirectory.size(); i++)
-    {
-        if (albumsDirectory[i] != '/')
-        {
-            albumsDirBackslashes += albumsDirectory[i];
-        }
-        else if (!(i == albumsDirectory.size() - 1 && albumsDirectory[i] == '/'))
-        {
-            albumsDirBackslashes += L"\\";
-        }
-    }
-
-    std::wstring albumPathBackslashes = albumsDirBackslashes + L"\\" + artist + L" - " + albumName + L" (" + albumYear + L")";
-
-    std::wstring workingDirBackslashes = L"";
-    for (int i = 0; i < workingDirectory.size(); i++)
-    {
-        if (workingDirectory[i] != '/')
-        {
-            workingDirBackslashes += workingDirectory[i];
-        }
-        else if (!(i == workingDirectory.size() - 1 && workingDirectory[i] == '/'))
-        {
-            workingDirBackslashes += L"\\";
-        }
-    }
-
-    std::wstring output = L"";
-    unsigned long charsWritten;
-
-
-    // DOWNLOAD
-    ///*
-    {
-        FreeConsole();
-        AllocConsole();
-
-        std::wstring args = L"";
-        args += L"-o \"" + workingDirectory + artworkFilename + "\" \"" + thumbnailURL + "\"";
-
-        std::wstring fullCommand = L""; fullCommand += workingDirectory + execName + ' ' + args;
-        output = fullCommand + L"\n\n";
-        WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
-
-
-        unsigned long bufSize = fullCommand.size() + 1;
-        wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
-        for (int i = 0; i < bufSize - 1; i++)
-        {
-            buf[i] = fullCommand[i];
-        }
-        buf[bufSize - 1] = '\0';
-
-
-        STARTUPINFO startupinfo = { };
-        PROCESS_INFORMATION process_information = { };
-        BOOL rv = CreateProcess(NULL, (wchar_t*)buf, NULL, NULL, true, STARTF_USESTDHANDLES, NULL, NULL, &startupinfo, &process_information);
-        unsigned long exit_code;
-        do
-        {
-            Update();
-            GetExitCodeProcess(process_information.hProcess, &exit_code);
-        } while (exit_code == STILL_ACTIVE);
-
-        output = L"\n\n" + std::to_wstring(rv) + L", " + std::to_wstring(exit_code) + L", " + std::to_wstring(GetLastError()) + L"\n";
-
-
-        free(buf);
-        CloseHandle(startupinfo.hStdInput);
-        CloseHandle(startupinfo.hStdOutput);
-        CloseHandle(startupinfo.hStdError);
-        CloseHandle(process_information.hProcess);
-        CloseHandle(process_information.hThread);
-
-        // Erase the resource .html file
-        FILE* resourceFile;
-        fopen_s(&resourceFile, resourceFilename, "w");
-        if (resourceFile != nullptr) fclose(resourceFile);
-
-        SetStatusText("Finished DOWNLOAD ARTWORK stage, exit_code: " + std::to_string(exit_code));
-        WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
-        FreeConsole();
-    }
-    //*/
 }
 
 
