@@ -99,6 +99,82 @@ void PrintConsole(std::wstring text)
     WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), text.c_str(), text.size(), &charsWritten, NULL);
 }
 
+void printHex(std::string, std::string = "");
+
+int GetFileData(const char* filename, std::string* returnData = nullptr)
+{
+    std::string data = "";
+
+    FILE* file;
+    fopen_s(&file, filename, "rb");
+    if (file == nullptr)
+    {
+        PrintConsole("Cannot open: " + std::string(filename) + '\n');
+        return 1;
+    }
+
+    int currentChar;
+    do
+    {
+        currentChar = getc(file);
+        if (currentChar != EOF) data += (unsigned char)currentChar;
+    } while (currentChar != EOF);
+    fclose(file);
+
+    if (returnData != nullptr) *returnData = data;
+    return 0;
+}
+
+int WriteDataToFile(std::string data, const char* filename)
+{
+    FILE* file;
+    fopen_s(&file, filename, "wb");
+    if (file == nullptr)
+    {
+        PrintConsole("Cannot open: " + std::string(filename) + '\n');
+        return 1;
+    }
+
+    for (int i = 0; i < data.size(); i++)
+    {
+        putc((unsigned char)data[i], file);
+    }
+    fclose(file);
+
+    return 0;
+}
+
+std::string EncodeToUTF8(std::wstring str)
+{
+    std::string encoded = "";
+    for (int i = 0; i < str.size(); i++)
+    {
+        wchar_t character = str[i];
+        if (character <= 0x7F) encoded += (unsigned char)character;
+        else
+        {
+            if (character >= 0x80 && character <= 0x7FF)
+            {
+                encoded += (unsigned char)(((0xC0 << 8) + ((character << 2) & (0x1F << 8))) >> 8);
+                encoded += (unsigned char)(((0x80) + (character & 0x3F)));
+            }
+            else if (character >= 0x800 && character <= 0xFFFF)
+            {
+                encoded += (unsigned char)(((0xE0 << 16) + ((character << 4) & (0x0F << 16))) >> 16);
+                encoded += (unsigned char)(((0x80 << 8) + ((character << 2) & (0x3F << 8))) >> 8);
+                encoded += (unsigned char)(((0x80) + (character & 0x3F)));
+            }
+            else if (character >= 0x10000)
+            {
+                // wchar_t is 16-bit on Windows, 0x10000+ code points are not supported
+            }
+        }
+    }
+    return encoded;
+}
+
+
+
 
 class TextBox
 {
@@ -173,7 +249,7 @@ private:
     void RunScript();
     void ResetTracksFile();
 
-    void AttachArtwork(std::wstring, std::wstring);
+    void AttachArtwork(std::string, std::string);
 
     void ValidateFilesystemString(std::wstring& str);
     void ValidateTrackTitles();
@@ -1069,18 +1145,21 @@ void MyFrame::GetArtworkStage()
 
 void MyFrame::AttachArtworkStage()
 {
-    SetStatusText("Attaching cover metadata");
-    PrintConsole("Attaching cover metadata\n");
+    //SetStatusText("Attaching cover metadata");
+    //PrintConsole("Attaching cover metadata\n");
 
     for (int i = 0; i < trackTitles.size(); i++)
     {
         std::wstring trackFilepath = workingDirectory + std::to_wstring(i + 1) + L". " + artist + L" - " + trackTitles[i] + L".mp3";
-        AttachArtwork(trackFilepath, artworkFilename);
+        
+        printHex(EncodeToUTF8(trackTitles[i]));
+        GetFileData(EncodeToUTF8(trackFilepath).c_str());
+        //AttachArtwork(EncodeToUTF8(trackFilepath), EncodeToUTF8(artworkFilename));
     }
 
-    SetStatusText("Finished attaching cover metadata");
-    PrintConsole("Finished ataching cover metadata\n");
-    PrintConsole(lineSeparator);
+    //SetStatusText("Finished attaching cover metadata");
+    //PrintConsole("Finished ataching cover metadata\n");
+    //PrintConsole(lineSeparator);
 }
 
 void MyFrame::CreateAlbumDirectoryStage()
@@ -1262,8 +1341,8 @@ void MyFrame::RunScript()
     // GET TRACK TITLES
     //ResetTracksFile();
     //GetTitlesStage();
-    //LoadTrackTitles();
-    //ValidateTrackTitles();  // Remove unwanted & forbidden characters from the track titles
+    LoadTrackTitles();
+    ValidateTrackTitles();  // Remove unwanted & forbidden characters from the track titles
     //ResetTracksFile();
     
     // RENAME
@@ -1353,7 +1432,7 @@ void replaceAllSubStr(std::wstring& str, std::wstring query, std::wstring replac
 void MyFrame::ValidateFilesystemString(std::wstring& str)
 {
     // Restricted by system: \ / : * ? " < > |
-    // Restricted by choice: " - ", %
+    // Restricted by choice: " - "
 
     for (int i = 0; i < str.size(); i++)
     {
@@ -1372,7 +1451,6 @@ void MyFrame::ValidateFilesystemString(std::wstring& str)
         replaceAllSubStr(str, L"|", L"");
 
         replaceAllSubStr(str, L" - ", L"; ");
-        //replaceAllSubStr(str, L"\%", L"");
     }
 }
 
@@ -1815,49 +1893,6 @@ void toSynchsafe(unsigned int data, unsigned char* ptr)
 
 
 
-
-int GetFileData(const char* filename, std::string* returnData)
-{
-    std::string data = "";
-
-    FILE* file;
-    fopen_s(&file, filename, "rb");
-    if (file == nullptr)
-    {
-        PrintConsole("Cannot open: " + std::string(filename) + '\n');
-        return 1;
-    }
-
-    int currentChar;
-    do
-    {
-        currentChar = getc(file);
-        if (currentChar != EOF) data += (unsigned char)currentChar;
-    } while (currentChar != EOF);
-    fclose(file);
-
-    *returnData = data;
-    return 0;
-}
-
-int WriteDataToFile(std::string data, const char* filename)
-{
-    FILE* file;
-    fopen_s(&file, filename, "wb");
-    if (file == nullptr)
-    {
-        PrintConsole("Cannot open: " + std::string(filename) + '\n');
-        return 1;
-    }
-
-    for (int i = 0; i < data.size(); i++)
-    {
-        putc((unsigned char)data[i], file);
-    }
-    fclose(file);
-
-    return 0;
-}
 
 
 
@@ -2310,7 +2345,7 @@ int writeArtwork(const char* audioFilename, const char* artworkFilename, const c
             break;
         }
 
-        if (i == 0 || i % 16 == 0) PrintConsole(": " + HexToStr(i, 8));
+        if (i == 0 || i % 16 == 0) PrintConsole(HexToStr(i, 8) + ": ");
         PrintConsole(HexToStr((unsigned char)outputCheck[i]));
         if ((i + 1) % 16 == 0) PrintConsole("\n");
         else if (i != outputCheck.size() - 1) PrintConsole(" ");
@@ -2326,7 +2361,7 @@ void printHex(std::string data, std::string stopQuery)
     bool bStop = false;
     for (int i = 0; i < data.size(); i++)
     {
-        if (i == 0 || i % 16 == 0) PrintConsole(": " + HexToStr(i, 8));
+        if (i == 0 || i % 16 == 0) PrintConsole(HexToStr(i, 8) + ": ");
         PrintConsole(HexToStr((unsigned char)data[i]));
         if ((i + 1) % 16 == 0)
         {
@@ -2376,21 +2411,16 @@ int unsynchroTest()
     return 0;
 }
 
-void MyFrame::AttachArtwork(std::wstring audioFile, std::wstring artworkFile)
+void MyFrame::AttachArtwork(std::string audioFile, std::string artworkFile)
 {
     static unsigned int index = 1;
 
     artworkFile = workingDirectory + artworkFile;
 
-    std::string audioFileStr = "";
-    std::string artworkFileStr = "";
-    for (int i = 0; i < audioFile.size(); i++) audioFileStr += (unsigned char)audioFile[i];
-    for (int i = 0; i < artworkFile.size(); i++) artworkFileStr += (unsigned char)artworkFile[i];
+    PrintConsole(std::to_string(index) + ": " + audioFile.c_str() + "\n");
+    PrintConsole(std::to_string(index) + ": " + artworkFile.c_str() + "\n\n");
 
-    PrintConsole(std::to_string(index) + ": " + audioFileStr.c_str() + "\n");
-    PrintConsole(std::to_string(index) + ": " + artworkFileStr.c_str() + "\n\n");
-
-    writeArtwork(audioFileStr.c_str(), artworkFileStr.c_str());
+    writeArtwork(audioFile.c_str(), artworkFile.c_str());
 
     PrintConsole("---------------------------\n");
     index++;
