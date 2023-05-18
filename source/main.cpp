@@ -79,6 +79,13 @@ std::string NumToStr(unsigned int num, unsigned int base = 10, unsigned int min_
     return str;
 }
 
+std::string HexToStr(unsigned int hex, unsigned int digits = 2)
+{
+    return NumToStr(hex, 16, digits);
+}
+
+
+
 class TextBox
 {
 public:
@@ -170,6 +177,25 @@ private:
 
     std::vector<std::wstring> trackTitles;
     std::wstring artworkFilename;
+
+    std::wstring albumsDirBackslashes;
+    std::wstring albumPathBackslashes;
+    std::wstring workingDirBackslashes;
+private:
+    void DownloadStage();
+    void ConvertStage();
+    void RemoveLeftoverStage();
+    
+    void GetTitlesStage();
+    
+    void RenameFilesStage();
+    
+    void GetArtworkStage();
+    void AttachArtworkStage();
+    
+    void CreateAlbumDirectoryStage();
+    void MoveAudioStage();
+    void MoveArtworkStage();
 };
 
 // The main() function, invoking the entry-point of the program
@@ -280,6 +306,13 @@ MyFrame::MyFrame() : wxFrame(NULL, ID_Frame, "Script manager")
     URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_lSCRmY_Qw8RCNnMKHcp05O1K8fAIyqLjs");
     URL_Artwork_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_lSCRmY_Qw8RCNnMKHcp05O1K8fAIyqLjs");
     */
+
+    ///*
+    artist_Field->textField->SetValue("O.S.T.R.");
+    albumName_Field->textField->SetValue("Tylko Dla Doros³ych");
+    albumYear_Field->textField->SetValue("2010");
+    URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=PLIKxxmyVA3HZ5vCNl3b0gQXDhuMWLz-mG");
+    //*/
 
     artist_Field->textField->SetFocus();
 }
@@ -535,17 +568,9 @@ void MyFrame::OnButtonPress(wxCommandEvent& event)
     trackTitles.clear();
     artworkFilename = L"artwork.png";
 
-    RunScript();
-}
-
-void MyFrame::RunScript()
-{
-    // TODO:
-    // -updating not only screen but events during console process execution
 
 
-
-    std::wstring albumsDirBackslashes = L"";
+    albumsDirBackslashes = L"";
     for (int i = 0; i < albumsDirectory.size(); i++)
     {
         if (albumsDirectory[i] != '/')
@@ -558,9 +583,9 @@ void MyFrame::RunScript()
         }
     }
 
-    std::wstring albumPathBackslashes = albumsDirBackslashes + L"\\" + artist + L" - " + albumName + L" (" + albumYear + L")";
+    albumPathBackslashes = albumsDirBackslashes + L"\\" + artist + L" - " + albumName + L" (" + albumYear + L")";
 
-    std::wstring workingDirBackslashes = L"";
+    workingDirBackslashes = L"";
     for (int i = 0; i < workingDirectory.size(); i++)
     {
         if (workingDirectory[i] != '/')
@@ -572,69 +597,301 @@ void MyFrame::RunScript()
             workingDirBackslashes += L"\\";
         }
     }
-    
+
+    RunScript();
+}
+
+
+
+std::wstring lineSeparator = L"\n--------------------------------------------------------------------------------\n";
+
+void MyFrame::DownloadStage()
+{
+    SetStatusText("Downloading tracks");
+
     std::wstring output = L"";
     unsigned long charsWritten;
 
 
-    // DOWNLOAD
-    ///*
+
+    std::wstring args = L"";
+    args += L"--config-location \"" + workingDirectory + configName + L"\"";
+    args += ' ';
+    args += L"-o \"" + workingDirectory + L"td8_index%(playlist_index)s.mp4\" " + URL;
+
+    std::wstring fullCommand = L""; fullCommand += workingDirectory + execName + ' ' + args;
+    output = fullCommand + L"\n\n";
+    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+
+
+    unsigned long bufSize = fullCommand.size() + 1;
+    wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
+    for (int i = 0; i < bufSize - 1; i++)
     {
-        FreeConsole();
-        AllocConsole();
-
-        std::wstring args = L"";
-        args += L"--config-location \"" + workingDirectory + configName + L"\"";
-        args += ' ';
-        args += L"-o \"" + workingDirectory + L"td8_index%(playlist_index)s.mp4\" " + URL;
-
-        std::wstring fullCommand = L""; fullCommand += workingDirectory + execName + ' ' + args;
-        output = fullCommand + L"\n\n";
-        WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
-
-
-        unsigned long bufSize = fullCommand.size() + 1;
-        wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
-        for (int i = 0; i < bufSize - 1; i++)
-        {
-            buf[i] = fullCommand[i];
-        }
-        buf[bufSize - 1] = '\0';
-
-
-        STARTUPINFO startupinfo = { };
-        PROCESS_INFORMATION process_information = { };
-        BOOL rv = CreateProcess(NULL, (wchar_t*)buf, NULL, NULL, true, STARTF_USESTDHANDLES, NULL, NULL, &startupinfo, &process_information);
-        unsigned long exit_code;
-        do
-        {
-            Update();
-            GetExitCodeProcess(process_information.hProcess, &exit_code);
-        } while (exit_code == STILL_ACTIVE);
-
-        output = std::to_wstring(rv) + L", " + std::to_wstring(exit_code) + L", " + std::to_wstring(GetLastError());
-
-
-        free(buf);
-        CloseHandle(startupinfo.hStdInput);
-        CloseHandle(startupinfo.hStdOutput);
-        CloseHandle(startupinfo.hStdError);
-        CloseHandle(process_information.hProcess);
-        CloseHandle(process_information.hThread);
-
-        SetStatusText("Finished DOWNLOAD stage, exit_code: " + std::to_string(exit_code));
-        WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
-        FreeConsole();
+        buf[i] = fullCommand[i];
     }
-    //*/
+    buf[bufSize - 1] = '\0';
 
-    // CONVERT
-    ///*
+
+    STARTUPINFO startupinfo = { };
+    PROCESS_INFORMATION process_information = { };
+    BOOL rv = CreateProcess(NULL, (wchar_t*)buf, NULL, NULL, true, STARTF_USESTDHANDLES, NULL, NULL, &startupinfo, &process_information);
+    unsigned long exit_code;
+    do
     {
-        AllocConsole();
+        Update();
+        GetExitCodeProcess(process_information.hProcess, &exit_code);
+    } while (exit_code == STILL_ACTIVE);
+
+    output = L"\n" + std::to_wstring(rv) + L", " + std::to_wstring(exit_code) + L", 0x" + HexToStr(GetLastError());
+    output += lineSeparator;
+    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
 
 
-        std::wstring cmd = L"forfiles /P \"" + workingDirBackslashes + L"\"" + L" /M td8_index*.mp4 /C \"cmd /c ffmpeg -i @file -c:a mp3 -b:a 192k -ar 44100 @fname.mp3\"";
+    free(buf);
+    CloseHandle(startupinfo.hStdInput);
+    CloseHandle(startupinfo.hStdOutput);
+    CloseHandle(startupinfo.hStdError);
+    CloseHandle(process_information.hProcess);
+    CloseHandle(process_information.hThread);
+
+    SetStatusText("Finished downloading tracks (0x" + HexToStr(exit_code) + ")");
+}
+
+void MyFrame::ConvertStage()
+{
+    SetStatusText("Converting track files to audio");
+
+    std::wstring output = L"";
+    unsigned long charsWritten;
+
+
+    std::wstring cmd = L"forfiles /P \"" + workingDirBackslashes + L"\"" + L" /M td8_index*.mp4 /C \"cmd /c ffmpeg -i @file -c:a mp3 -b:a 192k -ar 44100 @fname.mp3\"";
+
+    output = cmd + L"\n\n";
+    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+
+    unsigned int bufSize = cmd.size() + 1;
+    wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
+    for (int i = 0; i < bufSize - 1; i++)
+    {
+        buf[i] = cmd[i];
+    }
+    buf[bufSize - 1] = '\0';
+
+
+    STARTUPINFO startupinfo = { };
+    PROCESS_INFORMATION process_information = { };
+    BOOL rv = CreateProcess(NULL, (wchar_t*)buf, NULL, NULL, true, STARTF_USESTDHANDLES, NULL, NULL, &startupinfo, &process_information);
+    unsigned long exit_code;
+    do
+    {
+        Update();
+        GetExitCodeProcess(process_information.hProcess, &exit_code);
+    } while (exit_code == STILL_ACTIVE);
+
+    if (rv != 0)
+    {
+        output += L"\n\nSuccess (0x" + HexToStr(exit_code) + L")";
+    }
+    else
+    {
+        output += L"\n\nFailure\nGetLastError() returned: 0x" + HexToStr(GetLastError());
+    }
+    output += lineSeparator;
+    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+
+
+
+    free(buf);
+    CloseHandle(startupinfo.hStdInput);
+    CloseHandle(startupinfo.hStdOutput);
+    CloseHandle(startupinfo.hStdError);
+    CloseHandle(process_information.hProcess);
+    CloseHandle(process_information.hThread);
+
+    SetStatusText("Finished converting track files (0x" + HexToStr(exit_code) + ")");
+}
+
+void CreateTrashDir(std::wstring workingDirBackslashes)
+{
+    std::wstring output = L"";
+    unsigned long charsWritten;
+
+
+
+    std::wstring cmd = L"cmd /c \"MKDIR \"" + workingDirBackslashes + L"\\Trash" + L"\"\"";
+
+    output = cmd + L"\n\n";
+    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+
+    unsigned int bufSize = cmd.size() + 1;
+    wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
+    for (int i = 0; i < bufSize - 1; i++)
+    {
+        buf[i] = cmd[i];
+    }
+    buf[bufSize - 1] = '\0';
+
+
+    STARTUPINFO startupinfo = { };
+    PROCESS_INFORMATION process_information = { };
+    BOOL rv = CreateProcess(NULL, (wchar_t*)buf, NULL, NULL, true, STARTF_USESTDHANDLES, NULL, NULL, &startupinfo, &process_information);
+    unsigned long exit_code;
+    do
+    {
+        //Update();
+        GetExitCodeProcess(process_information.hProcess, &exit_code);
+    } while (exit_code == STILL_ACTIVE);
+
+    if (rv != 0)
+    {
+        output += L"\n\nSuccess (0x" + HexToStr(exit_code) + L")";
+    }
+    else
+    {
+        output += L"\n\nFailure\nGetLastError() returned: 0x" + HexToStr(GetLastError());
+    }
+    output += lineSeparator;
+    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+
+
+
+    free(buf);
+    CloseHandle(startupinfo.hStdInput);
+    CloseHandle(startupinfo.hStdOutput);
+    CloseHandle(startupinfo.hStdError);
+    CloseHandle(process_information.hProcess);
+    CloseHandle(process_information.hThread);
+}
+
+void MyFrame::RemoveLeftoverStage()
+{
+    // Execute mkdir in case /Trash/ doesn't exist
+    CreateTrashDir(workingDirBackslashes);
+
+    SetStatusText("Moving leftover files to: " + workingDirectory + "Trash/");
+
+    std::wstring output = L"";
+    unsigned long charsWritten;
+
+
+    std::wstring cmd = L"cmd /c \"MOVE \"" + workingDirBackslashes + L"\\td8_index*.mp4\" \"" + workingDirBackslashes + L"\\Trash\"\"";
+
+    output = cmd + L"\n\n";
+    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+
+    unsigned int bufSize = cmd.size() + 1;
+    wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
+    for (int i = 0; i < bufSize - 1; i++)
+    {
+        buf[i] = cmd[i];
+    }
+    buf[bufSize - 1] = '\0';
+
+
+    STARTUPINFO startupinfo = { };
+    PROCESS_INFORMATION process_information = { };
+    BOOL rv = CreateProcess(NULL, (wchar_t*)buf, NULL, NULL, true, STARTF_USESTDHANDLES, NULL, NULL, &startupinfo, &process_information);
+    unsigned long exit_code;
+    do
+    {
+        Update();
+        GetExitCodeProcess(process_information.hProcess, &exit_code);
+    } while (exit_code == STILL_ACTIVE);
+
+    if (rv != 0)
+    {
+        output += L"\n\nSuccess (0x" + HexToStr(exit_code) + L")";
+    }
+    else
+    {
+        output += L"\n\nFailure\nGetLastError() returned: 0x" + HexToStr(GetLastError());
+    }
+    output += lineSeparator;
+    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+
+
+
+    free(buf);
+    CloseHandle(startupinfo.hStdInput);
+    CloseHandle(startupinfo.hStdOutput);
+    CloseHandle(startupinfo.hStdError);
+    CloseHandle(process_information.hProcess);
+    CloseHandle(process_information.hThread);
+
+
+    SetStatusText("Finished moving leftover files (0x" + HexToStr(exit_code) + ")");
+}
+
+void MyFrame::GetTitlesStage()
+{
+    SetStatusText("Downloading track titles");
+
+    std::wstring output = L"";
+    unsigned long charsWritten;
+
+    ResetTracksFile();
+
+    std::wstring cmd = L""; cmd += workingDirectory + execName + ' ' + L"-e --print-to-file %(title)s \"tracks\" " + URL;
+    output = cmd + L"\n\n";
+    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+
+
+    unsigned long bufSize = cmd.size() + 1;
+    wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
+    for (int i = 0; i < bufSize - 1; i++)
+    {
+        buf[i] = cmd[i];
+    }
+    buf[bufSize - 1] = '\0';
+
+
+    STARTUPINFO startupinfo = { };
+    PROCESS_INFORMATION process_information = { };
+    BOOL rv = CreateProcess(NULL, (wchar_t*)buf, NULL, NULL, true, STARTF_USESTDHANDLES, NULL, NULL, &startupinfo, &process_information);
+    unsigned long exit_code;
+    do
+    {
+        Update();
+        GetExitCodeProcess(process_information.hProcess, &exit_code);
+    } while (exit_code == STILL_ACTIVE);
+
+
+
+    free(buf);
+    CloseHandle(startupinfo.hStdInput);
+    CloseHandle(startupinfo.hStdOutput);
+    CloseHandle(startupinfo.hStdError);
+    CloseHandle(process_information.hProcess);
+    CloseHandle(process_information.hThread);
+
+
+    SetStatusText("Finished downloading track titles (0x" + HexToStr(exit_code) + ")");
+}
+
+void MyFrame::RenameFilesStage()
+{
+    SetStatusText("Renaming track files");
+
+    std::wstring output = L"";
+    unsigned long charsWritten;
+
+    unsigned int maxNumDigits = std::to_string(trackTitles.size()).size();
+
+    for (int i = 0; i < trackTitles.size(); i++)
+    {
+        std::wstring num = L"";
+
+        unsigned int numDigits = std::to_string(i + 1).size();
+        for (int j = 0; j < maxNumDigits - numDigits; j++) num += L'0';
+        num += std::to_wstring(i + 1);
+
+        std::wstring cmd = L"";
+        cmd += L"cmd /c \"RENAME \"" + workingDirBackslashes + L"\\td8_index" + num + L".mp3\" \"";
+        cmd += std::to_string(i + 1) + L". " + artist + L" - " + trackTitles[i] + L".mp3\"\"";
+
+
 
         output = cmd + L"\n\n";
         WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
@@ -660,420 +917,252 @@ void MyFrame::RunScript()
 
         if (rv != 0)
         {
-            output += L"\n\nSuccess, exit_code: " + std::to_wstring(exit_code);
+            output += L"\n\nSuccess (0x" + HexToStr(exit_code) + L")";
         }
         else
         {
-            output += L"Failure, GetLastError() returned: " + std::to_wstring(GetLastError());
+            output += L"\n\nFailure\nGetLastError() returned: 0x" + HexToStr(GetLastError());
         }
-        output += '\n';
-
-
-        
-        free(buf);
-        CloseHandle(startupinfo.hStdInput);
-        CloseHandle(startupinfo.hStdOutput);
-        CloseHandle(startupinfo.hStdError);
-        CloseHandle(process_information.hProcess);
-        CloseHandle(process_information.hThread);
-
-        SetStatusText("Finished CONVERT stage, exit_code: " + std::to_string(exit_code));
-        FreeConsole();
-    }
-    //*/
-
-    // REMOVE
-    ///*
-    {
-        // CREATE TRASH SUBFOLDER IN CASE IT DOES NOT EXIST
-        {
-            AllocConsole();
-
-            std::wstring cmd = L"cmd /c \"MKDIR \"" + workingDirBackslashes + L"\\Trash" + L"\"\"";
-
-            output = cmd + L"\n\n";
-            WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
-
-            unsigned int bufSize = cmd.size() + 1;
-            wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
-            for (int i = 0; i < bufSize - 1; i++)
-            {
-                buf[i] = cmd[i];
-            }
-            buf[bufSize - 1] = '\0';
-
-
-            STARTUPINFO startupinfo = { };
-            PROCESS_INFORMATION process_information = { };
-            BOOL rv = CreateProcess(NULL, (wchar_t*)buf, NULL, NULL, true, STARTF_USESTDHANDLES, NULL, NULL, &startupinfo, &process_information);
-            unsigned long exit_code;
-            do
-            {
-                Update();
-                GetExitCodeProcess(process_information.hProcess, &exit_code);
-            } while (exit_code == STILL_ACTIVE);
-
-            if (rv != 0)
-            {
-                output += L"\n\nSuccess, exit_code: " + std::to_string(exit_code);
-            }
-            else
-            {
-                output += L"Failure, GetLastError() returned: " + std::to_string(GetLastError());
-            }
-            output += '\n';
-
-
-
-            free(buf);
-            CloseHandle(startupinfo.hStdInput);
-            CloseHandle(startupinfo.hStdOutput);
-            CloseHandle(startupinfo.hStdError);
-            CloseHandle(process_information.hProcess);
-            CloseHandle(process_information.hThread);
-
-            SetStatusText("Finished CREATE TRASH SUBFOLDER stage, exit_code: " + std::to_string(exit_code));
-            FreeConsole();
-        }
-
-        AllocConsole();
-
-
-        std::wstring cmd = L"cmd /c \"MOVE \"" + workingDirBackslashes + L"\\td8_index*.mp4\" \"" + workingDirBackslashes + L"\\Trash\"\"";
-
-        output = cmd + L"\n\n";
+        output += lineSeparator;
         WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
 
-        unsigned int bufSize = cmd.size() + 1;
-        wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
-        for (int i = 0; i < bufSize - 1; i++)
-        {
-            buf[i] = cmd[i];
-        }
-        buf[bufSize - 1] = '\0';
-
-
-        STARTUPINFO startupinfo = { };
-        PROCESS_INFORMATION process_information = { };
-        BOOL rv = CreateProcess(NULL, (wchar_t*)buf, NULL, NULL, true, STARTF_USESTDHANDLES, NULL, NULL, &startupinfo, &process_information);
-        unsigned long exit_code;
-        do
-        {
-            Update();
-            GetExitCodeProcess(process_information.hProcess, &exit_code);
-        } while (exit_code == STILL_ACTIVE);
-
-        if (rv != 0)
-        {
-            output += L"\n\nSuccess, exit_code: " + std::to_wstring(exit_code);
-        }
-        else
-        {
-            output += L"Failure, GetLastError() returned: " + std::to_wstring(GetLastError());
-        }
-        output += '\n';
-
-
-
         free(buf);
         CloseHandle(startupinfo.hStdInput);
         CloseHandle(startupinfo.hStdOutput);
         CloseHandle(startupinfo.hStdError);
         CloseHandle(process_information.hProcess);
         CloseHandle(process_information.hThread);
-
-        SetStatusText("Finished REMOVE stage, exit_code: " + std::to_string(exit_code));
-        FreeConsole();
     }
-    //*/
-
-    ResetTracksFile();
-    // DOWNLOAD TITLES
-    ///*
-    {
-        AllocConsole();
-
-        ResetTracksFile();
-
-        std::wstring cmd = L""; cmd += workingDirectory + execName + ' ' + L"-e --print-to-file %(title)s \"tracks\" " + URL;
-        output = cmd + L"\n\n";
-        WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
-
-
-        unsigned long bufSize = cmd.size() + 1;
-        wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
-        for (int i = 0; i < bufSize - 1; i++)
-        {
-            buf[i] = cmd[i];
-        }
-        buf[bufSize - 1] = '\0';
-
-
-        STARTUPINFO startupinfo = { };
-        PROCESS_INFORMATION process_information = { };
-        BOOL rv = CreateProcess(NULL, (wchar_t*)buf, NULL, NULL, true, STARTF_USESTDHANDLES, NULL, NULL, &startupinfo, &process_information);
-        unsigned long exit_code;
-        do
-        {
-            Update();
-            GetExitCodeProcess(process_information.hProcess, &exit_code);
-        } while (exit_code == STILL_ACTIVE);
 
 
 
-        free(buf);
-        CloseHandle(startupinfo.hStdInput);
-        CloseHandle(startupinfo.hStdOutput);
-        CloseHandle(startupinfo.hStdError);
-        CloseHandle(process_information.hProcess);
-        CloseHandle(process_information.hThread);
 
-        SetStatusText("Finished DOWNLOAD TITLES stage, exit_code: " + std::to_string(exit_code));
-        FreeConsole();
-    }
-    //*/
-
-    LoadTrackTitles();
-    ResetTracksFile();
-
-    // RENAME
-    ///*
-    {
-        AllocConsole();
-
-        unsigned int maxNumDigits = std::to_string(trackTitles.size()).size();
-
-        for (int i = 0; i < trackTitles.size(); i++)
-        {
-            std::wstring num = L"";
-
-            unsigned int numDigits = std::to_string(i + 1).size();
-            for (int j = 0; j < maxNumDigits - numDigits; j++) num += L'0';
-            num += std::to_wstring(i + 1);
-
-            std::wstring cmd = L"";
-            cmd += L"cmd /c \"RENAME \"" + workingDirBackslashes + L"\\td8_index" + num + L".mp3\" \"";
-            cmd += std::to_string(i + 1) + L". " + artist + L" - " + trackTitles[i] + L".mp3\"\"";
+    SetStatusText("Finished renaming track files");
+}
 
 
+void MyFrame::AttachArtworkStage()
+{
+    SetStatusText("Attaching cover metadata");
 
-            output = cmd + L"\n\n";
-            WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
-
-            unsigned int bufSize = cmd.size() + 1;
-            wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
-            for (int i = 0; i < bufSize - 1; i++)
-            {
-                buf[i] = cmd[i];
-            }
-            buf[bufSize - 1] = '\0';
-
-
-            STARTUPINFO startupinfo = { };
-            PROCESS_INFORMATION process_information = { };
-            BOOL rv = CreateProcess(NULL, (wchar_t*)buf, NULL, NULL, true, STARTF_USESTDHANDLES, NULL, NULL, &startupinfo, &process_information);
-            unsigned long exit_code;
-            do
-            {
-                Update();
-                GetExitCodeProcess(process_information.hProcess, &exit_code);
-            } while (exit_code == STILL_ACTIVE);
-
-            if (rv != 0)
-            {
-                output += L"\n\nSuccess, exit_code: " + std::to_string(exit_code);
-            }
-            else
-            {
-                output += L"Failure, GetLastError() returned: " + std::to_string(GetLastError());
-            }
-            output += '\n';
-
-            free(buf);
-            CloseHandle(startupinfo.hStdInput);
-            CloseHandle(startupinfo.hStdOutput);
-            CloseHandle(startupinfo.hStdError);
-            CloseHandle(process_information.hProcess);
-            CloseHandle(process_information.hThread);
-        }
-
-
-
-        SetStatusText("Finished RENAME stage");
-        FreeConsole();
-    }
-    //*/
-    
-    // DOWNLOAD ARTWORK
-    GetArtwork();
-    // ATTACH ARTWORK
-    AllocConsole();
     for (int i = 0; i < trackTitles.size(); i++)
     {
         std::wstring trackFilepath = workingDirectory + std::to_wstring(i + 1) + L". " + artist + L" - " + trackTitles[i] + L".mp3";
         AttachArtwork(trackFilepath, artworkFilename);
     }
-    FreeConsole();
+
+    SetStatusText("Finished attaching cover metadata");
+}
+
+void MyFrame::CreateAlbumDirectoryStage()
+{
+    SetStatusText("Creating album directory");
+
+    std::wstring output = L"";
+    unsigned long charsWritten;
+
+    std::wstring cmd = L"cmd /c \"MKDIR \"" + albumPathBackslashes + L"\"\"";
+
+    output = cmd + L"\n\n";
+    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+
+    unsigned int bufSize = cmd.size() + 1;
+    wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
+    for (int i = 0; i < bufSize - 1; i++)
+    {
+        buf[i] = cmd[i];
+    }
+    buf[bufSize - 1] = '\0';
+
+
+    STARTUPINFO startupinfo = { };
+    PROCESS_INFORMATION process_information = { };
+    BOOL rv = CreateProcess(NULL, (wchar_t*)buf, NULL, NULL, true, STARTF_USESTDHANDLES, NULL, NULL, &startupinfo, &process_information);
+    unsigned long exit_code;
+    do
+    {
+        Update();
+        GetExitCodeProcess(process_information.hProcess, &exit_code);
+    } while (exit_code == STILL_ACTIVE);
+
+    if (rv != 0)
+    {
+        output += L"\n\nSuccess (0x" + HexToStr(exit_code) + L")";
+    }
+    else
+    {
+        output += L"\n\nFailure\nGetLastError() returned: 0x" + HexToStr(GetLastError());
+    }
+    output += lineSeparator;
+    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+
+
+
+    free(buf);
+    CloseHandle(startupinfo.hStdInput);
+    CloseHandle(startupinfo.hStdOutput);
+    CloseHandle(startupinfo.hStdError);
+    CloseHandle(process_information.hProcess);
+    CloseHandle(process_information.hThread);
+
+
+    SetStatusText("Finished creating album directory (0x" + HexToStr(exit_code) + ")");
+}
+
+void MyFrame::MoveAudioStage()
+{
+    SetStatusText("Moving audio files");
+
+    std::wstring output = L"";
+    unsigned long charsWritten;
+
+
+    std::wstring cmd = L"cmd /c \"MOVE \"" + workingDirBackslashes + L"\\*.mp3\" \"" + albumPathBackslashes + L"\"\"";
+
+    output = cmd + L"\n\n";
+    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+
+    unsigned int bufSize = cmd.size() + 1;
+    wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
+    for (int i = 0; i < bufSize - 1; i++)
+    {
+        buf[i] = cmd[i];
+    }
+    buf[bufSize - 1] = '\0';
+
+
+    STARTUPINFO startupinfo = { };
+    PROCESS_INFORMATION process_information = { };
+    BOOL rv = CreateProcess(NULL, (wchar_t*)buf, NULL, NULL, true, STARTF_USESTDHANDLES, NULL, NULL, &startupinfo, &process_information);
+    unsigned long exit_code;
+    do
+    {
+        Update();
+        GetExitCodeProcess(process_information.hProcess, &exit_code);
+    } while (exit_code == STILL_ACTIVE);
+
+    if (rv != 0)
+    {
+        output += L"\n\nSuccess (0x" + HexToStr(exit_code) + L")";
+    }
+    else
+    {
+        output += L"\n\nFailure\nGetLastError() returned: 0x" + HexToStr(GetLastError());
+    }
+    output += lineSeparator;
+    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+
+
+
+    free(buf);
+    CloseHandle(startupinfo.hStdInput);
+    CloseHandle(startupinfo.hStdOutput);
+    CloseHandle(startupinfo.hStdError);
+    CloseHandle(process_information.hProcess);
+    CloseHandle(process_information.hThread);
+
+
+    SetStatusText("Finished moving audio files (0x" + HexToStr(exit_code) + ")");
+}
+
+void MyFrame::MoveArtworkStage()
+{
+    SetStatusText("Moving cover file");
+
+    std::wstring output = L"";
+    unsigned long charsWritten;
+
+
+    std::wstring cmd = L"cmd /c \"MOVE \"" + workingDirBackslashes + L"\\" + artworkFilename + L"\" \"" + albumPathBackslashes + L"\"\"";
+
+    output = cmd + L"\n\n";
+    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+
+    unsigned int bufSize = cmd.size() + 1;
+    wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
+    for (int i = 0; i < bufSize - 1; i++)
+    {
+        buf[i] = cmd[i];
+    }
+    buf[bufSize - 1] = '\0';
+
+
+    STARTUPINFO startupinfo = { };
+    PROCESS_INFORMATION process_information = { };
+    BOOL rv = CreateProcess(NULL, (wchar_t*)buf, NULL, NULL, true, STARTF_USESTDHANDLES, NULL, NULL, &startupinfo, &process_information);
+    unsigned long exit_code;
+    do
+    {
+        Update();
+        GetExitCodeProcess(process_information.hProcess, &exit_code);
+    } while (exit_code == STILL_ACTIVE);
+
+    if (rv != 0)
+    {
+        output += L"\n\nSuccess (0x" + HexToStr(exit_code) + L")";
+    }
+    else
+    {
+        output += L"\n\nFailure\nGetLastError() returned: 0x" + HexToStr(GetLastError());
+    }
+    output += lineSeparator;
+    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
+
+
+
+    free(buf);
+    CloseHandle(startupinfo.hStdInput);
+    CloseHandle(startupinfo.hStdOutput);
+    CloseHandle(startupinfo.hStdError);
+    CloseHandle(process_information.hProcess);
+    CloseHandle(process_information.hThread);
+
+
+    SetStatusText("Finished moving artwork (0x" + HexToStr(exit_code) + ")");
+}
+
+
+void MyFrame::RunScript()
+{
+    // TODO:
+    // -updating not only screen but events during console process execution
+    AllocConsole();
+    
+    // DOWNLOAD
+    //DownloadStage();
+
+    // CONVERT
+    //ConvertStage();
+
+    // REMOVE LEFTOVER FILES
+    //RemoveLeftoverStage();
+
+    // GET TRACK TITLES
+    // ResetTracksFile();
+    // GetTitlesStage();
+    LoadTrackTitles();
+    // //ResetTracksFile();    // keep this line if GetTitlesStage() is deactivated for testing
+    return;
+    
+    // RENAME
+    RenameFilesStage();
+
+    // DOWNLOAD ARTWORK
+    GetArtworkStage();
+    // ATTACH ARTWORK
+    AttachArtworkStage();
 
     // CREATE DIRECTORY
-    ///*
-    {
-        AllocConsole();
-
-        std::wstring cmd = L"cmd /c \"MKDIR \"" + albumPathBackslashes + L"\"\"";
-
-        output = cmd + L"\n\n";
-        WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
-
-        unsigned int bufSize = cmd.size() + 1;
-        wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
-        for (int i = 0; i < bufSize - 1; i++)
-        {
-            buf[i] = cmd[i];
-        }
-        buf[bufSize - 1] = '\0';
-
-
-        STARTUPINFO startupinfo = { };
-        PROCESS_INFORMATION process_information = { };
-        BOOL rv = CreateProcess(NULL, (wchar_t*)buf, NULL, NULL, true, STARTF_USESTDHANDLES, NULL, NULL, &startupinfo, &process_information);
-        unsigned long exit_code;
-        do
-        {
-            Update();
-            GetExitCodeProcess(process_information.hProcess, &exit_code);
-        } while (exit_code == STILL_ACTIVE);
-
-        if (rv != 0)
-        {
-            output += L"\n\nSuccess, exit_code: " + std::to_string(exit_code);
-        }
-        else
-        {
-            output += L"Failure, GetLastError() returned: " + std::to_string(GetLastError());
-        }
-        output += '\n';
-
-
-
-        free(buf);
-        CloseHandle(startupinfo.hStdInput);
-        CloseHandle(startupinfo.hStdOutput);
-        CloseHandle(startupinfo.hStdError);
-        CloseHandle(process_information.hProcess);
-        CloseHandle(process_information.hThread);
-
-        SetStatusText("Finished CREATE DIRECTORY stage, exit_code: " + std::to_string(exit_code));
-        FreeConsole();
-    }
-    //*/
+    CreateAlbumDirectoryStage();
 
     // MOVE AUDIO FILES
-    ///*
-    {
-        AllocConsole();
-
-
-        std::wstring cmd = L"cmd /c \"MOVE \"" + workingDirBackslashes + L"\\*.mp3\" \"" + albumPathBackslashes + L"\"\"";
-
-        output = cmd + L"\n\n";
-        WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
-
-        unsigned int bufSize = cmd.size() + 1;
-        wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
-        for (int i = 0; i < bufSize - 1; i++)
-        {
-            buf[i] = cmd[i];
-        }
-        buf[bufSize - 1] = '\0';
-
-
-        STARTUPINFO startupinfo = { };
-        PROCESS_INFORMATION process_information = { };
-        BOOL rv = CreateProcess(NULL, (wchar_t*)buf, NULL, NULL, true, STARTF_USESTDHANDLES, NULL, NULL, &startupinfo, &process_information);
-        unsigned long exit_code;
-        do
-        {
-            Update();
-            GetExitCodeProcess(process_information.hProcess, &exit_code);
-        } while (exit_code == STILL_ACTIVE);
-
-        if (rv != 0)
-        {
-            output += L"\n\nSuccess, exit_code: " + std::to_string(exit_code);
-        }
-        else
-        {
-            output += L"Failure, GetLastError() returned: " + std::to_string(GetLastError());
-        }
-        output += '\n';
-
-
-
-        free(buf);
-        CloseHandle(startupinfo.hStdInput);
-        CloseHandle(startupinfo.hStdOutput);
-        CloseHandle(startupinfo.hStdError);
-        CloseHandle(process_information.hProcess);
-        CloseHandle(process_information.hThread);
-        SetStatusText("Finished MOVE stage, exit_code: " + std::to_string(exit_code));
-
-        FreeConsole();
-    }
+    MoveAudioStage();
     // MOVE ARTWORK
-    {
-        AllocConsole();
+    MoveArtworkStage();
 
 
-        std::wstring cmd = L"cmd /c \"MOVE \"" + workingDirBackslashes + L"\\" + artworkFilename + L"\" \"" + albumPathBackslashes + L"\"\"";
-
-        output = cmd + L"\n\n";
-        WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), output.c_str(), output.size(), &charsWritten, NULL);
-
-        unsigned int bufSize = cmd.size() + 1;
-        wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
-        for (int i = 0; i < bufSize - 1; i++)
-        {
-            buf[i] = cmd[i];
-        }
-        buf[bufSize - 1] = '\0';
-
-
-        STARTUPINFO startupinfo = { };
-        PROCESS_INFORMATION process_information = { };
-        BOOL rv = CreateProcess(NULL, (wchar_t*)buf, NULL, NULL, true, STARTF_USESTDHANDLES, NULL, NULL, &startupinfo, &process_information);
-        unsigned long exit_code;
-        do
-        {
-            Update();
-            GetExitCodeProcess(process_information.hProcess, &exit_code);
-        } while (exit_code == STILL_ACTIVE);
-
-        if (rv != 0)
-        {
-            output += L"\n\nSuccess, exit_code: " + std::to_string(exit_code);
-        }
-        else
-        {
-            output += L"Failure, GetLastError() returned: " + std::to_string(GetLastError());
-        }
-        output += '\n';
-
-
-
-        free(buf);
-        CloseHandle(startupinfo.hStdInput);
-        CloseHandle(startupinfo.hStdOutput);
-        CloseHandle(startupinfo.hStdError);
-        CloseHandle(process_information.hProcess);
-        CloseHandle(process_information.hThread);
-        SetStatusText("Finished MOVE stage, exit_code: " + std::to_string(exit_code));
-
-        FreeConsole();
-    }
-    //*/
-
-
+    SetStatusText("Resetting");
+    // Reset fields & set focus
     URL_Field->textField->SetValue("");
     URL_Artwork_Field->textField->SetValue("");
     artist_Field->textField->SetValue("");
@@ -1084,6 +1173,7 @@ void MyFrame::RunScript()
     
     SetStatusText("Done");
     if (checkAlert->GetValue() == true) MessageBoxA(NULL, "Script has finished.", "Done", MB_OK);
+    FreeConsole();
 }
 
 void MyFrame::ResetTracksFile()
@@ -1107,7 +1197,64 @@ void MyFrame::LoadTrackTitles()
         std::wstring currentWord = L"";
         do
         {
-            currentChar = getwc(tracksFile);
+            currentChar = getc(tracksFile);
+            
+            // The file is UTF-8 encoded
+            // wchar_t is 16-bit on Windows, so it can represent only 3-byte UTF-8 encoded characters:
+            // 
+            // 1-Byte encoding: (7-bit values) up to 0x7F (126)
+            //  6543210
+            // 0xxxxxxx
+            // 
+            // 2-Byte encoding: (11-bit values) up to 0x7FF (2047)
+            //    09876   543210
+            // 110xxxxx 10xxxxxx
+            // 
+            // 3-Byte encoding: (16-bit values) up to 0xFFFF (65535)
+            //     5432   109876   543210
+            // 1110xxxx 10xxxxxx 10xxxxxx
+
+            // 4-Byte encoding (not supported)
+            // 11110xxx ...
+
+            if ((currentChar & 128) == 128 && (currentChar & 64) == 64)
+            {
+                if ((currentChar & 32) == 0)
+                {
+                    // 2-Byte encoded character
+                    // 110xxxxx ...
+                    unsigned char Byte[] = { (unsigned char)currentChar & 31, getc(tracksFile) & 63 };
+
+                    // 16-bit decoded character:
+                    currentChar = (Byte[1]) + (((unsigned short)Byte[0] << 8) >> 2);
+                }
+                else if ((currentChar & 32) == 32)
+                {
+                    if ((currentChar & 16) == 0)
+                    {
+                        // 3-Byte encoded character
+                        // 1110xxxx ...
+                        unsigned char Byte[] = { (unsigned char)currentChar & 15, getc(tracksFile) & 63, getc(tracksFile) & 63 };
+
+                        // 16-bit decoded character:
+                        currentChar = (Byte[2]) + (((unsigned short)Byte[1] << 8) >> 2) + (((unsigned int)Byte[0] << 16) >> 4);
+                    }
+                    else if ((currentChar & 16) == 16)
+                    {
+                        if ((currentChar & 8) == 0)
+                        {
+                            //4-Byte encoded character
+                            // 11110xxx ...
+                            for (int i = 0; i < 3; i++) getc(tracksFile);
+
+                            // 16-bit substitue character:
+                            currentChar = 'e';
+                        }
+                    }
+                }
+            }
+            
+            
             if (iswprint(currentChar))
             {
                 currentWord += currentChar;
@@ -1433,7 +1580,7 @@ int GetThumbnailURL(std::string* returnURL, const char* inputFilename)
     return 0;
 }
 
-void MyFrame::GetArtwork()
+void MyFrame::GetArtworkStage()
 {
     FreeConsole();
     AllocConsole();
@@ -1610,10 +1757,6 @@ void toSynchsafe(unsigned int data, unsigned char* ptr)
 
 
 
-std::string HexToStr(unsigned int hex, unsigned int digits = 2)
-{
-    return NumToStr(hex, 16, digits);
-}
 
 
 int GetFileData(const char* filename, std::string* returnData)
