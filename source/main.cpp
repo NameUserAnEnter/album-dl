@@ -261,16 +261,16 @@ public:
 };
 
 
-class MyApp : public wxApp
+class MainApp : public wxApp
 {
 public:
     virtual bool OnInit();
 };
 
-class MyFrame : public wxFrame
+class MainFrame : public wxFrame
 {
 public:
-    MyFrame();
+    MainFrame();
 private:
     TextBox* albumsDir_Field;
     TextBox* workingDir_Field;
@@ -297,7 +297,7 @@ public:
     void OpenSettings();
 private:
     void LoadTrackTitles();
-    void RunScript();
+    void GetAlbum();
     void ResetTracksFile();
 
     void AttachArtwork(std::wstring, std::wstring);
@@ -345,18 +345,18 @@ private:
 };
 
 // The main() function, invoking the entry-point of the program
-wxIMPLEMENT_APP(MyApp);
+wxIMPLEMENT_APP(MainApp);
 
 
 
-bool MyApp::OnInit()
+bool MainApp::OnInit()
 {
     labelOffset.left = 3;
     labelOffset.right = 3;
     labelOffset.top = 15;
     labelOffset.bottom = 3;
 
-    MyFrame* frame = new MyFrame();
+    MainFrame* frame = new MainFrame();
     frame->SetClientSize(ClientWidth, ClientHeight);
     frame->SetPosition(wxPoint(1020, 20));
     frame->OpenSettings();
@@ -365,7 +365,7 @@ bool MyApp::OnInit()
 }
 
 
-MyFrame::MyFrame() : wxFrame(NULL, ID_Frame, "Script manager")
+MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 {
     // File:
     //      Hello
@@ -425,22 +425,22 @@ MyFrame::MyFrame() : wxFrame(NULL, ID_Frame, "Script manager")
 
 
 
-    wxButton* button = new wxButton(mainPanel, ID_Button, "Run script",
+    wxButton* button = new wxButton(mainPanel, ID_Button, "Run",
                                     wxPoint(mainOffset.x, mainOffset.y),
-                                    ButtonSize, NULL, wxDefaultValidator, "Script Button");
+                                    ButtonSize, NULL, wxDefaultValidator, "Run button");
 
     checkAlert = new wxCheckBox(mainPanel, ID_AlertOnDone, "Alert on done",
                                 wxPoint(mainOffset.x + ButtonSize.x + fieldBetweenSpace.x, mainOffset.y),
                                 ButtonSize, 0, wxDefaultValidator, "Alert checkbox");
     mainOffset.y += ButtonSize.y + fieldBetweenSpace.y;
 
-    Bind(wxEVT_BUTTON, &MyFrame::OnButtonPress, this, ID_Button);
+    Bind(wxEVT_BUTTON, &MainFrame::OnButtonPress, this, ID_Button);
 
     
-    Bind(wxEVT_MENU, &MyFrame::OnSave, this, ID_Save);
-    Bind(wxEVT_MENU, &MyFrame::OnAbout, this, wxID_ABOUT);
-    Bind(wxEVT_MENU, &MyFrame::OnExit, this, wxID_EXIT);
-    Bind(wxEVT_CLOSE_WINDOW, &MyFrame::OnClose, this);
+    Bind(wxEVT_MENU, &MainFrame::OnSave, this, ID_Save);
+    Bind(wxEVT_MENU, &MainFrame::OnAbout, this, wxID_ABOUT);
+    Bind(wxEVT_MENU, &MainFrame::OnExit, this, wxID_EXIT);
+    Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose, this);
 
 
     ClientWidth = mainOffset.x + TextBoxSize.x + mainOffset.x;
@@ -454,18 +454,18 @@ MyFrame::MyFrame() : wxFrame(NULL, ID_Frame, "Script manager")
     URL_Artwork_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_lSCRmY_Qw8RCNnMKHcp05O1K8fAIyqLjs");
     */
 
-    ///*
+    /*
     artist_Field->textField->SetValue("O.S.T.R.");
     albumName_Field->textField->SetValue("Tylko Dla Doros³ych");
     albumYear_Field->textField->SetValue("2010");
     URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=PLIKxxmyVA3HZ5vCNl3b0gQXDhuMWLz-mG");
     URL_Artwork_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_l6DSlExq2EbVR7ILChbL9ZHn-1SbyKRO8");
-    //*/
+    */
 
     artist_Field->textField->SetFocus();
 }
 
-void MyFrame::OpenSettings()
+void MainFrame::OpenSettings()
 {
     FILE* settingsFile = nullptr;
     std::string path = "settings";
@@ -521,7 +521,7 @@ void MyFrame::OpenSettings()
     }
 }
 
-void MyFrame::SaveSettings()
+void MainFrame::SaveSettings()
 {
     FILE* settingsFile = nullptr;
     std::string path = "settings";
@@ -544,45 +544,142 @@ void MyFrame::SaveSettings()
     SetStatusText("Settings have been saved");
 }
 
-void MyFrame::OnClose(wxCloseEvent& event)
+void MainFrame::OnClose(wxCloseEvent& event)
 {
     //SaveSettings();
     
     Destroy();
 }
 
-void MyFrame::OnExit(wxCommandEvent& event)
+void MainFrame::OnExit(wxCommandEvent& event)
 {
     Close(true);
 }
 
-void MyFrame::OnAbout(wxCommandEvent& event)
+void MainFrame::OnAbout(wxCommandEvent& event)
 {
-    wxMessageBox(std::string("\n\nThis program runs a series of youtube-dl (yt-dlp) scripts to download an album and then moves it into given directory.\n") +
-                 std::string("\nWorking directory requires the following files:\n") +
-                 std::string("    -yt-dlp.exe\n") + 
-                 std::string("    -ffmpeg.exe\n") +
-                 std::string("    -config.txt\n") +
-                 std::string("    -cookies.txt (optional)\n") +
-                 std::string("in case of age-restricted URL use youtube cookies dump in cookies.txt\n") +
-                 std::string("... (delete the prepended hash '#' character from the --cookies line in config.txt and save it)\n\n\n") +
-                 std::string("Script stages after pressing \"Run script\":\n") +
-                 std::string("1) downloading best audio quality .mp4's\n") +
-                 std::string("2) converting into .mp3's\n") +
-                 std::string("3) removing .mp4's\n") +
-                 std::string("4) getting titles\n") +
-                 std::string("5) renaming the .mp3's\n") +
-                 std::string("6) downloading the artwork\n") +
-                 std::string("7) attaching the artwork.png to .mp3's metadata\n") +
-                 std::string("8) creating the album subfolder in albums directory\n") +
-                 std::string("9) moving .mp3's there\n") +
-                 std::string("10) moving the .png there\n"), "About", wxOK | wxICON_INFORMATION);
+    std::string output = "";
+
+#define VER 1.0
+    unsigned int fraction_digits = 0;
+    float uVer = VER;
+    while (uVer != (int)uVer)
+    {
+        uVer *= 10;
+        fraction_digits++;
+    }
+
+    std::string verStr = std::to_string((int)VER);
+    if (fraction_digits > 0)
+    {
+        verStr += ".";
+        for (int i = 0; i < std::to_string(VER).size(); i++)
+        {
+            if (std::to_string(VER)[i] == '.')
+            {
+                i++;
+                for (int j = 0; j < fraction_digits && i + j < std::to_string(VER).size(); j++)
+                {
+                    verStr += std::to_string(VER)[i + j];
+                }
+                break;
+            }
+        }
+    }
+    else verStr += ".0";
+
+    output +=
+        std::string("\n\nVERSION:\n") +
+        //std::string("album-dl") + " v" + std::to_string((int)uVer) + ", " + std::to_string(fraction_digits) + "\n" +
+        std::string("album-dl") + "_v" + verStr + "\n" +
+        
+        std::string("\n\nDESCRIPTION:\n") +
+        std::string("This program is a tool for downloading albums from youtube.\nIt uses youtube-dl (yt-dlp) to download an album and it's artwork") +
+        std::string(" and then moves that album into a given directory after attaching the album artwork as metadata.\n") +
+
+        std::string("\nSAVING SETTINGS:\n") +
+        std::string("Press Ctrl+S or go to \"File/Save settings\" to save album directory, working directory, alert-checkbox state & window position.") +
+        std::string(" These settings are automatically loaded each time album-dl is opened.\n") +
+
+        std::string("\n\n------------------------------------------------------------------------------------------\n") +
+
+        std::string("ALBUMS DIRECTORY:\n") +
+        std::string("Full or relative path to a directory where the album folder will be moved,\ne.g.: C:/Albums/\n") +
+        std::string("If the directory does not exist, it will be created.\n") +
+        
+        std::string("\n\nWORKING DIRECTORY:\n") +
+        std::string("Full or relative path to a working directory with the following files:\n") +
+        std::string("            -yt-dlp.exe\n") +
+        std::string("            -ffmpeg.exe\n") +
+        std::string("            -config.txt\n") +
+        std::string("            -cookies.txt (optional)\n") +
+        std::string("By default working directory is set to (relative path): workfolder/ and all necessary files are provided there.\n") +
+
+        std::string("\n\nARTIST:\n") +
+        std::string("Used for output album folder name and track filenames.\n") +
+
+        std::string("\nALBUM NAME & ALBUM YEAR:\n") +
+        std::string("Used only for output album folder name.\n") +
+
+        std::string("\nTRACKS:\n") +
+        std::string("Track names are automatically taken from video titles in the playlist.\n") +
+        std::string("After album-dl is done, filenames that were set for individual tracks are displayed.\n") +
+
+        std::string("\nPLAYLIST URL:\n") +
+        std::string("This playlist will be downloaded into .mp3's.\n") +
+        std::string("If no artwork-playlist URL is provided, this one is used to download the album artwork as well.\n") +
+
+        std::string("\nPLAYLIST URL WITH PROPER ARTWORK:\n") +
+        std::string("Album artwork is downloaded from this playlist. If left empty, URL from \"Playlist URL\" is used.\n") +
+
+        std::string("\n------------------------------------------------------------------------------------------\n") +
+
+        std::string("OUTPUT FILENAMES & FOLDER NAME FORMAT:\n") +
+        std::string("Albums Directory/\n") +
+        std::string("            Artist - Album Name (Album Year)/\n") +
+        std::string("                        Track Number. Artist - Track Title.mp3\n") +
+        std::string("                        Track Number. Artist - Track Title.mp3\n") +
+        std::string("                        Track Number. Artist - Track Title.mp3\n") +
+        std::string("                        ...\n") +
+        std::string("                        Track Number. Artist - Track Title.mp3\n") +
+        std::string("                        artwork.png\n") +
+
+        std::string("\n\nTRASH:\n") +
+        std::string("This program uses windows commands to execute renaming and moving files as well as creating directories.") +
+        std::string(" For extra-safety this program does not use the DEL command,") +
+        std::string(" left-over .mp4 files are instead put in the /Trash/ subfolder in the working directory") +
+        std::string(" and you are free to delete the contents of that subfolder manually.") +
+        std::string(" However there is no need to clear these files as album-dl") +
+        std::string(" always overwrites .mp4's with the same name each time leftover .mp4's are moved there,") +
+        std::string(" so as a result the amount of disk space taken by the /Trash/ subfolder does not stack.\n") +
+        
+        std::string("\n\nSTAGES:\n") +
+        std::string("The program goes through the following stages after the \"Run\" button is pressed:\n") +
+        std::string("1) downloading best audio quality .mp4's\n") +
+        std::string("2) converting them into .mp3's\n") +
+        std::string("3) removing the .mp4's\n") +
+        std::string("4) getting the track titles\n") +
+        std::string("5) renaming the .mp3's\n") +
+        std::string("6) downloading the album artwork\n") +
+        std::string("7) attaching the artwork.png to .mp3's metadata\n") +
+        std::string("8) creating the album subfolder in albums directory\n") +
+        std::string("9) moving the .mp3's there\n") +
+        std::string("10) moving the .png there\n") +
+
+        std::string("\n------------------------------------------------------------------------------------------\n") +
+
+        std::string("BYPASSING AGE-RESTRICTION:\n") +
+        std::string("In case of an age-restricted URL: \n") +
+        std::string("1) get a youtube cookies dump into cookies.txt\n") +
+        std::string("2) place cookies.txt in the working directory\n") +
+        std::string("3) include a following line in config.txt:\n--cookies \"cookies.txt\"\n");
+    wxMessageBox(output, "About", wxOK | wxICON_INFORMATION);
 }
 
-void MyFrame::OnSave(wxCommandEvent& event)
+void MainFrame::OnSave(wxCommandEvent& event)
 {
     SaveSettings();
-    wxMessageBox("Settings have been saved.", "Script manager", wxOK | wxICON_NONE);
+    wxMessageBox("Settings have been saved.", "album-dl", wxOK | wxICON_NONE);
 }
 
 bool validField(std::wstring data)
@@ -636,7 +733,7 @@ bool validField(std::wstring data, std::vector<std::wstring> allPossibleMandator
     return false;
 }
 
-void MyFrame::OnButtonPress(wxCommandEvent& event)
+void MainFrame::OnButtonPress(wxCommandEvent& event)
 {
     URL = URL_Field->textField->GetValue().ToStdWstring();
     artworkURL = URL_Artwork_Field->textField->GetValue().ToStdWstring();
@@ -751,14 +848,14 @@ void MyFrame::OnButtonPress(wxCommandEvent& event)
         }
     }
 
-    RunScript();
+    GetAlbum();
 }
 
 
 
 std::wstring lineSeparator = L"\n--------------------------------------------------------------------------------\n";
 
-void MyFrame::DownloadStage()
+void MainFrame::DownloadStage()
 {
     SetStatusText("Downloading tracks");
 
@@ -817,12 +914,12 @@ void MyFrame::DownloadStage()
     SetStatusText("Finished downloading tracks (0x" + HexToStr(exit_code) + ")");
 }
 
-void MyFrame::ConvertStage()
+void MainFrame::ConvertStage()
 {
     SetStatusText("Converting track files to audio");
 
 
-    std::wstring cmd = L"forfiles /P \"" + workingDirBackslashes + L"\"" + L" /M td8_index*.mp4 /C \"cmd /c ffmpeg -i @file -c:a mp3 -b:a 192k -ar 44100 @fname.mp3\"";
+    std::wstring cmd = L"forfiles /P \"" + workingDirBackslashes + L"\"" + L" /M td8_index*.mp4 /C \"cmd /c ffmpeg.exe -i @file -c:a mp3 -b:a 192k -ar 44100 @fname.mp3\"";
     PrintConsole(cmd);
     PrintConsole("\n\n");
 
@@ -869,7 +966,7 @@ void MyFrame::ConvertStage()
     SetStatusText("Finished converting track files (0x" + HexToStr(exit_code) + ")");
 }
 
-void MyFrame::CreateTrashDir()
+void MainFrame::CreateTrashDir()
 {
     std::wstring cmd = L"cmd /c \"MKDIR \"" + workingDirBackslashes + L"\\Trash" + L"\"\"";
     PrintConsole(cmd);
@@ -917,7 +1014,7 @@ void MyFrame::CreateTrashDir()
     CloseHandle(process_information.hThread);
 }
 
-void MyFrame::RemoveLeftoverStage()
+void MainFrame::RemoveLeftoverStage()
 {
     // Execute mkdir in case /Trash/ doesn't exist
     CreateTrashDir();
@@ -973,7 +1070,7 @@ void MyFrame::RemoveLeftoverStage()
     SetStatusText("Finished moving leftover files (0x" + HexToStr(exit_code) + ")");
 }
 
-void MyFrame::GetTitlesStage()
+void MainFrame::GetTitlesStage()
 {
     SetStatusText("Downloading track titles");
 
@@ -1027,7 +1124,7 @@ void MyFrame::GetTitlesStage()
     SetStatusText("Finished downloading track titles (0x" + HexToStr(exit_code) + ")");
 }
 
-void MyFrame::RenameFilesStage()
+void MainFrame::RenameFilesStage()
 {
     SetStatusText("Renaming track files");
 
@@ -1092,7 +1189,7 @@ void MyFrame::RenameFilesStage()
     SetStatusText("Finished renaming track files");
 }
 
-void MyFrame::GetArtworkStage()
+void MainFrame::GetArtworkStage()
 {
     std::string host = "";
     std::string resource = "";
@@ -1194,7 +1291,7 @@ void MyFrame::GetArtworkStage()
     SetStatusText("Finished downloading album cover (0x" + HexToStr(exit_code) + ")");
 }
 
-void MyFrame::AttachArtworkStage()
+void MainFrame::AttachArtworkStage()
 {
     SetStatusText("Attaching cover metadata");
     PrintConsole("Attaching cover metadata\n");
@@ -1210,7 +1307,7 @@ void MyFrame::AttachArtworkStage()
     PrintConsole(lineSeparator);
 }
 
-void MyFrame::CreateAlbumDirectoryStage()
+void MainFrame::CreateAlbumDirectoryStage()
 {
     SetStatusText("Creating album directory");
     std::wstring cmd = L"cmd /c \"MKDIR \"" + albumPathBackslashes + L"\"\"";
@@ -1262,7 +1359,7 @@ void MyFrame::CreateAlbumDirectoryStage()
     SetStatusText("Finished creating album directory (0x" + HexToStr(exit_code) + ")");
 }
 
-void MyFrame::MoveAudioStage()
+void MainFrame::MoveAudioStage()
 {
     SetStatusText("Moving audio files");
     std::wstring cmd = L"cmd /c \"MOVE \"" + workingDirBackslashes + L"\\*.mp3\" \"" + albumPathBackslashes + L"\"\"";
@@ -1315,7 +1412,7 @@ void MyFrame::MoveAudioStage()
     SetStatusText("Finished moving audio files (0x" + HexToStr(exit_code) + ")");
 }
 
-void MyFrame::MoveArtworkStage()
+void MainFrame::MoveArtworkStage()
 {
     SetStatusText("Moving cover file");
     std::wstring cmd = L"cmd /c \"MOVE \"" + workingDirBackslashes + L"\\" + artworkFilename + L"\" \"" + albumPathBackslashes + L"\"\"";
@@ -1371,37 +1468,37 @@ void MyFrame::MoveArtworkStage()
 
 
 
-void MyFrame::RunScript()
+void MainFrame::GetAlbum()
 {
     // TODO:
     // -updating not only screen but events during console process execution
+    SetStatusText("Running the script...");
     AllocConsole();
     
     // DOWNLOAD
-    //DownloadStage();
+    DownloadStage();
 
     // CONVERT
-    //ConvertStage();
+    ConvertStage();
 
     // REMOVE LEFTOVER FILES
-    //RemoveLeftoverStage();
+    RemoveLeftoverStage();
 
     // GET TRACK TITLES
-    //ResetTracksFile();
-    //GetTitlesStage();
+    ResetTracksFile();
+    GetTitlesStage();
     LoadTrackTitles();
     ValidateTrackTitles();  // Remove unwanted & forbidden characters from the track titles
-    //ResetTracksFile();
+    ResetTracksFile();
     
     // RENAME
-    //RenameFilesStage();
+    RenameFilesStage();
 
     // DOWNLOAD ARTWORK
-    //GetArtworkStage();
+    GetArtworkStage();
     
     // ATTACH ARTWORK
     AttachArtworkStage();
-    return;
 
     // CREATE DIRECTORY
     CreateAlbumDirectoryStage();
@@ -1477,7 +1574,7 @@ void replaceAllSubStr(std::wstring& str, std::wstring query, std::wstring replac
     }
 }
 
-void MyFrame::ValidateFilesystemString(std::wstring& str)
+void MainFrame::ValidateFilesystemString(std::wstring& str)
 {
     // Restricted by system: \ / : * ? " < > |
     // Restricted by choice: " - "
@@ -1502,7 +1599,7 @@ void MyFrame::ValidateFilesystemString(std::wstring& str)
     }
 }
 
-void MyFrame::ValidateTrackTitles()
+void MainFrame::ValidateTrackTitles()
 {
     SetStatusText("Analysing track titles in terms of forbidden & unwanted characters...");
     for (int i = 0; i < trackTitles.size(); i++) ValidateFilesystemString(trackTitles[i]);
@@ -1512,7 +1609,7 @@ void MyFrame::ValidateTrackTitles()
 }
 
 
-void MyFrame::SetTracksField()
+void MainFrame::SetTracksField()
 {
     tracks_Field->textField->Clear();
     for (int i = 0; i < trackTitles.size(); i++)
@@ -1521,7 +1618,7 @@ void MyFrame::SetTracksField()
     }
 }
 
-void MyFrame::ResetTracksFile()
+void MainFrame::ResetTracksFile()
 {
     FILE* tracksFile = nullptr;
     std::string path = "tracks";
@@ -1529,7 +1626,7 @@ void MyFrame::ResetTracksFile()
     if (tracksFile != nullptr) fclose(tracksFile);
 }
 
-void MyFrame::LoadTrackTitles()
+void MainFrame::LoadTrackTitles()
 {
     tracks_Field->textField->Clear();
 
@@ -2443,7 +2540,7 @@ void printHex(std::string data, std::string stopQuery)
 
 
 
-void MyFrame::AttachArtwork(std::wstring audioFile, std::wstring artworkFile)
+void MainFrame::AttachArtwork(std::wstring audioFile, std::wstring artworkFile)
 {
     static unsigned int index = 1;
 
