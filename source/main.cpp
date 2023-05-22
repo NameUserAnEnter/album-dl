@@ -1,6 +1,3 @@
-// wxWidgets "Hello World" Program
-
-// For compilers that support precompilation, includes "wx/wx.h".
 #include <wx/wxprec.h>
 
 #ifndef WX_PRECOMP
@@ -11,7 +8,7 @@
 #include <vector>
 #include <wininet.h>
 
-// IDs for menu items except lib-predefined
+// ID's for GUI-elements
 enum
 {
     ID_Save = 1,
@@ -344,7 +341,7 @@ private:
     void MoveArtworkStage();
 };
 
-// The main() function, invoking the entry-point of the program
+// Macro containing the main() function, invoking the entry-point of the program
 wxIMPLEMENT_APP(MainApp);
 
 
@@ -368,7 +365,7 @@ bool MainApp::OnInit()
 MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 {
     // File:
-    //      Hello
+    //      Save settings
     wxMenu* menuFile = new wxMenu;
     // Characters preceded by an ampersand in menu item text are the mnemonic underlined-in-alt-mode acces-keys for these menu items
     // The \tShortcut specify the item shortcuts
@@ -446,6 +443,7 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     ClientWidth = mainOffset.x + TextBoxSize.x + mainOffset.x;
     ClientHeight = mainOffset.y;
 
+    // Sample test values for convenience
     /*
     artist_Field->textField->SetValue("Big Black");
     albumName_Field->textField->SetValue("Lungs");
