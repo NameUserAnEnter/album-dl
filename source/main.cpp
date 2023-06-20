@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <wininet.h>
+#include <thread>
 
 // ID's for GUI-elements
 enum
@@ -222,6 +223,7 @@ int WriteDataToFile(std::string data, const wchar_t* filename)
 }
 
 
+std::thread consoleThread;
 
 
 class TextBox
@@ -260,6 +262,7 @@ public:
 
 class MainApp : public wxApp
 {
+private:
 public:
     virtual bool OnInit();
 };
@@ -444,13 +447,13 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     ClientHeight = mainOffset.y;
 
     // Sample test values for convenience
-    /*
+    ///*
     artist_Field->textField->SetValue("Big Black");
     albumName_Field->textField->SetValue("Lungs");
     albumYear_Field->textField->SetValue("1982");
     URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_lSCRmY_Qw8RCNnMKHcp05O1K8fAIyqLjs");
     URL_Artwork_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_lSCRmY_Qw8RCNnMKHcp05O1K8fAIyqLjs");
-    */
+    //*/
 
     /*
     artist_Field->textField->SetValue("O.S.T.R.");
@@ -551,6 +554,7 @@ void MainFrame::OnClose(wxCloseEvent& event)
 
 void MainFrame::OnExit(wxCommandEvent& event)
 {
+    if (consoleThread.joinable()) consoleThread.join();
     Close(true);
 }
 
@@ -846,7 +850,20 @@ void MainFrame::OnButtonPress(wxCommandEvent& event)
         }
     }
 
-    GetAlbum();
+    //GetAlbum();
+    try
+    {
+        if (consoleThread.joinable()) consoleThread.join();
+        consoleThread = std::move(std::thread(&MainFrame::GetAlbum, this));
+    }
+    catch (const std::exception& e)
+    {
+        MessageBoxA(NULL, e.what(), "", MB_OK);
+    }
+    catch (...)
+    {
+        MessageBoxA(NULL, "Failed to invoke GetAlbum().", "", MB_OK);
+    }
 }
 
 
@@ -884,7 +901,7 @@ void MainFrame::DownloadStage()
     unsigned long exit_code;
     do
     {
-        Update();
+        //Update();
         GetExitCodeProcess(process_information.hProcess, &exit_code);
     } while (exit_code == STILL_ACTIVE);
 
@@ -936,7 +953,7 @@ void MainFrame::ConvertStage()
     unsigned long exit_code;
     do
     {
-        Update();
+        //Update();
         GetExitCodeProcess(process_information.hProcess, &exit_code);
     } while (exit_code == STILL_ACTIVE);
 
@@ -986,7 +1003,7 @@ void MainFrame::CreateTrashDir()
     unsigned long exit_code;
     do
     {
-        Update();
+        //Update();
         GetExitCodeProcess(process_information.hProcess, &exit_code);
     } while (exit_code == STILL_ACTIVE);
 
@@ -1039,7 +1056,7 @@ void MainFrame::RemoveLeftoverStage()
     unsigned long exit_code;
     do
     {
-        Update();
+        //Update();
         GetExitCodeProcess(process_information.hProcess, &exit_code);
     } while (exit_code == STILL_ACTIVE);
 
@@ -1093,7 +1110,7 @@ void MainFrame::GetTitlesStage()
     unsigned long exit_code;
     do
     {
-        Update();
+        //Update();
         GetExitCodeProcess(process_information.hProcess, &exit_code);
     } while (exit_code == STILL_ACTIVE);
 
@@ -1160,7 +1177,7 @@ void MainFrame::RenameFilesStage()
         unsigned long exit_code;
         do
         {
-            Update();
+            //Update();
             GetExitCodeProcess(process_information.hProcess, &exit_code);
         } while (exit_code == STILL_ACTIVE);
 
@@ -1257,7 +1274,7 @@ void MainFrame::GetArtworkStage()
     unsigned long exit_code;
     do
     {
-        Update();
+        //Update();
         GetExitCodeProcess(process_information.hProcess, &exit_code);
     } while (exit_code == STILL_ACTIVE);
 
@@ -1328,7 +1345,7 @@ void MainFrame::CreateAlbumDirectoryStage()
     unsigned long exit_code;
     do
     {
-        Update();
+        //Update();
         GetExitCodeProcess(process_information.hProcess, &exit_code);
     } while (exit_code == STILL_ACTIVE);
 
@@ -1381,7 +1398,7 @@ void MainFrame::MoveAudioStage()
     unsigned long exit_code;
     do
     {
-        Update();
+        //Update();
         GetExitCodeProcess(process_information.hProcess, &exit_code);
     } while (exit_code == STILL_ACTIVE);
 
@@ -1434,7 +1451,7 @@ void MainFrame::MoveArtworkStage()
     unsigned long exit_code;
     do
     {
-        Update();
+        //Update();
         GetExitCodeProcess(process_information.hProcess, &exit_code);
     } while (exit_code == STILL_ACTIVE);
 
@@ -1475,7 +1492,7 @@ void MainFrame::GetAlbum()
     
     // DOWNLOAD
     DownloadStage();
-
+    /*
     // CONVERT
     ConvertStage();
 
@@ -1517,6 +1534,7 @@ void MainFrame::GetAlbum()
     albumYear_Field->textField->SetValue("");
 
     artist_Field->textField->SetFocus();
+    */
 
     SetStatusText("Done");
     if (checkAlert->GetValue() == true) MessageBoxA(NULL, "Script has finished.", "Done", MB_OK);
