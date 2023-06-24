@@ -62,7 +62,7 @@ void Console::ReadLog()
 		GetFileHandle(logFilepath.c_str(), OPEN_EXISTING, &hLogRead, true, FILE_SHARE_WRITE | FILE_SHARE_READ, GENERIC_READ);
 		AddActiveHandle(hLogRead);
 
-		const unsigned int BUFSIZE = 4;
+		const unsigned int BUFSIZE = 4096;
 		unsigned char chBuf[BUFSIZE];
 
 		{

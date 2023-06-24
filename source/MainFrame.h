@@ -77,7 +77,6 @@ private:
     void ValidateTrackTitles();
 
     void SetTracksField();
-    void CreateTrashDir();
 private:
     std::wstring URL;
     std::wstring artworkURL;
@@ -99,22 +98,21 @@ private:
     std::wstring albumPathBackslashes;
     std::wstring workingDirBackslashes;
 private:
-    void CustomStage(std::wstring cmdLine);
+    std::wstring DownloadStage();
+    std::wstring ConvertStage();
+    std::wstring CreateTrashDirStage();
+    std::wstring RemoveLeftoverStage();
 
-    void DownloadStage();
-    void ConvertStage();
-    void RemoveLeftoverStage();
+    std::wstring GetTitlesStage();
 
-    void GetTitlesStage();
+    std::vector<std::wstring> RenameFilesStage();
 
-    void RenameFilesStage();
-
-    void GetArtworkStage();
+    std::wstring GetArtworkStage();
     void AttachArtworkStage();
 
-    void CreateAlbumDirectoryStage();
-    void MoveAudioStage();
-    void MoveArtworkStage();
+    std::wstring CreateAlbumDirectoryStage();
+    std::wstring MoveAudioStage();
+    std::wstring MoveArtworkStage();
 };
 
 
