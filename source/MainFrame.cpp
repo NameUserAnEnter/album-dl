@@ -1,7 +1,37 @@
 #include "MainFrame.h"
 
+
+// ID's for GUI-elements
+enum
+{
+    ID_Save = 1,
+    ID_albumsDir_Field,
+    ID_workingDir_Field,
+    ID_artist_Field,
+    ID_albumName_Field,
+    ID_albumYear_Field,
+    ID_tracks_Field,
+    ID_URL_Field,
+    ID_Button,
+    ID_Frame,
+    ID_AlertOnDone,
+    ID_URL_Artwork_Field
+};
+
+
+
 MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 {
+    // FROM GLOBAL VARS
+    mainOffset = wxSize(20, 40);
+    fieldBetweenSpace = wxSize(10, 20);
+
+    TextBoxSize = wxSize(500, 20);
+    LargeBoxSize = wxSize(500, 500);
+    ButtonSize = wxSize(100, 25);
+
+
+
     // File:
     //      Save settings
     wxMenu* menuFile = new wxMenu;
@@ -34,29 +64,43 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 
 
     albumsDir_Field = new TextBox("Albums directory:", ID_albumsDir_Field,
-                                  wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel);
+                                  wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel, false,
+                                  labelOffset, mainOffset, fieldBetweenSpace);
     workingDir_Field = new TextBox("Working directory:", ID_workingDir_Field,
-                                   wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel);
+                                   wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel, false,
+                                   labelOffset, mainOffset, fieldBetweenSpace);
 
     mainOffset.y += TextBoxSize.y + fieldBetweenSpace.y;
     artist_Field = new TextBox("Artist:", ID_artist_Field,
-                               wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel);
+                               wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel, false,
+                               labelOffset, mainOffset, fieldBetweenSpace);
+
     albumName_Field = new TextBox("Album name:", ID_albumName_Field,
-                                  wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel);
+                                  wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel, false,
+                                  labelOffset, mainOffset, fieldBetweenSpace);
+
     albumYear_Field = new TextBox("Album year:", ID_albumYear_Field,
-                                  wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel);
+                                  wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel, false,
+                                  labelOffset, mainOffset, fieldBetweenSpace);
+
 
 
     tracks_Field = new TextBox("Tracks (auto-filled):", ID_tracks_Field,
-                               wxPoint(mainOffset.x, mainOffset.y), LargeBoxSize, mainPanel, true);
+                               wxPoint(mainOffset.x, mainOffset.y), LargeBoxSize, mainPanel, true,
+                               labelOffset, mainOffset, fieldBetweenSpace);
+
     //tracks_Field->textField->Disable();
     tracks_Field->textField->SetEditable(false);
 
     URL_Field = new TextBox("Playlist URL:", ID_URL_Field,
-                            wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel);
+                            wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel, false,
+                            labelOffset, mainOffset, fieldBetweenSpace);
+
 
     URL_Artwork_Field = new TextBox("Playlist URL with proper artwork:", ID_URL_Artwork_Field,
-                                    wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel);
+                                    wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel, false,
+                                    labelOffset, mainOffset, fieldBetweenSpace);
+
 
 
 

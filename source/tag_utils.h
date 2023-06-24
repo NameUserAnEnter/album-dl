@@ -1,3 +1,6 @@
+#ifndef TAG_UTILS_H
+#define TAG_UTILS_H
+
 #include "utils.h"
 
 
@@ -521,4 +524,9 @@ inline void printHex(std::string data, std::string stopQuery)
         }
     }
 }
+
+
+#endif
+
+
 

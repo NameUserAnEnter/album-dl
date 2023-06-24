@@ -7,13 +7,15 @@
 #endif
 
 
+
 class TextBox
 {
 public:
     wxStaticBox* labelBox;
     wxTextCtrl* textField;
 
-    TextBox(wxString label, wxWindowID textFieldID, wxPoint position, wxSize size, wxPanel* panel, bool multiline = false)
+    TextBox(wxString label, wxWindowID textFieldID, wxPoint position, wxSize size, wxPanel* panel,
+            bool multiline, RECT labelOffset, wxSize& mainOffset, wxSize fieldBetweenSpace)
     {
         labelBox = new wxStaticBox(
             panel, wxID_ANY, label,

@@ -6,6 +6,13 @@
 #include <wx/wx.h>
 #endif
 
+#include "TextBox.h"
+#include "validate.h"
+#include "utils.h"
+#include "network_utils.h"
+#include "tag_utils.h"
+#include <thread>
+
 
 class MainFrame : public wxFrame
 {
@@ -23,6 +30,23 @@ private:
     TextBox* URL_Artwork_Field;
 
     wxCheckBox* checkAlert;
+
+public:
+    // FROM GLOBAL VARIABLES
+    unsigned int ClientWidth, ClientHeight;
+private:
+    wxSize mainOffset;
+    wxSize fieldBetweenSpace;
+
+    wxSize TextBoxSize;
+    wxSize LargeBoxSize;
+    wxSize ButtonSize;
+public:
+    RECT labelOffset;
+
+
+private:
+    std::thread consoleThread;
 
 private:
     void OnButtonPress(wxCommandEvent& event);

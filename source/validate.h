@@ -1,3 +1,6 @@
+#ifndef VALIDATE_H
+#define VALIDATE_H
+
 #include "utils.h"
 
 inline bool validField(std::wstring data)
@@ -28,4 +31,7 @@ inline bool validField(std::wstring data, std::vector<std::wstring> allPossibleM
     }
     return false;
 }
+
+#endif
+
 

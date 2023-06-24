@@ -1,3 +1,6 @@
+#ifndef NETWORK_UTILS_H
+#define NETWORK_UTILS_H
+
 #include <wininet.h>
 #include "utils.h"
 
@@ -288,6 +291,12 @@ inline int GetThumbnailURL(std::string* returnURL, const char* inputFilename)
 
     return 0;
 }
+
+
+
+
+
+#endif
 
 
 

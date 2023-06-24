@@ -1,3 +1,6 @@
+#ifndef UTILS_H
+#define UTILS_H
+
 #include <string>
 #include <vector>
 #include <windows.h>
@@ -256,4 +259,6 @@ inline void replaceAllSubStr(std::wstring& str, std::wstring query, std::wstring
     }
 }
 
+
+#endif
 
