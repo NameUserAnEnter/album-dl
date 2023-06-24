@@ -6,6 +6,9 @@
 #include <wx/wx.h>
 #endif
 
+#include <string>
+#include "utils.h"
+
 
 
 class TextBox
@@ -14,11 +17,11 @@ public:
     wxStaticBox* labelBox;
     wxTextCtrl* textField;
 
-    TextBox(wxString label, wxWindowID textFieldID, wxPoint position, wxSize size, wxPanel* panel,
+    TextBox(std::string label, wxWindowID textFieldID, wxPoint position, wxSize size, wxPanel* panel,
             bool multiline, RECT labelOffset, wxSize& mainOffset, wxSize fieldBetweenSpace)
     {
         labelBox = new wxStaticBox(
-            panel, wxID_ANY, label,
+            panel, wxID_ANY, toWide(label),
             wxPoint(position.x - labelOffset.left, position.y - labelOffset.top),
             wxSize(labelOffset.left + size.x + labelOffset.right, labelOffset.top + size.y + labelOffset.bottom),
             0, wxString(label + " label"));

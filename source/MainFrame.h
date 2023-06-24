@@ -41,7 +41,7 @@ private:
     wxSize TextBoxSize;
     wxSize LargeBoxSize;
     wxSize ButtonSize;
-public:
+
     RECT labelOffset;
 
 

@@ -30,6 +30,10 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     LargeBoxSize = wxSize(500, 500);
     ButtonSize = wxSize(100, 25);
 
+    labelOffset.left = 3;
+    labelOffset.right = 3;
+    labelOffset.top = 15;
+    labelOffset.bottom = 3;
 
 
     // File:

@@ -19,11 +19,12 @@ inline double power(double base, unsigned int exponent)
     return return_value;
 }
 
-inline std::string NumToStr(unsigned int num, unsigned int base = 10, unsigned int min_digits = 1)
+inline std::string NumToStr(unsigned long long num, unsigned long long base = 10, unsigned int min_digits = 1)
 {
     std::string str = "";
 
     unsigned int count_digits = 0;
+    // FFFFFFFF
     while (power(base, count_digits) <= num) count_digits++;
 
     unsigned int size = count_digits;
@@ -36,7 +37,7 @@ inline std::string NumToStr(unsigned int num, unsigned int base = 10, unsigned i
         // 5248 % 100 = 48 -> 48 / 10 = 4
         // 5248 % 1000 = 248 -> 248 / 100 = 2
         // 5248 % 10000 = 5248 -> 5248 / 1000 = 5
-        unsigned int digit = (num % (unsigned int)power(base, i + 1)) / power(base, i);
+        unsigned int digit = (num % (unsigned long long)power(base, i + 1)) / power(base, i);
 
         if (digit < 10) str += (unsigned char)((unsigned int)'0' + digit);
         else str += (unsigned char)((unsigned int)'A' + (digit - 10));
@@ -44,7 +45,7 @@ inline std::string NumToStr(unsigned int num, unsigned int base = 10, unsigned i
     return str;
 }
 
-inline std::string HexToStr(unsigned int hex, unsigned int digits = 2)
+inline std::string HexToStr(unsigned long long hex, unsigned int digits = 2)
 {
     return NumToStr(hex, 16, digits);
 }
@@ -258,6 +259,42 @@ inline void replaceAllSubStr(std::wstring& str, std::wstring query, std::wstring
         replaceSubStr(str, query, replacement);
     }
 }
+
+
+
+inline std::wstring toWide(std::string str)
+{
+    std::wstring wide;
+    for (auto letter : str)
+    {
+        wide += letter;
+    }
+    return wide;
+}
+
+inline std::string fromWide(std::wstring wstr)
+{
+    std::string str;
+    for (auto letter : wstr)
+    {
+        str += (unsigned char)letter;
+    }
+    return str;
+}
+
+
+inline void MessageDialog(std::wstring msg)
+{
+    if (msg.back() == L'\n') msg.pop_back();
+
+    MessageBoxW(NULL, msg.c_str(), L"", MB_OK);
+}
+
+inline void MessageDialog(std::string msg)
+{
+    MessageDialog(toWide(msg));
+}
+
 
 
 #endif

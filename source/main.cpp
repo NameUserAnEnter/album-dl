@@ -34,10 +34,6 @@ bool MainApp::OnInit()
 {
     MainFrame* frame = new MainFrame();
 
-    frame->labelOffset.left = 3;
-    frame->labelOffset.right = 3;
-    frame->labelOffset.top = 15;
-    frame->labelOffset.bottom = 3;
 
 
     frame->SetClientSize(frame->ClientWidth, frame->ClientHeight);
