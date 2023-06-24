@@ -45,7 +45,7 @@ void Console::RunConsole()
 
 void Console::WriteLog()
 {
-	PrintLog("----------------------------   Start of session.   ----------------------------\n\n\n");
+	PrintLog("----------------------------   Start of session.   ----------------------------\n");
 
 	RunBatch();
 	bDone = true;
@@ -56,12 +56,13 @@ void Console::ReadLog()
 	bool bLastIter = false;
 	DWORD dwRead;
 	unsigned int totalRead = 0;
-	do
+	
+	for (;;)
 	{
 		GetFileHandle(logFilepath.c_str(), OPEN_EXISTING, &hLogRead, true, FILE_SHARE_WRITE | FILE_SHARE_READ, GENERIC_READ);
 		AddActiveHandle(hLogRead);
 
-		const unsigned int BUFSIZE = 80;
+		const unsigned int BUFSIZE = 2;
 		unsigned char chBuf[BUFSIZE];
 
 		{
@@ -83,13 +84,13 @@ void Console::ReadLog()
 		std::wstring decodedBuf = DecodeFromUTF8(encodedBuf);
 		PrintConsole(decodedBuf);
 
-
+		if (bLastIter) break;
 		if (bDone && dwRead == 0)
 		{
 			bLastIter = true;
 			continue;
 		}
-	} while (!bLastIter);
+	}
 }
 
 

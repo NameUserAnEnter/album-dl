@@ -173,7 +173,7 @@ void MainFrame::OnAbout(wxCommandEvent& event)
 {
     std::string output = "";
 
-#define VER 1.0
+#define VER 1.2
     unsigned int fraction_digits = 0;
     float uVer = VER;
     while (uVer != (int)uVer)
