@@ -38,6 +38,21 @@ public:
         mainOffset.y += size.y + fieldBetweenSpace.y;
     }
 
+    void SetText(std::wstring text)
+    {
+        textField->SetValue(text);
+    }
+
+    void AppendText(std::wstring text)
+    {
+        textField->SetValue(GetText() + text);
+    }
+
+    std::wstring GetText()
+    {
+        return textField->GetValue().ToStdWstring();
+    }
+
     ~TextBox()
     {
         delete labelBox;

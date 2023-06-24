@@ -64,7 +64,7 @@ private:
 	std::string ErrorOutput(std::string function, unsigned long external_code);
 
 
-	void ExitSafe(unsigned long error_code);
+	void ExitSafe(unsigned long);
 	void CloseProperHandle(HANDLE hHandle);
 };
 

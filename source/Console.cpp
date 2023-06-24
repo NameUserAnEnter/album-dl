@@ -21,8 +21,6 @@ void Console::AddCmdLine(std::wstring cmdLine)
 
 Console::~Console()
 {
-	ExitSafe(ERR_SUCCESS);
-
 	ActiveHandles.clear();
 	cmdLines.clear();
 }
@@ -32,18 +30,15 @@ void Console::RunConsole()
 	GetFileHandle(logFilepath.c_str(), CREATE_ALWAYS, &hLogWrite, true, FILE_SHARE_READ, GENERIC_WRITE);
 	AddActiveHandle(hLogWrite);
 
+	ExitSafe(ERR_SUCCESS);
+	bConsoleDone = true;
+	return;
+
 	std::thread th1(&Console::WriteLog, this);
 	std::thread th2(&Console::ReadLog, this);
 
 	th1.join();
 	th2.join();
-
-
-
-	PrintConsole("Batch job finished, press 'x': ");
-
-	//ExitSafe(ERR_SUCCESS);
-	bConsoleDone = true;
 }
 
 
@@ -250,15 +245,14 @@ std::string Console::ErrorOutput(std::string function, unsigned long external_co
 	return output;
 }
 
-void Console::ExitSafe(unsigned long error_code)
+void Console::ExitSafe(unsigned long exit_code)
 {
 	for (int i = 0; i < ActiveHandles.size(); i++)
 	{
 		CloseProperHandle(ActiveHandles[ActiveHandles.size() - 1 - i]);
 	}
 
-
-	delete this;
+	PrintConsole("Session has finished. Exit code: " + NumToStr(exit_code) + " (" + HexToStr(exit_code) + ")");
 	//ExitProcess(error_code);
 }
 

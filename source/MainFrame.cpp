@@ -408,20 +408,7 @@ void MainFrame::OnButtonPress(wxCommandEvent& event)
         }
     }
 
-    //GetAlbum();
-    try
-    {
-        if (consoleThread.joinable()) consoleThread.join();
-        consoleThread = std::move(std::thread(&MainFrame::GetAlbum, this));
-    }
-    catch (const std::exception& e)
-    {
-        MessageBoxA(NULL, e.what(), "", MB_OK);
-    }
-    catch (...)
-    {
-        MessageBoxA(NULL, "Failed to invoke GetAlbum().", "", MB_OK);
-    }
+    GetAlbum();
 }
 
 
@@ -502,7 +489,7 @@ void MainFrame::DownloadStage()
     args += ' ';
     args += L"-o \"" + workingDirectory + L"td8_index%(playlist_index)s.mp4\" " + URL;
 
-    std::wstring fullCommand = L""; fullCommand += workingDirectory + execName + ' ' + args;
+    std::wstring fullCommand = L""; fullCommand += workingDirectory + execName; // + ' ' + args;
 
     std::wstring output = L"";
     Console cDownload(L"log", &output);
@@ -511,18 +498,14 @@ void MainFrame::DownloadStage()
     std::thread sub_thread(&Console::RunConsole, &cDownload);
 
     bool bLastIter = false;
-    do
+    for (;;)
     {
-        output_Field->textField->AppendText(output);
-        output.clear();
+        output_Field->AppendText(output);
+        //output.clear();
 
-        if (cDownload.bConsoleDone)
-        {
-            bLastIter = true;
-            cDownload.bConsoleDone = false;
-            continue;
-        }
-    } while (!bLastIter);
+        if (bLastIter) break;
+        if (cDownload.bConsoleDone) bLastIter = true;
+    }
 
     sub_thread.join();
     SetStatusText("Finished downloading tracks");
