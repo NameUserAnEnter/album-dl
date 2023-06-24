@@ -66,22 +66,30 @@ void Console::ReadLog()
 
 		{
 			std::lock_guard<std::mutex> filePosLock(filePosMutex);
-			
 			if (SetFilePointer(hLogRead, totalRead, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER) ErrorWithCode("SetFilePointer", GetLastError());
-			ReadFile(hLogRead, &chBuf, BUFSIZE, &dwRead, NULL);
+		}
+		ReadFile(hLogRead, &chBuf, BUFSIZE, &dwRead, NULL);
+		{
+			std::lock_guard<std::mutex> filePosLock(filePosMutex);
 			if (SetFilePointer(hLogRead, 0, NULL, FILE_END) == INVALID_SET_FILE_POINTER) ErrorWithCode("SetFilePointer", GetLastError());
 		}
 
 		totalRead += dwRead;
 		RemoveActiveHandle(hLogRead);
 
-		std::string strBuf = "";
-		for (int i = 0; i < dwRead; i++) strBuf += chBuf[i];
-		PrintConsole(strBuf);
+		std::string encodedBuf = "";
+		for (int i = 0; i < dwRead; i++) encodedBuf += chBuf[i];
+
+		std::wstring decodedBuf = DecodeFromUTF8(encodedBuf);
+		PrintConsole(decodedBuf);
 
 
-		if (bDone && dwRead == 0) break;
-	} while (true);
+		if (bDone && dwRead == 0)
+		{
+			bLastIter = true;
+			continue;
+		}
+	} while (!bLastIter);
 }
 
 
@@ -128,10 +136,24 @@ void Console::RunProcess(std::wstring path)
 
 
 
-void Console::PrintLog(std::string buf)
+void Console::PrintLog(std::wstring buf)
 {
 	std::lock_guard<std::mutex> filePosLock(filePosMutex);
 	Write(hLogWrite, buf);
+}
+
+void Console::PrintConsole(std::wstring buf)
+{
+	//Write(GetStdHandle(STD_OUTPUT_HANDLE), buf);
+
+	std::lock_guard<std::mutex> bufLock(outputBufMutex);
+	*pOutputBuffer += (buf);
+}
+
+void Console::PrintLog(std::string buf)
+{
+	std::lock_guard<std::mutex> filePosLock(filePosMutex);
+	Write(hLogWrite, toWide(buf));
 }
 
 void Console::PrintConsole(std::string buf)
@@ -143,13 +165,15 @@ void Console::PrintConsole(std::string buf)
 }
 
 
-void Console::Write(HANDLE hOut, std::string buf)
+void Console::Write(HANDLE hOut, std::wstring buf)
 {
+	std::string encoded = EncodeToUTF8(buf);
+
 	DWORD dwWritten;
-	if (!WriteFile(hOut, buf.c_str(), buf.size() * sizeof(buf[0]), &dwWritten, NULL)) ErrorWithCode("WriteFile", GetLastError(), ERR_WRITE);
+	if (!WriteFile(hOut, encoded.c_str(), encoded.size() * sizeof(encoded[0]), &dwWritten, NULL)) ErrorWithCode("WriteFile", GetLastError(), ERR_WRITE);
 }
 
-void Console::Read(HANDLE hIn, std::string& buf)
+void Console::Read(HANDLE hIn, std::wstring& buf)
 {
 	DWORD dwRead;
 
@@ -159,10 +183,12 @@ void Console::Read(HANDLE hIn, std::string& buf)
 		free(chBuf);
 		ErrorWithCode("ReadFile", GetLastError(), ERR_READ);
 	}
-	buf.resize(dwRead);
-
-	for (int i = 0; i < buf.size(); i++) buf[i] = chBuf[i];
+	
+	std::string encoded = "";
+	for (int i = 0; i < dwRead; i++) encoded[i] += chBuf[i];
 	free(chBuf);
+
+	buf = DecodeFromUTF8(encoded);
 }
 
 

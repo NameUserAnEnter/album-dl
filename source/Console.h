@@ -49,12 +49,15 @@ private:
 	void RunBatch();
 	void RunProcess(std::wstring path);
 
+	void PrintLog(std::wstring buf);
+	void PrintConsole(std::wstring buf);
+
 	void PrintLog(std::string buf);
 	void PrintConsole(std::string buf);
 
 
-	void Write(HANDLE hOut, std::string buf);
-	void Read(HANDLE hIn, std::string& buf);
+	void Write(HANDLE hOut, std::wstring buf);
+	void Read(HANDLE hIn, std::wstring& buf);
 
 
 
