@@ -11,6 +11,7 @@
 #include "utils.h"
 #include "network_utils.h"
 #include "tag_utils.h"
+#include "Console.h"
 #include <thread>
 
 
@@ -24,7 +25,7 @@ private:
     TextBox* artist_Field;
     TextBox* albumName_Field;
     TextBox* albumYear_Field;
-    TextBox* tracks_Field;
+    TextBox* output_Field;
 
     TextBox* URL_Field;
     TextBox* URL_Artwork_Field;

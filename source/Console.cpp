@@ -7,26 +7,33 @@ Console::Console(std::wstring _logFilepath, std::wstring* _pOutputBuffer) : logF
 	hLogRead = NULL;
 
 	ActiveHandles.clear();
+	cmdLines.clear();
 
-	GetFileHandle(logFilepath.c_str(), CREATE_ALWAYS, &hLogWrite, true, FILE_SHARE_READ, GENERIC_WRITE);
-	AddActiveHandle(hLogWrite);
 
 	bDone = false;
 	bConsoleDone = false;
 }
 
+void Console::AddCmdLine(std::wstring cmdLine)
+{
+	cmdLines.push_back(cmdLine);
+}
+
 Console::~Console()
 {
 	ExitSafe(ERR_SUCCESS);
+
+	ActiveHandles.clear();
+	cmdLines.clear();
 }
 
 void Console::RunConsole()
 {
-	GetFileHandle(L"log", CREATE_ALWAYS, &hLogWrite, true, FILE_SHARE_READ, GENERIC_WRITE);
+	GetFileHandle(logFilepath.c_str(), CREATE_ALWAYS, &hLogWrite, true, FILE_SHARE_READ, GENERIC_WRITE);
 	AddActiveHandle(hLogWrite);
 
-	std::thread th1(&WriteLog);
-	std::thread th2(&ReadLog);
+	std::thread th1(&Console::WriteLog, this);
+	std::thread th2(&Console::ReadLog, this);
 
 	th1.join();
 	th2.join();
@@ -34,9 +41,9 @@ void Console::RunConsole()
 
 
 	PrintConsole("Batch job finished, press 'x': ");
-	bConsoleDone = true;
 
-	ExitSafe(ERR_SUCCESS);
+	//ExitSafe(ERR_SUCCESS);
+	bConsoleDone = true;
 }
 
 
@@ -81,25 +88,25 @@ void Console::ReadLog()
 
 void Console::RunBatch()
 {
-	RunProcess("D:/conversion/tbdl/yt-dlp.exe -f bestaudio -o \"D:/conversion/tbdl/td5_output1.mp4\" \"https://www.youtube.com/watch?v=uog1U_Kemlk\"");
-	PrintLog("\n\n");
-	RunProcess("D:/conversion/tbdl/ffmpeg.exe -i \"D:/conversion/tbdl/td5_output1.mp4\" -c:a mp3 -b:a 192k -ar 44100 \"D:/conversion/tbdl/td5_output2_12.mp3\"");
-	PrintLog("\n\n");
-	RunProcess("cmd /c \"MOVE \"D:\\conversion\\tbdl\\td5_output1.mp4\" \"D:\\conversion\\tbdl\\Move to Recycle Bin\"\"");
+	for (int i = 0; i < cmdLines.size(); i++)
+	{
+		RunProcess(cmdLines[i]);
+		if (i + 1 < cmdLines.size()) PrintLog("\n\n");
+	}
 }
 
-void Console::RunProcess(std::string path)
+void Console::RunProcess(std::wstring path)
 {
-	PrintLog("Executing process:\n" + path + "\n\n");
+	PrintLog("Executing process:\n" + EncodeToUTF8(path) + "\n\n");
 
 	STARTUPINFO startupInfo ={ };
 	startupInfo.dwFlags = STARTF_USESTDHANDLES;
 	startupInfo.hStdOutput = hLogWrite;
 	startupInfo.hStdError = hLogWrite;
-	startupInfo.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
+	//startupInfo.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
 
 	PROCESS_INFORMATION processInfo ={ };
-	if (!CreateProcess(NULL, (wchar_t*)toWide(path).c_str(), NULL, NULL, TRUE, 0, NULL, NULL, &startupInfo, &processInfo)) ErrorWithCode("CreateProcess", GetLastError());
+	if (!CreateProcess(NULL, (wchar_t*)path.c_str(), NULL, NULL, TRUE, 0, NULL, NULL, &startupInfo, &processInfo)) ErrorWithCode("CreateProcess", GetLastError());
 
 	DWORD dwExitCode;
 	do
@@ -158,8 +165,8 @@ void Console::Read(HANDLE hIn, std::string& buf)
 
 
 
-void Console::GetFileHandle(const wchar_t* path, DWORD dwCreationDisposition, HANDLE* hDest, bool bInheritable = false,
-				   DWORD dwShareMode = NULL, DWORD dwDesiredAccess = GENERIC_READ | GENERIC_WRITE)
+void Console::GetFileHandle(const wchar_t* path, DWORD dwCreationDisposition, HANDLE* hDest, bool bInheritable,
+							DWORD dwShareMode, DWORD dwDesiredAccess)
 {
 	if (!bInheritable) *hDest = CreateFile(path, dwDesiredAccess, dwShareMode, NULL, dwCreationDisposition, FILE_ATTRIBUTE_NORMAL, NULL);
 	else
@@ -211,7 +218,7 @@ void Console::RemoveActiveHandle(HANDLE hActive)
 
 
 
-void Console::Error(std::string function, unsigned long exit_code = ERR_DEFAULT)
+void Console::Error(std::string function, unsigned long exit_code)
 {
 	std::string output = ErrorOutput(function);
 
@@ -219,7 +226,7 @@ void Console::Error(std::string function, unsigned long exit_code = ERR_DEFAULT)
 	ExitSafe(exit_code);
 }
 
-void Console::ErrorWithCode(std::string function, unsigned long external_code, unsigned long exit_code = ERR_DEFAULT)
+void Console::ErrorWithCode(std::string function, unsigned long external_code, unsigned long exit_code)
 {
 	std::string output = ErrorOutput(function, external_code);
 
@@ -250,7 +257,8 @@ void Console::ExitSafe(unsigned long error_code)
 		CloseProperHandle(ActiveHandles[ActiveHandles.size() - 1 - i]);
 	}
 
-	PrintConsole("\n\nSession finished\nExit code: " + NumToStr(error_code) + " (" + HexToStr(error_code) +")\n");
+
+	delete this;
 	//ExitProcess(error_code);
 }
 

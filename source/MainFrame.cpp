@@ -10,7 +10,7 @@ enum
     ID_artist_Field,
     ID_albumName_Field,
     ID_albumYear_Field,
-    ID_tracks_Field,
+    ID_output_Field,
     ID_URL_Field,
     ID_Button,
     ID_Frame,
@@ -26,8 +26,8 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     mainOffset = wxSize(20, 40);
     fieldBetweenSpace = wxSize(10, 20);
 
-    TextBoxSize = wxSize(500, 20);
-    LargeBoxSize = wxSize(500, 500);
+    TextBoxSize = wxSize(800, 20);
+    LargeBoxSize = wxSize(800, 500);
     ButtonSize = wxSize(100, 25);
 
     labelOffset.left = 3;
@@ -74,7 +74,7 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
                                    wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel, false,
                                    labelOffset, mainOffset, fieldBetweenSpace);
 
-    mainOffset.y += TextBoxSize.y + fieldBetweenSpace.y;
+    mainOffset.y += fieldBetweenSpace.y;
     artist_Field = new TextBox("Artist:", ID_artist_Field,
                                wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel, false,
                                labelOffset, mainOffset, fieldBetweenSpace);
@@ -86,15 +86,6 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     albumYear_Field = new TextBox("Album year:", ID_albumYear_Field,
                                   wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel, false,
                                   labelOffset, mainOffset, fieldBetweenSpace);
-
-
-
-    tracks_Field = new TextBox("Tracks (auto-filled):", ID_tracks_Field,
-                               wxPoint(mainOffset.x, mainOffset.y), LargeBoxSize, mainPanel, true,
-                               labelOffset, mainOffset, fieldBetweenSpace);
-
-    //tracks_Field->textField->Disable();
-    tracks_Field->textField->SetEditable(false);
 
     URL_Field = new TextBox("Playlist URL:", ID_URL_Field,
                             wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel, false,
@@ -116,6 +107,16 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
                                 wxPoint(mainOffset.x + ButtonSize.x + fieldBetweenSpace.x, mainOffset.y),
                                 ButtonSize, 0, wxDefaultValidator, "Alert checkbox");
     mainOffset.y += ButtonSize.y + fieldBetweenSpace.y;
+
+
+
+    mainOffset.y += fieldBetweenSpace.y;
+    output_Field = new TextBox("Tracks (auto-filled):", ID_output_Field,
+                               wxPoint(mainOffset.x, mainOffset.y), LargeBoxSize, mainPanel, true,
+                               labelOffset, mainOffset, fieldBetweenSpace);
+
+    //output_Field->textField->Disable();
+    output_Field->textField->SetEditable(false);
 
     Bind(wxEVT_BUTTON, &MainFrame::OnButtonPress, this, ID_Button);
 
@@ -432,7 +433,7 @@ void MainFrame::GetAlbum()
     // TODO:
     // -updating not only screen but events during console process execution
     SetStatusText("Running the script...");
-    AllocConsole();
+    //AllocConsole();
 
     // DOWNLOAD
     DownloadStage();
@@ -502,51 +503,29 @@ void MainFrame::DownloadStage()
     args += L"-o \"" + workingDirectory + L"td8_index%(playlist_index)s.mp4\" " + URL;
 
     std::wstring fullCommand = L""; fullCommand += workingDirectory + execName + ' ' + args;
-    PrintConsole(fullCommand);
-    PrintConsole("\n\n");
 
+    std::wstring output = L"";
+    Console cDownload(L"log", &output);
+    cDownload.AddCmdLine(fullCommand);
 
-    unsigned long bufSize = fullCommand.size() + 1;
-    wchar_t* buf = (wchar_t*)calloc(bufSize, sizeof(wchar_t));
-    for (int i = 0; i < bufSize - 1; i++)
-    {
-        buf[i] = fullCommand[i];
-    }
-    buf[bufSize - 1] = '\0';
+    std::thread sub_thread(&Console::RunConsole, &cDownload);
 
-
-    STARTUPINFO startupinfo ={ };
-    PROCESS_INFORMATION process_information ={ };
-    BOOL rv = CreateProcess(NULL, (wchar_t*)buf, NULL, NULL, true, STARTF_USESTDHANDLES, NULL, NULL, &startupinfo, &process_information);
-    unsigned long exit_code;
+    bool bLastIter = false;
     do
     {
-        //Update();
-        GetExitCodeProcess(process_information.hProcess, &exit_code);
-    } while (exit_code == STILL_ACTIVE);
+        output_Field->textField->AppendText(output);
+        output.clear();
 
+        if (cDownload.bConsoleDone)
+        {
+            bLastIter = true;
+            cDownload.bConsoleDone = false;
+            continue;
+        }
+    } while (!bLastIter);
 
-    std::wstring output;
-    if (rv != 0)
-    {
-        output = L"\n\nSuccess (0x" + HexToStr(exit_code) + L")";
-    }
-    else
-    {
-        output = L"\n\nFailure\nGetLastError() returned: 0x" + HexToStr(GetLastError());
-    }
-    PrintConsole(output);
-    PrintConsole(lineSeparator);
-
-
-    free(buf);
-    CloseHandle(startupinfo.hStdInput);
-    CloseHandle(startupinfo.hStdOutput);
-    CloseHandle(startupinfo.hStdError);
-    CloseHandle(process_information.hProcess);
-    CloseHandle(process_information.hThread);
-
-    SetStatusText("Finished downloading tracks (0x" + HexToStr(exit_code) + ")");
+    sub_thread.join();
+    SetStatusText("Finished downloading tracks");
 }
 
 void MainFrame::ConvertStage()
@@ -1160,10 +1139,10 @@ void MainFrame::ValidateTrackTitles()
 
 void MainFrame::SetTracksField()
 {
-    tracks_Field->textField->Clear();
+    output_Field->textField->Clear();
     for (int i = 0; i < trackTitles.size(); i++)
     {
-        tracks_Field->textField->WriteText(NumToStr(i + 1) + L". " + artist + L" - " + trackTitles[i] + (wchar_t)'\n');
+        output_Field->textField->WriteText(NumToStr(i + 1) + L". " + artist + L" - " + trackTitles[i] + (wchar_t)'\n');
     }
 }
 
@@ -1177,7 +1156,7 @@ void MainFrame::ResetTracksFile()
 
 void MainFrame::LoadTrackTitles()
 {
-    tracks_Field->textField->Clear();
+    output_Field->textField->Clear();
 
     FILE* tracksFile = nullptr;
     std::string path = "tracks";

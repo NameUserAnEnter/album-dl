@@ -19,16 +19,19 @@ public:
 	Console(std::wstring, std::wstring*);
 	~Console();
 
-
+	void AddCmdLine(std::wstring cmdLine);
 private:
 	std::vector<HANDLE> ActiveHandles;
 	HANDLE hLogWrite;
 	HANDLE hLogRead;
 	bool bDone;
+public:
 	bool bConsoleDone;
-
+private:
 	std::wstring logFilepath;
 	std::wstring* pOutputBuffer;
+
+	std::vector<std::wstring> cmdLines;
 public:
 	void RunConsole();
 private:
@@ -36,7 +39,7 @@ private:
 	void ReadLog();
 
 	void RunBatch();
-	void RunProcess(std::string path);
+	void RunProcess(std::wstring path);
 
 	void PrintLog(std::string buf);
 	void PrintConsole(std::string buf);
