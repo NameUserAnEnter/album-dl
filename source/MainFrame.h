@@ -49,6 +49,7 @@ private:
 
 private:
     std::thread consoleThread;
+    std::wstring lineSeparator;
 
 private:
     void OnButtonPress(wxCommandEvent& event);

@@ -30,22 +30,22 @@ void Console::RunConsole()
 	GetFileHandle(logFilepath.c_str(), CREATE_ALWAYS, &hLogWrite, true, FILE_SHARE_READ, GENERIC_WRITE);
 	AddActiveHandle(hLogWrite);
 
+	thWrite = std::move(std::thread(&Console::WriteLog, this));
+	thRead = std::move(std::thread(&Console::ReadLog, this));
+
+	thWrite.join();
+	thRead.join();
+
 	ExitSafe(ERR_SUCCESS);
 	bConsoleDone = true;
 	return;
-
-	std::thread th1(&Console::WriteLog, this);
-	std::thread th2(&Console::ReadLog, this);
-
-	th1.join();
-	th2.join();
 }
 
 
 
 void Console::WriteLog()
 {
-	PrintLog("-------Start of log.-------\n\n\n");
+	PrintLog("----------------------------   Start of session.   ----------------------------\n\n\n");
 
 	RunBatch();
 	bDone = true;
@@ -58,7 +58,7 @@ void Console::ReadLog()
 	unsigned int totalRead = 0;
 	do
 	{
-		GetFileHandle(L"log", OPEN_EXISTING, &hLogRead, true, FILE_SHARE_WRITE | FILE_SHARE_READ, GENERIC_READ);
+		GetFileHandle(logFilepath.c_str(), OPEN_EXISTING, &hLogRead, true, FILE_SHARE_WRITE | FILE_SHARE_READ, GENERIC_READ);
 		AddActiveHandle(hLogRead);
 
 		const unsigned int BUFSIZE = 80;
@@ -99,10 +99,11 @@ void Console::RunProcess(std::wstring path)
 	PrintLog("Executing process:\n" + EncodeToUTF8(path) + "\n\n");
 
 	STARTUPINFO startupInfo ={ };
-	startupInfo.dwFlags = STARTF_USESTDHANDLES;
+	startupInfo.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
 	startupInfo.hStdOutput = hLogWrite;
 	startupInfo.hStdError = hLogWrite;
 	//startupInfo.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
+	startupInfo.wShowWindow = SW_HIDE;
 
 	PROCESS_INFORMATION processInfo ={ };
 	if (!CreateProcess(NULL, (wchar_t*)path.c_str(), NULL, NULL, TRUE, 0, NULL, NULL, &startupInfo, &processInfo)) ErrorWithCode("CreateProcess", GetLastError());
@@ -113,7 +114,7 @@ void Console::RunProcess(std::wstring path)
 		GetExitCodeProcess(processInfo.hProcess, &dwExitCode);
 	} while (dwExitCode == STILL_ACTIVE);
 	PrintLog("\n\nProcess finished with exit code: " + HexToStr(dwExitCode) + "\n");
-	PrintLog("----------------------------------------------------------------------\n");
+	PrintLog("----------------------------     End of process.   ----------------------------\n");
 
 
 
@@ -259,14 +260,17 @@ void Console::ExitSafe(unsigned long exit_code)
 		CloseProperHandle(ActiveHandles[ActiveHandles.size() - 1 - i]);
 	}
 
-	PrintConsole("Session has finished. Exit code: " + NumToStr(exit_code) + " (" + HexToStr(exit_code) + ")");
-	//ExitProcess(error_code);
+	PrintConsole("Session has finished. Exit code: " + NumToStr(exit_code) + " (" + HexToStr(exit_code) + ")\n");
+
+	PrintConsole("----------------------------     End of session.   ----------------------------\n\n\n");
+	if (exit_code != ERR_SUCCESS) ExitProcess(exit_code);
 }
 
 void Console::CloseProperHandle(HANDLE hHandle)
 {
 	if (hHandle != NULL && hHandle != INVALID_HANDLE_VALUE)
 	{
+		std::lock_guard<std::mutex> handleLock(handleMutex);
 		if (!CloseHandle(hHandle)) ErrorWithCode("CloseHandle", GetLastError());
 	}
 }

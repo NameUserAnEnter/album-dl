@@ -23,6 +23,8 @@ enum
 MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 {
     // FROM GLOBAL VARS
+    lineSeparator = L"\n--------------------------------------------------------------------------------\n"; // remove after stage methods redesign
+
     mainOffset = wxSize(20, 40);
     fieldBetweenSpace = wxSize(10, 20);
 
@@ -409,6 +411,7 @@ void MainFrame::OnButtonPress(wxCommandEvent& event)
     }
 
     GetAlbum();
+    //consoleThread = std::move(std::thread(&MainFrame::GetAlbum, this));
 }
 
 
@@ -476,7 +479,6 @@ void MainFrame::GetAlbum()
 
 
 
-std::wstring lineSeparator = L"\n--------------------------------------------------------------------------------\n";
 
 void MainFrame::DownloadStage()
 {
@@ -1125,7 +1127,7 @@ void MainFrame::ValidateTrackTitles()
 
 void MainFrame::SetTracksField()
 {
-    output_Field->textField->Clear();
+    //output_Field->textField->Clear();
     for (int i = 0; i < trackTitles.size(); i++)
     {
         output_Field->textField->WriteText(NumToStr(i + 1) + L". " + artist + L" - " + trackTitles[i] + (wchar_t)'\n');

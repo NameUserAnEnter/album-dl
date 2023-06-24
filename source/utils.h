@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <windows.h>
+#include <thread>
 
 inline double power(double base, unsigned int exponent)
 {

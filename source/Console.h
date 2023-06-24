@@ -24,6 +24,10 @@ public:
 public:
 	std::mutex outputBufMutex;
 	std::mutex filePosMutex;
+	std::mutex handleMutex;
+private:
+	std::thread thWrite;
+	std::thread thRead;
 private:
 	std::vector<HANDLE> ActiveHandles;
 	HANDLE hLogWrite;
