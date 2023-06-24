@@ -47,7 +47,7 @@ inline std::string NumToStr(unsigned long long num, unsigned long long base = 10
 
 inline std::string HexToStr(unsigned long long hex, unsigned int digits = 2)
 {
-    return NumToStr(hex, 16, digits);
+    return "0x" + NumToStr(hex, 16, digits);
 }
 
 inline int GetThumbnailURL(std::string* returnURL, const char* inputFilename);
