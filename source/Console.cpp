@@ -62,7 +62,7 @@ void Console::ReadLog()
 		GetFileHandle(logFilepath.c_str(), OPEN_EXISTING, &hLogRead, true, FILE_SHARE_WRITE | FILE_SHARE_READ, GENERIC_READ);
 		AddActiveHandle(hLogRead);
 
-		const unsigned int BUFSIZE = 2;
+		const unsigned int BUFSIZE = 4;
 		unsigned char chBuf[BUFSIZE];
 
 		{
@@ -84,7 +84,11 @@ void Console::ReadLog()
 		std::wstring decodedBuf = DecodeFromUTF8(encodedBuf);
 		PrintConsole(decodedBuf);
 
-		if (bLastIter) break;
+		if (bLastIter)
+		{
+			if (dwRead == 0) break;
+			else continue;
+		}
 		if (bDone && dwRead == 0)
 		{
 			bLastIter = true;
@@ -159,10 +163,7 @@ void Console::PrintLog(std::string buf)
 
 void Console::PrintConsole(std::string buf)
 {
-	//Write(GetStdHandle(STD_OUTPUT_HANDLE), buf);
-
-	std::lock_guard<std::mutex> bufLock(outputBufMutex);
-	*pOutputBuffer += toWide(buf);
+	PrintConsole(toWide(buf));
 }
 
 

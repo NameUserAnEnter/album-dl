@@ -20,6 +20,7 @@ class MainFrame : public wxFrame
 {
 public:
     MainFrame();
+    ~MainFrame();
 private:
     TextBox* albumsDir_Field;
     TextBox* workingDir_Field;
@@ -49,6 +50,9 @@ private:
 
 private:
     std::thread consoleThread;
+    std::mutex consoleSessionMutex;
+    bool bDone;
+
     std::wstring lineSeparator;
 
 private:
@@ -95,6 +99,8 @@ private:
     std::wstring albumPathBackslashes;
     std::wstring workingDirBackslashes;
 private:
+    void CustomStage(std::wstring cmdLine);
+
     void DownloadStage();
     void ConvertStage();
     void RemoveLeftoverStage();

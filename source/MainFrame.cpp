@@ -23,6 +23,7 @@ enum
 MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 {
     // FROM GLOBAL VARS
+    bDone = true;
     lineSeparator = L"\n--------------------------------------------------------------------------------\n"; // remove after stage methods redesign
 
     mainOffset = wxSize(20, 40);
@@ -152,7 +153,10 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     artist_Field->textField->SetFocus();
 }
 
-
+MainFrame::~MainFrame()
+{
+    if (consoleThread.joinable()) consoleThread.join();
+}
 
 
 
@@ -297,6 +301,8 @@ void MainFrame::OnSave(wxCommandEvent& event)
 
 void MainFrame::OnButtonPress(wxCommandEvent& event)
 {
+    if (!bDone) return;
+
     URL = URL_Field->textField->GetValue().ToStdWstring();
     artworkURL = URL_Artwork_Field->textField->GetValue().ToStdWstring();
 
@@ -410,8 +416,11 @@ void MainFrame::OnButtonPress(wxCommandEvent& event)
         }
     }
 
-    GetAlbum();
-    //consoleThread = std::move(std::thread(&MainFrame::GetAlbum, this));
+
+
+    bDone = false;
+    if (consoleThread.joinable()) consoleThread.join();
+    consoleThread = std::move(std::thread(&MainFrame::GetAlbum, this));
 }
 
 
@@ -473,6 +482,8 @@ void MainFrame::GetAlbum()
 
     SetStatusText("Done");
     if (checkAlert->GetValue() == true) MessageBoxA(NULL, "Script has finished.", "Done", MB_OK);
+
+    bDone = true;
 }
 
 
