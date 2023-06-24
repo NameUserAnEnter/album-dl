@@ -3,6 +3,7 @@
 
 #include "utils.h"
 #include <thread>
+#include <mutex>
 
 
 #define ERR_SUCCESS		0x00
@@ -20,6 +21,9 @@ public:
 	~Console();
 
 	void AddCmdLine(std::wstring cmdLine);
+public:
+	std::mutex outputBufMutex;
+	std::mutex filePosMutex;
 private:
 	std::vector<HANDLE> ActiveHandles;
 	HANDLE hLogWrite;

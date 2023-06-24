@@ -111,7 +111,7 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 
 
     mainOffset.y += fieldBetweenSpace.y;
-    output_Field = new TextBox("Tracks (auto-filled):", ID_output_Field,
+    output_Field = new TextBox("Output:", ID_output_Field,
                                wxPoint(mainOffset.x, mainOffset.y), LargeBoxSize, mainPanel, true,
                                labelOffset, mainOffset, fieldBetweenSpace);
 
@@ -491,8 +491,9 @@ void MainFrame::DownloadStage()
 
     std::wstring fullCommand = L""; fullCommand += workingDirectory + execName; // + ' ' + args;
 
-    std::wstring output = L"";
-    Console cDownload(L"log", &output);
+    std::wstring output_buf = L"";
+    
+    Console cDownload(L"log", &output_buf);
     cDownload.AddCmdLine(fullCommand);
 
     std::thread sub_thread(&Console::RunConsole, &cDownload);
@@ -500,8 +501,10 @@ void MainFrame::DownloadStage()
     bool bLastIter = false;
     for (;;)
     {
-        output_Field->AppendText(output);
-        //output.clear();
+        {
+            std::lock_guard<std::mutex> bufLock(cDownload.outputBufMutex);
+            output_Field->AddFromStream(output_buf);
+        }
 
         if (bLastIter) break;
         if (cDownload.bConsoleDone) bLastIter = true;

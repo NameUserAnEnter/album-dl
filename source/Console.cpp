@@ -64,9 +64,13 @@ void Console::ReadLog()
 		const unsigned int BUFSIZE = 80;
 		unsigned char chBuf[BUFSIZE];
 
-		if (SetFilePointer(hLogRead, totalRead, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER) ErrorWithCode("SetFilePointer", GetLastError());
-		ReadFile(hLogRead, &chBuf, BUFSIZE, &dwRead, NULL);
-		if (SetFilePointer(hLogRead, 0, NULL, FILE_END) == INVALID_SET_FILE_POINTER) ErrorWithCode("SetFilePointer", GetLastError());
+		{
+			std::lock_guard<std::mutex> filePosLock(filePosMutex);
+			
+			if (SetFilePointer(hLogRead, totalRead, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER) ErrorWithCode("SetFilePointer", GetLastError());
+			ReadFile(hLogRead, &chBuf, BUFSIZE, &dwRead, NULL);
+			if (SetFilePointer(hLogRead, 0, NULL, FILE_END) == INVALID_SET_FILE_POINTER) ErrorWithCode("SetFilePointer", GetLastError());
+		}
 
 		totalRead += dwRead;
 		RemoveActiveHandle(hLogRead);
@@ -125,12 +129,15 @@ void Console::RunProcess(std::wstring path)
 
 void Console::PrintLog(std::string buf)
 {
+	std::lock_guard<std::mutex> filePosLock(filePosMutex);
 	Write(hLogWrite, buf);
 }
 
 void Console::PrintConsole(std::string buf)
 {
 	//Write(GetStdHandle(STD_OUTPUT_HANDLE), buf);
+
+	std::lock_guard<std::mutex> bufLock(outputBufMutex);
 	*pOutputBuffer += toWide(buf);
 }
 

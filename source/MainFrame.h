@@ -13,6 +13,7 @@
 #include "tag_utils.h"
 #include "Console.h"
 #include <thread>
+#include <mutex>
 
 
 class MainFrame : public wxFrame

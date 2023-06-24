@@ -43,9 +43,10 @@ public:
         textField->SetValue(text);
     }
 
-    void AppendText(std::wstring text)
+    void AddFromStream(std::wstring& buf)
     {
-        textField->SetValue(GetText() + text);
+        textField->AppendText(buf);
+        buf.clear();
     }
 
     std::wstring GetText()
