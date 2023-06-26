@@ -5,6 +5,7 @@
 #include <vector>
 #include <windows.h>
 #include <thread>
+#include <time.h>
 
 inline double power(double base, unsigned int exponent)
 {
@@ -266,9 +267,9 @@ inline void replaceAllSubStr(std::wstring& str, std::wstring query, std::wstring
 inline std::wstring toWide(std::string str)
 {
     std::wstring wide;
-    for (auto letter : str)
+    for (int i = 0; i < str.size(); i++)
     {
-        wide += letter;
+        wide += (wchar_t)str[i];
     }
     return wide;
 }
@@ -276,26 +277,38 @@ inline std::wstring toWide(std::string str)
 inline std::string fromWide(std::wstring wstr)
 {
     std::string str;
-    for (auto letter : wstr)
+    for (int i = 0; i < wstr.size(); i++)
     {
-        str += (unsigned char)letter;
+        str += (unsigned char)wstr[i];
     }
     return str;
 }
 
 
-inline void MessageDialog(std::wstring msg)
+inline void MessageDialog(std::wstring msg, std::wstring title = L"")
 {
     if (msg.back() == L'\n') msg.pop_back();
 
-    MessageBoxW(NULL, msg.c_str(), L"", MB_OK);
+    MessageBoxW(NULL, msg.c_str(), title.c_str(), MB_OK);
 }
 
-inline void MessageDialog(std::string msg)
+inline void MessageDialog(std::string msg, std::string title = "")
 {
-    MessageDialog(toWide(msg));
+    MessageDialog(toWide(msg), toWide(title));
 }
 
+
+inline std::tm GetCurrentDateAndTime()
+{
+    std::time_t seconds_since = time(nullptr);
+    std::tm calendar = { };
+    gmtime_s(&calendar, &seconds_since);
+
+    calendar.tm_year += 1900;
+    calendar.tm_mon += 1;
+
+    return calendar;
+}
 
 
 #endif

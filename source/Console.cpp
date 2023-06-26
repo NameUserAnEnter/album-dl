@@ -45,56 +45,34 @@ void Console::RunConsole()
 
 void Console::WriteLog()
 {
+	/*
 	PrintLog("----------------------------   Start of session.   ----------------------------\n");
+	
+	PrintLog("----------------------------   Time: [");
+	std::tm current_time = GetCurrentDateAndTime();
+	unsigned int mt = current_time.tm_mon;
+	unsigned int dd = current_time.tm_mday;
+	unsigned int yyyy = current_time.tm_year;
+	unsigned int hh = current_time.tm_hour;
+	unsigned int mn = current_time.tm_min;
+	unsigned int ss = current_time.tm_sec;
+	PrintLog(NumToStr(mt, 10, 2) + "-");
+	PrintLog(NumToStr(dd, 10, 2) + "-");
+	PrintLog(NumToStr(yyyy, 10, 4) + ": ");
+
+	PrintLog(NumToStr(hh, 10, 2) + ":");
+	PrintLog(NumToStr(mn, 10, 2) + ":");
+	PrintLog(NumToStr(ss, 10, 2));
+
+	PrintLog("]\n");
+	PrintLog("-------------------------------------------------------------------------------\n");
+	*/
+	PrintLog(L"¹êñó¿Ÿæœ³\n");
+	//PrintLog("\n");
+
 
 	RunBatch();
 	bDone = true;
-}
-
-void Console::ReadLog()
-{
-	bool bLastIter = false;
-	DWORD dwRead;
-	unsigned int totalRead = 0;
-	
-	for (;;)
-	{
-		GetFileHandle(logFilepath.c_str(), OPEN_EXISTING, &hLogRead, true, FILE_SHARE_WRITE | FILE_SHARE_READ, GENERIC_READ);
-		AddActiveHandle(hLogRead);
-
-		const unsigned int BUFSIZE = 4096;
-		unsigned char chBuf[BUFSIZE];
-
-		{
-			std::lock_guard<std::mutex> filePosLock(filePosMutex);
-			if (SetFilePointer(hLogRead, totalRead, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER) ErrorWithCode("SetFilePointer", GetLastError());
-		}
-		ReadFile(hLogRead, &chBuf, BUFSIZE, &dwRead, NULL);
-		{
-			std::lock_guard<std::mutex> filePosLock(filePosMutex);
-			if (SetFilePointer(hLogRead, 0, NULL, FILE_END) == INVALID_SET_FILE_POINTER) ErrorWithCode("SetFilePointer", GetLastError());
-		}
-
-		totalRead += dwRead;
-		RemoveActiveHandle(hLogRead);
-
-		std::string encodedBuf = "";
-		for (int i = 0; i < dwRead; i++) encodedBuf += chBuf[i];
-
-		std::wstring decodedBuf = DecodeFromUTF8(encodedBuf);
-		PrintConsole(decodedBuf);
-
-		if (bLastIter)
-		{
-			if (dwRead == 0) break;
-			else continue;
-		}
-		if (bDone && dwRead == 0)
-		{
-			bLastIter = true;
-			continue;
-		}
-	}
 }
 
 
@@ -103,34 +81,47 @@ void Console::RunBatch()
 	for (int i = 0; i < cmdLines.size(); i++)
 	{
 		RunProcess(cmdLines[i]);
-		if (i + 1 < cmdLines.size()) PrintLog("\n\n");
+		if (i + 1 < cmdLines.size()) PrintLog(L"\n\n");
 	}
 }
 
 void Console::RunProcess(std::wstring path)
 {
-	PrintLog("Executing process:\n" + EncodeToUTF8(path) + "\n\n");
+	// CreateProcess' lpCommandLine arg has to be non-const
+	wchar_t* szPath = (wchar_t*)calloc(path.size() + 1, sizeof(wchar_t));
+	if (szPath == nullptr) Error("calloc");		// exits the program if nullptr
+
+	for (int i = 0; i < path.size(); i++) szPath[i] = path[i];
+	szPath[path.size()] = '\0';
+
+
+	
+	PrintLog(L"Executing process:\n" + (path) + L"\n\n");
 
 	STARTUPINFO startupInfo ={ };
-	startupInfo.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+	startupInfo.dwFlags = STARTF_USESTDHANDLES; // | STARTF_USESHOWWINDOW;
+	//startupInfo.wShowWindow = SW_HIDE;
 	startupInfo.hStdOutput = hLogWrite;
 	startupInfo.hStdError = hLogWrite;
-	//startupInfo.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
-	startupInfo.wShowWindow = SW_HIDE;
 
-	PROCESS_INFORMATION processInfo ={ };
-	if (!CreateProcess(NULL, (wchar_t*)path.c_str(), NULL, NULL, TRUE, 0, NULL, NULL, &startupInfo, &processInfo)) ErrorWithCode("CreateProcess", GetLastError());
+	PROCESS_INFORMATION processInfo = { };
+	BOOL bResult = CreateProcessW(NULL, szPath, NULL, NULL, TRUE, 0,
+								  NULL, NULL, &startupInfo, &processInfo);
+	free(szPath);	// after CreateProcess() is done szPath has to be deallocated regardless of the result
+	if (!bResult) ErrorWithCode("CreateProcess", GetLastError());
+
+
 
 	DWORD dwExitCode;
 	do
 	{
 		GetExitCodeProcess(processInfo.hProcess, &dwExitCode);
 	} while (dwExitCode == STILL_ACTIVE);
-	PrintLog("\n\nProcess finished with exit code: " + HexToStr(dwExitCode) + "\n");
-	PrintLog("----------------------------     End of process.   ----------------------------\n");
+	PrintLog(L"\n\nProcess finished with exit code: " + toWide(HexToStr(dwExitCode)) + L"\n");
+	PrintLog(L"----------------------------     End of process.   ----------------------------\n");
 
 
-
+	
 	CloseProperHandle(processInfo.hThread);
 	CloseProperHandle(processInfo.hProcess);
 }
@@ -144,7 +135,7 @@ void Console::RunProcess(std::wstring path)
 void Console::PrintLog(std::wstring buf)
 {
 	std::lock_guard<std::mutex> filePosLock(filePosMutex);
-	Write(hLogWrite, buf);
+	Write(hLogWrite, EncodeToUTF8(buf));
 }
 
 void Console::PrintConsole(std::wstring buf)
@@ -155,42 +146,85 @@ void Console::PrintConsole(std::wstring buf)
 	*pOutputBuffer += (buf);
 }
 
-void Console::PrintLog(std::string buf)
-{
-	std::lock_guard<std::mutex> filePosLock(filePosMutex);
-	Write(hLogWrite, toWide(buf));
-}
 
-void Console::PrintConsole(std::string buf)
+void Console::Write(HANDLE hOut, std::string buf)
 {
-	PrintConsole(toWide(buf));
-}
-
-
-void Console::Write(HANDLE hOut, std::wstring buf)
-{
-	std::string encoded = EncodeToUTF8(buf);
+	std::string encoded = buf;
 
 	DWORD dwWritten;
 	if (!WriteFile(hOut, encoded.c_str(), encoded.size() * sizeof(encoded[0]), &dwWritten, NULL)) ErrorWithCode("WriteFile", GetLastError(), ERR_WRITE);
 }
 
-void Console::Read(HANDLE hIn, std::wstring& buf)
+void Console::Read(HANDLE hIn, std::string& buf)
 {
 	DWORD dwRead;
 
-	char* chBuf = (char*)calloc(buf.size(), sizeof(char));
-	if (!ReadFile(hIn, chBuf, buf.size() * sizeof(buf[0]), &dwRead, NULL))
+	unsigned char* chBuf = (unsigned char*)calloc(buf.size(), sizeof(unsigned char));
+	if (chBuf == nullptr) Error("calloc");
+
+	if (!ReadFile(hIn, chBuf, buf.size() * sizeof(chBuf[0]), &dwRead, NULL))
 	{
 		free(chBuf);
 		ErrorWithCode("ReadFile", GetLastError(), ERR_READ);
 	}
 	
 	std::string encoded = "";
-	for (int i = 0; i < dwRead; i++) encoded[i] += chBuf[i];
+	for (int i = 0; i < dwRead; i++) encoded += chBuf[i];
 	free(chBuf);
 
-	buf = DecodeFromUTF8(encoded);
+	buf = encoded;
+}
+
+
+
+void Console::ReadLog()
+{
+	bool bLastIter = false;
+	DWORD dwRead;
+	unsigned int totalRead = 0;
+
+	for (;;)
+	{
+		GetFileHandle(logFilepath.c_str(), OPEN_EXISTING, &hLogRead, true, FILE_SHARE_WRITE | FILE_SHARE_READ, GENERIC_READ);
+		AddActiveHandle(hLogRead);
+
+		const unsigned int BUFSIZE = 4096;
+		//unsigned char chBuf[BUFSIZE];
+		std::string buf;
+		buf.resize(BUFSIZE);
+
+		{
+			std::lock_guard<std::mutex> filePosLock(filePosMutex);
+			if (SetFilePointer(hLogRead, totalRead, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER) ErrorWithCode("SetFilePointer", GetLastError());
+		}
+		//ReadFile(hLogRead, &chBuf, BUFSIZE, &dwRead, NULL);
+		Read(hLogRead, buf);
+		dwRead = buf.size();
+		{
+			std::lock_guard<std::mutex> filePosLock(filePosMutex);
+			if (SetFilePointer(hLogRead, 0, NULL, FILE_END) == INVALID_SET_FILE_POINTER) ErrorWithCode("SetFilePointer", GetLastError());
+		}
+
+		totalRead += dwRead;
+		RemoveActiveHandle(hLogRead);
+
+		std::string encoded = buf;
+
+		std::wstring decoded = DecodeFromUTF8(encoded);
+		//PrintConsole(decoded);
+		PrintConsole(toWide(encoded));
+
+		if (bLastIter)
+		{
+			if (dwRead == 0) break;
+			else continue;
+		}
+		if (bDone && dwRead == 0)
+		{
+			bLastIter = true;
+			continue;
+		}
+	}
 }
 
 
@@ -288,9 +322,9 @@ void Console::ExitSafe(unsigned long exit_code)
 		CloseProperHandle(ActiveHandles[ActiveHandles.size() - 1 - i]);
 	}
 
-	PrintConsole("Session has finished. Exit code: " + NumToStr(exit_code) + " (" + HexToStr(exit_code) + ")\n");
+	PrintConsole(L"Session has finished. Exit code: " + toWide(NumToStr(exit_code)) + L" (" + toWide(HexToStr(exit_code)) + L")\n");
 
-	PrintConsole("----------------------------     End of session.   ----------------------------\n\n\n");
+	PrintConsole(L"----------------------------     End of session.   ----------------------------\n\n\n");
 	if (exit_code != ERR_SUCCESS) ExitProcess(exit_code);
 }
 

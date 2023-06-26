@@ -435,19 +435,23 @@ void MainFrame::GetAlbum()
     std::wstring output_buf = L"";
 
     Console console(L"log", &output_buf);
-    console.AddCmdLine(DownloadStage());
-    console.AddCmdLine(ConvertStage());
+    //console.AddCmdLine(DownloadStage());
+    //console.AddCmdLine(ConvertStage());
     console.AddCmdLine(CreateTrashDirStage());
+    /*
     console.AddCmdLine(RemoveLeftoverStage());
-
-    std::vector<std::wstring> renameCmds = RenameFilesStage();
-    for (auto cmd : renameCmds) console.AddCmdLine(cmd);
-
     console.AddCmdLine(GetTitlesStage());
+    */
+
+    //std::vector<std::wstring> renameCmds = RenameFilesStage();
+    //for (auto cmd : renameCmds) console.AddCmdLine(cmd);
+
+    /*
     console.AddCmdLine(GetArtworkStage());
     console.AddCmdLine(CreateAlbumDirectoryStage());
     console.AddCmdLine(MoveAudioStage());
     console.AddCmdLine(MoveArtworkStage());
+    */
 
     std::thread sub_thread(&Console::RunConsole, &console);
 
@@ -465,9 +469,9 @@ void MainFrame::GetAlbum()
 
     sub_thread.join();
 
-    AllocConsole();
-    AttachArtworkStage();
-    FreeConsole();
+    //AllocConsole();
+    //AttachArtworkStage();
+    //FreeConsole();
 
     
     SetStatusText("Resetting");
@@ -837,6 +841,8 @@ void MainFrame::OpenSettings()
         do
         {
             currentChar = fgetc(settingsFile);
+
+            // to fix: paths containing wide/encoded chars
             if (currentChar >= 32 && currentChar <= 126)
             {
                 currentWord += currentChar;
@@ -845,14 +851,27 @@ void MainFrame::OpenSettings()
             {
                 if (currentWord.size() > 0)
                 {
-                    if (id == albumsDir) albumsDir_Field->textField->SetValue(currentWord);
-                    if (id == workingDir) workingDir_Field->textField->SetValue(currentWord);
-                    if (id == windowX) SetPosition(wxPoint(std::stoi(currentWord), GetPosition().y));
-                    if (id == windowY) SetPosition(wxPoint(GetPosition().x, std::stoi(currentWord)));
-                    if (id == alertDone)
+                    try
                     {
-                        if (currentWord == "0") checkAlert->SetValue(false);
-                        if (currentWord == "1") checkAlert->SetValue(true);
+                        if (id == albumsDir) albumsDir_Field->textField->SetValue(currentWord);
+                        if (id == workingDir) workingDir_Field->textField->SetValue(currentWord);
+                        if (id == windowX) SetPosition(wxPoint(std::stoi(currentWord), GetPosition().y));
+                        if (id == windowY) SetPosition(wxPoint(GetPosition().x, std::stoi(currentWord)));
+                        if (id == alertDone)
+                        {
+                            if (currentWord == "0") checkAlert->SetValue(false);
+                            if (currentWord == "1") checkAlert->SetValue(true);
+                        }
+                    }
+                    catch (std::exception& e)
+                    {
+                        MessageDialog("OpenSettings():\nCaught exception: " + std::string(e.what()), "Error");
+                        ExitProcess(1);
+                    }
+                    catch (...)
+                    {
+                        MessageDialog("OpenSettings():\nCaught an unknown exception.", "Error");
+                        ExitProcess(1);
                     }
                 }
 
