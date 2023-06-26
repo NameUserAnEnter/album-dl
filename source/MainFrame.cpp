@@ -474,6 +474,7 @@ void MainFrame::GetAlbum()
     //FreeConsole();
 
     
+    /*
     SetStatusText("Resetting");
     
     // Reset fields & set focus
@@ -484,6 +485,7 @@ void MainFrame::GetAlbum()
     albumYear_Field->textField->SetValue("");
 
     artist_Field->textField->SetFocus();
+    */
 
     
     
@@ -879,7 +881,7 @@ void MainFrame::OpenSettings()
                 }
 
                 // useful for testing:
-                //MessageDialog(decoded + L"\n\n\n" + currentWord);
+                MessageDialog(decoded + L"\n\n\n" + currentWord);
                 currentWord = L"";
                 currentId++;
             }
@@ -891,24 +893,25 @@ void MainFrame::OpenSettings()
 
 void MainFrame::SaveSettings()
 {
-    FILE* settingsFile = nullptr;
     std::string path = "settings";
-    fopen_s(&settingsFile, path.c_str(), "w");
-    if (settingsFile == nullptr)
+
+    std::wstring decoded = L"";
+    decoded += albumsDir_Field->textField->GetValue().ToStdWstring() + L"\n";
+    decoded += workingDir_Field->textField->GetValue().ToStdWstring() + L"\n";
+    decoded += toWide(NumToStr(GetPosition().x)) + L"\n";
+    decoded += toWide(NumToStr(GetPosition().y)) + L"\n";
+
+    if (checkAlert->GetValue()) decoded += L'1';
+    else decoded += L'0';
+
+    std::string encoded = EncodeToUTF8(decoded);
+
+
+    if (WriteDataToFile(encoded, toWide(path).c_str()))
     {
         SetStatusText("Cannot save settings");
         return;
     }
-    fputs(albumsDir_Field->textField->GetValue().c_str(), settingsFile); fputc('\n', settingsFile);
-    fputs(workingDir_Field->textField->GetValue().c_str(), settingsFile); fputc('\n', settingsFile);
-    fputs(NumToStr(GetPosition().x).c_str(), settingsFile); fputc('\n', settingsFile);
-    fputs(NumToStr(GetPosition().y).c_str(), settingsFile); fputc('\n', settingsFile);
-
-    if (checkAlert->GetValue() == true) fputc((unsigned char)'1', settingsFile);
-    else fputc((unsigned char)'0', settingsFile);
-
-
-    fclose(settingsFile);
     SetStatusText("Settings have been saved");
 }
 

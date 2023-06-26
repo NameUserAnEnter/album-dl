@@ -85,27 +85,44 @@ void Console::RunBatch()
 	}
 }
 
-void Console::RunProcess(std::wstring path)
+void Console::RunProcess(std::wstring wPath)
 {
+	if (wPath.empty()) return;
+
+	std::string path = EncodeToUTF8(wPath);
+
+	auto typeVar = path[0];
 	// CreateProcess' lpCommandLine arg has to be non-const
-	wchar_t* szPath = (wchar_t*)calloc(path.size() + 1, sizeof(wchar_t));
+	decltype(typeVar)* szPath = (decltype(typeVar)*)calloc(path.size() + 1, sizeof(decltype(typeVar)));
 	if (szPath == nullptr) Error("calloc");		// exits the program if nullptr
+
+	// TEST TYPE DEDUCTION:
+	/*
+	MessageDialog("typeVar's type: " + std::string(typeid(decltype(typeVar)).name()) + "\nszPath's type: " + std::string(typeid(decltype(szPath)).name())
+					+ "\npath.c_str()'s type: " + std::string(typeid(decltype(path.c_str())).name()));
+	free(szPath);
+	return;
+	*/
 
 	for (int i = 0; i < path.size(); i++) szPath[i] = path[i];
 	szPath[path.size()] = '\0';
 
 
 	
-	PrintLog(L"Executing process:\n" + (path) + L"\n\n");
+	PrintLog(L"Executing process:\n" + (wPath) + L"\n\n");
 
-	STARTUPINFO startupInfo ={ };
+	STARTUPINFOA startupInfo = { };
 	startupInfo.dwFlags = STARTF_USESTDHANDLES; // | STARTF_USESHOWWINDOW;
 	//startupInfo.wShowWindow = SW_HIDE;
 	startupInfo.hStdOutput = hLogWrite;
 	startupInfo.hStdError = hLogWrite;
 
+	DWORD dwCreationFlags = 0;
+	//DWORD dwCreationFlags = CREATE_UNICODE_ENVIRONMENT;
+
 	PROCESS_INFORMATION processInfo = { };
-	BOOL bResult = CreateProcessW(NULL, szPath, NULL, NULL, TRUE, 0,
+	// switch to CreateProcessA for utf-8?
+	BOOL bResult = CreateProcessA(NULL, szPath, NULL, NULL, TRUE, dwCreationFlags,
 								  NULL, NULL, &startupInfo, &processInfo);
 	free(szPath);	// after CreateProcess() is done szPath has to be deallocated regardless of the result
 	if (!bResult) ErrorWithCode("CreateProcess", GetLastError());

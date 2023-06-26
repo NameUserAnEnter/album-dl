@@ -47,7 +47,7 @@ private:
 	void ReadLog();
 
 	void RunBatch();
-	void RunProcess(std::wstring path);
+	void RunProcess(std::wstring);
 
 	void PrintLog(std::wstring buf);
 	void PrintConsole(std::wstring buf);
