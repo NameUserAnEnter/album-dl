@@ -822,73 +822,71 @@ void MainFrame::LoadTrackTitles()
 
 void MainFrame::OpenSettings()
 {
-    FILE* settingsFile = nullptr;
     std::string path = "settings";
-    fopen_s(&settingsFile, path.c_str(), "r");
-    if (settingsFile != nullptr)
-    {
-        std::string currentWord = "";
-        enum value_ID {
-            albumsDir = 1,
-            workingDir,
-            windowX,
-            windowY,
-            alertDone,
-            none
-        };
-        unsigned int id = albumsDir;
-        char currentChar;
-        do
-        {
-            currentChar = fgetc(settingsFile);
-
-            // to fix: paths containing wide/encoded chars
-            if (currentChar >= 32 && currentChar <= 126)
-            {
-                currentWord += currentChar;
-            }
-            else
-            {
-                if (currentWord.size() > 0)
-                {
-                    try
-                    {
-                        if (id == albumsDir) albumsDir_Field->textField->SetValue(currentWord);
-                        if (id == workingDir) workingDir_Field->textField->SetValue(currentWord);
-                        if (id == windowX) SetPosition(wxPoint(std::stoi(currentWord), GetPosition().y));
-                        if (id == windowY) SetPosition(wxPoint(GetPosition().x, std::stoi(currentWord)));
-                        if (id == alertDone)
-                        {
-                            if (currentWord == "0") checkAlert->SetValue(false);
-                            if (currentWord == "1") checkAlert->SetValue(true);
-                        }
-                    }
-                    catch (std::exception& e)
-                    {
-                        MessageDialog("OpenSettings():\nCaught exception: " + std::string(e.what()), "Error");
-                        ExitProcess(1);
-                    }
-                    catch (...)
-                    {
-                        MessageDialog("OpenSettings():\nCaught an unknown exception.", "Error");
-                        ExitProcess(1);
-                    }
-                }
-
-                currentWord = "";
-                id++;
-            }
-
-            SetStatusText("Settings have beed loaded");
-        } while (currentChar != EOF);
-
-
-        fclose(settingsFile);
-    }
-    else
+    std::string encoded;
+    if (GetFileData(toWide(path).c_str(), &encoded))
     {
         SetStatusText("Settings file not found");
+        return;
     }
+    encoded += EOF;
+
+    std::wstring decoded = DecodeFromUTF8(encoded);
+
+
+
+    std::wstring currentWord = L"";
+    enum value_ID {
+        albumsDir = 1,
+        workingDir,
+        windowX,
+        windowY,
+        alertDone,
+        none
+    };
+    unsigned int currentId = albumsDir;
+
+    for (auto currentChar : decoded)
+    {
+        if (iswprint(currentChar)) currentWord += currentChar;
+        else
+        {
+            if (currentWord.size() > 0)
+            {
+                try
+                {
+                    if (currentId == albumsDir) albumsDir_Field->textField->SetValue(currentWord);
+                    if (currentId == workingDir) workingDir_Field->textField->SetValue(currentWord);
+
+                    if (currentId == windowX && isStrNum(currentWord)) SetPosition(wxPoint(std::stoi(currentWord), GetPosition().y));
+                    if (currentId == windowY && isStrNum(currentWord)) SetPosition(wxPoint(GetPosition().x, std::stoi(currentWord)));
+
+                    if (currentId == alertDone)
+                    {
+                        if (currentWord == "0") checkAlert->SetValue(false);
+                        if (currentWord == "1") checkAlert->SetValue(true);
+                    }
+                }
+                catch (std::exception& e)
+                {
+                    MessageDialog("OpenSettings():\nCaught an exception: " + std::string(e.what()), "Error");
+                    ExitProcess(1);
+                }
+                catch (...)
+                {
+                    MessageDialog("OpenSettings():\nCaught an unknown exception.", "Error");
+                    ExitProcess(1);
+                }
+
+                // useful for testing:
+                //MessageDialog(decoded + L"\n\n\n" + currentWord);
+                currentWord = L"";
+                currentId++;
+            }
+        }
+    }
+
+    SetStatusText("Settings have beed loaded");
 }
 
 void MainFrame::SaveSettings()

@@ -193,6 +193,19 @@ inline int WriteDataToFile(std::string data, const wchar_t* filename)
 }
 
 
+inline bool isStrNum(std::wstring str)
+{
+    for (auto symbol : str)
+    {
+        if (!iswdigit(symbol))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+
 
 inline bool findInStr(std::wstring data, std::wstring query)
 {
