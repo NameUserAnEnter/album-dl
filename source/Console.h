@@ -5,6 +5,10 @@
 #include <thread>
 #include <mutex>
 
+#define _UNICODE
+#include <wchar.h>
+#include <tchar.h>
+
 
 #define ERR_SUCCESS		0x00
 #define ERR_DEFAULT		0x01

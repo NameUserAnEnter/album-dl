@@ -92,19 +92,53 @@ void Console::RunProcess(std::wstring wPath)
 	// arg matches CreateProcessW
 	std::wstring path = wPath;
 
-	AllocConsole();
-	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-	Write(hOut, "CODE-PAGE: " + NumToStr(GetConsoleOutputCP()) + "\n");
-	Write(hOut, EncodeToUTF8(L"Chê³³ó³ Wór³d.\n"));
-	Write(hOut, u8"Chê³³ó³ Wór³d.\n");
-	Write(hOut, "Chê³³ó³ Wór³d.\n");
+	
+	//setlocale(LC_ALL, ".UTF8");
+	
+	bool bTest1 = false;
+	if (bTest1)
+	{
+		///*
+		AllocConsole();
 
-	if (!SetConsoleOutputCP(65001)) ErrorWithCode("SetConsoleOutputCP", GetLastError());
-	Write(hOut, "\nCODE-PAGE: " + NumToStr(GetConsoleOutputCP()) + "\n");
-	Write(hOut, EncodeToUTF8(L"Chê³³ó³ Wór³d.\n"));
-	Write(hOut, u8"Chê³³ó³ Wór³d.\n");
-	Write(hOut, "Chê³³ó³ Wór³d.\n");
-	return;
+#define test_str "Chê³³ó³ Wór³d.\n"
+#define utest_str u8"Chê³³ó³ Wór³d.\n"
+#define wtest_str L"Chê³³ó³ Wór³d.\n"
+		std::wstring str = wtest_str;
+		std::string encoded_str = EncodeToUTF8(str);
+
+		UINT old_CP = 852;
+		UINT new_CP = 65001;
+
+		HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+		Write(hOut, "OUTPUT CODE-PAGE: " + NumToStr(GetConsoleOutputCP()) + "\n");
+		Write(hOut, "CODE-PAGE: " + NumToStr(GetConsoleCP()) + "\n");
+		Write(hOut, EncodeToUTF8(wtest_str));
+		Write(hOut, utest_str);
+		Write(hOut, test_str);
+
+		if (!SetConsoleCP(new_CP)) ErrorWithCode("SetConsoleOutputCP", GetLastError());
+		if (!SetConsoleOutputCP(new_CP)) ErrorWithCode("SetConsoleOutputCP", GetLastError());
+
+		Write(hOut, "\nOUTPUT CODE-PAGE: " + NumToStr(GetConsoleOutputCP()) + "\n");
+		Write(hOut, "CODE-PAGE: " + NumToStr(GetConsoleCP()) + "\n");
+		Write(hOut, EncodeToUTF8(wtest_str));
+		Write(hOut, utest_str);
+		Write(hOut, test_str);
+
+		if (!SetConsoleCP(old_CP)) ErrorWithCode("SetConsoleOutputCP", GetLastError());
+		if (!SetConsoleOutputCP(old_CP)) ErrorWithCode("SetConsoleOutputCP", GetLastError());
+
+		Write(hOut, "\n");
+		if (!WriteConsoleW(hOut, str.c_str(), str.size(), NULL, NULL)) ErrorWithCode("WriteFile", GetLastError());
+		if (!WriteConsoleA(hOut, encoded_str.c_str(), encoded_str.size(), NULL, NULL)) ErrorWithCode("WriteFile", GetLastError());
+
+		Write(hOut, "\n");
+		if (!WriteFile(hOut, str.c_str(), str.size() * sizeof(str[0]), NULL, NULL)) ErrorWithCode("WriteFile", GetLastError());
+		if (!WriteFile(hOut, encoded_str.c_str(), encoded_str.size() * sizeof(encoded_str[0]), NULL, NULL)) ErrorWithCode("WriteFile", GetLastError());
+		return;
+		//*/
+	}
 
 	auto typeVar = path[0];
 	// CreateProcess' lpCommandLine arg has to be non-const
@@ -128,22 +162,24 @@ void Console::RunProcess(std::wstring wPath)
 
 
 	
-
 	PrintLog(L"Executing process:\n" + (wPath) + L"\n\n");
 
+	bool bUseNativeConsole = false;
 	STARTUPINFO startupInfo = { };
-	startupInfo.dwFlags = STARTF_USESTDHANDLES; // | STARTF_USESHOWWINDOW;
-	//startupInfo.wShowWindow = SW_HIDE;
+	
+	if (bUseNativeConsole) AllocConsole();
+	else startupInfo.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+
 	startupInfo.hStdOutput = hLogWrite;
 	startupInfo.hStdError = hLogWrite;
 
 	DWORD dwCreationFlags = 0;
-	dwCreationFlags |= CREATE_UNICODE_ENVIRONMENT;
-	dwCreationFlags |= CREATE_NO_WINDOW;
+	//dwCreationFlags |= CREATE_UNICODE_ENVIRONMENT;
+	//dwCreationFlags |= CREATE_NO_WINDOW;
 
 	PROCESS_INFORMATION processInfo = { };
 	// switch to CreateProcessA for utf-8?
-	BOOL bResult = CreateProcessW(NULL, szPath, NULL, NULL, TRUE, dwCreationFlags,
+	BOOL bResult = CreateProcess(NULL, szPath, NULL, NULL, TRUE, dwCreationFlags,
 								  NULL, NULL, &startupInfo, &processInfo);
 	free(szPath);	// after CreateProcess() is done szPath has to be deallocated regardless of the result
 	if (!bResult) ErrorWithCode("CreateProcess", GetLastError());
