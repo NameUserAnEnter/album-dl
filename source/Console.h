@@ -60,8 +60,7 @@ private:
 
 
 
-	void GetFileHandle(const wchar_t* path, DWORD dwCreationDisposition, HANDLE* hDest, bool bInheritable = false,
-					   DWORD dwShareMode = NULL, DWORD dwDesiredAccess = GENERIC_READ | GENERIC_WRITE);
+	void GetFileHandle(const wchar_t*, DWORD, HANDLE*, bool = false, DWORD = NULL, DWORD = GENERIC_READ | GENERIC_WRITE);
 	
 
 	void AddActiveHandle(HANDLE hActive);

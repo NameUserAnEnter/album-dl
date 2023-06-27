@@ -89,13 +89,28 @@ void Console::RunProcess(std::wstring wPath)
 {
 	if (wPath.empty()) return;
 
-	std::string path = EncodeToUTF8(wPath);
+	// arg matches CreateProcessW
+	std::wstring path = wPath;
+
+	AllocConsole();
+	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	Write(hOut, "CODE-PAGE: " + NumToStr(GetConsoleOutputCP()) + "\n");
+	Write(hOut, EncodeToUTF8(L"Chê³³ó³ Wór³d.\n"));
+	Write(hOut, u8"Chê³³ó³ Wór³d.\n");
+	Write(hOut, "Chê³³ó³ Wór³d.\n");
+
+	if (!SetConsoleOutputCP(65001)) ErrorWithCode("SetConsoleOutputCP", GetLastError());
+	Write(hOut, "\nCODE-PAGE: " + NumToStr(GetConsoleOutputCP()) + "\n");
+	Write(hOut, EncodeToUTF8(L"Chê³³ó³ Wór³d.\n"));
+	Write(hOut, u8"Chê³³ó³ Wór³d.\n");
+	Write(hOut, "Chê³³ó³ Wór³d.\n");
+	return;
 
 	auto typeVar = path[0];
 	// CreateProcess' lpCommandLine arg has to be non-const
 	decltype(typeVar)* szPath = (decltype(typeVar)*)calloc(path.size() + 1, sizeof(decltype(typeVar)));
 	if (szPath == nullptr) Error("calloc");		// exits the program if nullptr
-
+	
 	// TEST TYPE DEDUCTION:
 	/*
 	MessageDialog("typeVar's type: " + std::string(typeid(decltype(typeVar)).name()) + "\nszPath's type: " + std::string(typeid(decltype(szPath)).name())
@@ -103,26 +118,32 @@ void Console::RunProcess(std::wstring wPath)
 	free(szPath);
 	return;
 	*/
+	//----------------------------------------------------------
 
+	
+	
+	
 	for (int i = 0; i < path.size(); i++) szPath[i] = path[i];
 	szPath[path.size()] = '\0';
 
 
 	
+
 	PrintLog(L"Executing process:\n" + (wPath) + L"\n\n");
 
-	STARTUPINFOA startupInfo = { };
+	STARTUPINFO startupInfo = { };
 	startupInfo.dwFlags = STARTF_USESTDHANDLES; // | STARTF_USESHOWWINDOW;
 	//startupInfo.wShowWindow = SW_HIDE;
 	startupInfo.hStdOutput = hLogWrite;
 	startupInfo.hStdError = hLogWrite;
 
 	DWORD dwCreationFlags = 0;
-	//DWORD dwCreationFlags = CREATE_UNICODE_ENVIRONMENT;
+	dwCreationFlags |= CREATE_UNICODE_ENVIRONMENT;
+	dwCreationFlags |= CREATE_NO_WINDOW;
 
 	PROCESS_INFORMATION processInfo = { };
 	// switch to CreateProcessA for utf-8?
-	BOOL bResult = CreateProcessA(NULL, szPath, NULL, NULL, TRUE, dwCreationFlags,
+	BOOL bResult = CreateProcessW(NULL, szPath, NULL, NULL, TRUE, dwCreationFlags,
 								  NULL, NULL, &startupInfo, &processInfo);
 	free(szPath);	// after CreateProcess() is done szPath has to be deallocated regardless of the result
 	if (!bResult) ErrorWithCode("CreateProcess", GetLastError());
@@ -228,8 +249,8 @@ void Console::ReadLog()
 		std::string encoded = buf;
 
 		std::wstring decoded = DecodeFromUTF8(encoded);
-		//PrintConsole(decoded);
-		PrintConsole(toWide(encoded));
+		PrintConsole(decoded);
+		//PrintConsole(toWide(encoded));
 
 		if (bLastIter)
 		{

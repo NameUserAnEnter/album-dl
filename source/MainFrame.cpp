@@ -881,7 +881,7 @@ void MainFrame::OpenSettings()
                 }
 
                 // useful for testing:
-                MessageDialog(decoded + L"\n\n\n" + currentWord);
+                //MessageDialog(decoded + L"\n\n\n" + currentWord);
                 currentWord = L"";
                 currentId++;
             }
