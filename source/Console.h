@@ -9,6 +9,9 @@
 #include <wchar.h>
 #include <tchar.h>
 
+#include <locale.h>
+#include <wchar.h>
+
 
 #define ERR_SUCCESS		0x00
 #define ERR_DEFAULT		0x01
@@ -53,6 +56,7 @@ private:
 	void RunBatch();
 	void RunProcess(std::wstring);
 
+	void PrintLogNarrow(std::string);
 	void PrintLog(std::wstring buf);
 	void PrintConsole(std::wstring buf);
 
@@ -64,7 +68,7 @@ private:
 
 
 
-	void GetFileHandle(const wchar_t*, DWORD, HANDLE*, bool = false, DWORD = NULL, DWORD = GENERIC_READ | GENERIC_WRITE);
+	void GetFileHandle(std::wstring, DWORD, HANDLE*, bool = false, DWORD = NULL, DWORD = GENERIC_READ | GENERIC_WRITE);
 	
 
 	void AddActiveHandle(HANDLE hActive);

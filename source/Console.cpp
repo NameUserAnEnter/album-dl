@@ -3,6 +3,8 @@
 
 Console::Console(std::wstring _logFilepath, std::wstring* _pOutputBuffer) : logFilepath(_logFilepath), pOutputBuffer(_pOutputBuffer)
 {
+	SetFileApisToOEM();
+
 	hLogWrite = NULL;
 	hLogRead = NULL;
 
@@ -45,10 +47,10 @@ void Console::RunConsole()
 
 void Console::WriteLog()
 {
-	/*
-	PrintLog("----------------------------   Start of session.   ----------------------------\n");
+	///*
+	PrintLogNarrow("----------------------------   Start of session.   ----------------------------\n");
 	
-	PrintLog("----------------------------   Time: [");
+	PrintLogNarrow("----------------------------   Time: [");
 	std::tm current_time = GetCurrentDateAndTime();
 	unsigned int mt = current_time.tm_mon;
 	unsigned int dd = current_time.tm_mday;
@@ -56,17 +58,17 @@ void Console::WriteLog()
 	unsigned int hh = current_time.tm_hour;
 	unsigned int mn = current_time.tm_min;
 	unsigned int ss = current_time.tm_sec;
-	PrintLog(NumToStr(mt, 10, 2) + "-");
-	PrintLog(NumToStr(dd, 10, 2) + "-");
-	PrintLog(NumToStr(yyyy, 10, 4) + ": ");
+	PrintLogNarrow(NumToStr(mt, 10, 2) + "-");
+	PrintLogNarrow(NumToStr(dd, 10, 2) + "-");
+	PrintLogNarrow(NumToStr(yyyy, 10, 4) + ": ");
 
-	PrintLog(NumToStr(hh, 10, 2) + ":");
-	PrintLog(NumToStr(mn, 10, 2) + ":");
-	PrintLog(NumToStr(ss, 10, 2));
+	PrintLogNarrow(NumToStr(hh, 10, 2) + ":");
+	PrintLogNarrow(NumToStr(mn, 10, 2) + ":");
+	PrintLogNarrow(NumToStr(ss, 10, 2));
 
-	PrintLog("]\n");
-	PrintLog("-------------------------------------------------------------------------------\n");
-	*/
+	PrintLogNarrow(" UTC+0]\n");
+	PrintLogNarrow("-------------------------------------------------------------------------------\n");
+	//*/
 	PrintLog(L"¹êñó¿Ÿæœ³\n");
 	//PrintLog("\n");
 
@@ -90,55 +92,12 @@ void Console::RunProcess(std::wstring wPath)
 	if (wPath.empty()) return;
 
 	// arg matches CreateProcessW
-	std::wstring path = wPath;
+	std::string path = EncodeToUTF8(wPath);
+
+	setlocale(LC_ALL, "en_US.utf8");
+
 
 	
-	//setlocale(LC_ALL, ".UTF8");
-	
-	bool bTest1 = false;
-	if (bTest1)
-	{
-		///*
-		AllocConsole();
-
-#define test_str "Chê³³ó³ Wór³d.\n"
-#define utest_str u8"Chê³³ó³ Wór³d.\n"
-#define wtest_str L"Chê³³ó³ Wór³d.\n"
-		std::wstring str = wtest_str;
-		std::string encoded_str = EncodeToUTF8(str);
-
-		UINT old_CP = 852;
-		UINT new_CP = 65001;
-
-		HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-		Write(hOut, "OUTPUT CODE-PAGE: " + NumToStr(GetConsoleOutputCP()) + "\n");
-		Write(hOut, "CODE-PAGE: " + NumToStr(GetConsoleCP()) + "\n");
-		Write(hOut, EncodeToUTF8(wtest_str));
-		Write(hOut, utest_str);
-		Write(hOut, test_str);
-
-		if (!SetConsoleCP(new_CP)) ErrorWithCode("SetConsoleOutputCP", GetLastError());
-		if (!SetConsoleOutputCP(new_CP)) ErrorWithCode("SetConsoleOutputCP", GetLastError());
-
-		Write(hOut, "\nOUTPUT CODE-PAGE: " + NumToStr(GetConsoleOutputCP()) + "\n");
-		Write(hOut, "CODE-PAGE: " + NumToStr(GetConsoleCP()) + "\n");
-		Write(hOut, EncodeToUTF8(wtest_str));
-		Write(hOut, utest_str);
-		Write(hOut, test_str);
-
-		if (!SetConsoleCP(old_CP)) ErrorWithCode("SetConsoleOutputCP", GetLastError());
-		if (!SetConsoleOutputCP(old_CP)) ErrorWithCode("SetConsoleOutputCP", GetLastError());
-
-		Write(hOut, "\n");
-		if (!WriteConsoleW(hOut, str.c_str(), str.size(), NULL, NULL)) ErrorWithCode("WriteFile", GetLastError());
-		if (!WriteConsoleA(hOut, encoded_str.c_str(), encoded_str.size(), NULL, NULL)) ErrorWithCode("WriteFile", GetLastError());
-
-		Write(hOut, "\n");
-		if (!WriteFile(hOut, str.c_str(), str.size() * sizeof(str[0]), NULL, NULL)) ErrorWithCode("WriteFile", GetLastError());
-		if (!WriteFile(hOut, encoded_str.c_str(), encoded_str.size() * sizeof(encoded_str[0]), NULL, NULL)) ErrorWithCode("WriteFile", GetLastError());
-		return;
-		//*/
-	}
 
 	auto typeVar = path[0];
 	// CreateProcess' lpCommandLine arg has to be non-const
@@ -163,23 +122,37 @@ void Console::RunProcess(std::wstring wPath)
 
 	
 	PrintLog(L"Executing process:\n" + (wPath) + L"\n\n");
-
-	bool bUseNativeConsole = false;
-	STARTUPINFO startupInfo = { };
 	
-	if (bUseNativeConsole) AllocConsole();
-	else startupInfo.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+	bool bUseNativeConsole = true;
+
+	STARTUPINFOA startupInfo = { };
+	DWORD dwCreationFlags = 0;
 
 	startupInfo.hStdOutput = hLogWrite;
 	startupInfo.hStdError = hLogWrite;
+	
 
-	DWORD dwCreationFlags = 0;
-	//dwCreationFlags |= CREATE_UNICODE_ENVIRONMENT;
-	//dwCreationFlags |= CREATE_NO_WINDOW;
+
+	if (bUseNativeConsole)
+	{
+		AllocConsole();
+		//if (!SetConsoleOutputCP(CP_UTF8)) ErrorWithCode("SetConsoleOutputCP", GetLastError());
+		//if (!SetConsoleCP(CP_UTF8)) ErrorWithCode("SetConsoleCP", GetLastError());
+		
+		HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+		Write(hOut, fromWide(wPath));
+		Write(hOut, "\n");
+	}
+	else
+	{
+		startupInfo.dwFlags = STARTF_USESTDHANDLES;
+		dwCreationFlags |= CREATE_NO_WINDOW;
+		//dwCreationFlags |= CREATE_UNICODE_ENVIRONMENT;
+	}
+
 
 	PROCESS_INFORMATION processInfo = { };
-	// switch to CreateProcessA for utf-8?
-	BOOL bResult = CreateProcess(NULL, szPath, NULL, NULL, TRUE, dwCreationFlags,
+	BOOL bResult = CreateProcessA(NULL, szPath, NULL, NULL, TRUE, dwCreationFlags,
 								  NULL, NULL, &startupInfo, &processInfo);
 	free(szPath);	// after CreateProcess() is done szPath has to be deallocated regardless of the result
 	if (!bResult) ErrorWithCode("CreateProcess", GetLastError());
@@ -210,6 +183,11 @@ void Console::PrintLog(std::wstring buf)
 {
 	std::lock_guard<std::mutex> filePosLock(filePosMutex);
 	Write(hLogWrite, EncodeToUTF8(buf));
+}
+
+void Console::PrintLogNarrow(std::string buf)
+{
+	PrintLog(toWide(buf));
 }
 
 void Console::PrintConsole(std::wstring buf)
@@ -304,10 +282,12 @@ void Console::ReadLog()
 
 
 
-void Console::GetFileHandle(const wchar_t* path, DWORD dwCreationDisposition, HANDLE* hDest, bool bInheritable,
+void Console::GetFileHandle(std::wstring wPath, DWORD dwCreationDisposition, HANDLE* hDest, bool bInheritable,
 							DWORD dwShareMode, DWORD dwDesiredAccess)
 {
-	if (!bInheritable) *hDest = CreateFile(path, dwDesiredAccess, dwShareMode, NULL, dwCreationDisposition, FILE_ATTRIBUTE_NORMAL, NULL);
+	std::string path = EncodeToUTF8(wPath);
+
+	if (!bInheritable) *hDest = CreateFileA(path.c_str(), dwDesiredAccess, dwShareMode, NULL, dwCreationDisposition, FILE_ATTRIBUTE_NORMAL, NULL);
 	else
 	{
 		SECURITY_ATTRIBUTES secAttr ={ };
@@ -315,7 +295,7 @@ void Console::GetFileHandle(const wchar_t* path, DWORD dwCreationDisposition, HA
 		secAttr.lpSecurityDescriptor = NULL;
 		secAttr.bInheritHandle = true;
 
-		*hDest = CreateFile(path, dwDesiredAccess, dwShareMode, &secAttr, dwCreationDisposition, FILE_ATTRIBUTE_NORMAL, NULL);
+		*hDest = CreateFileA(path.c_str(), dwDesiredAccess, dwShareMode, &secAttr, dwCreationDisposition, FILE_ATTRIBUTE_NORMAL, NULL);
 	}
 
 	if (*hDest == INVALID_HANDLE_VALUE) ErrorWithCode("CreateFile", GetLastError(), ERR_FILE);
