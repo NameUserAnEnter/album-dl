@@ -1,16 +1,20 @@
 #include "Console.h"
 
+#define CREATEFILEW
+#define CREATEPROCW
 
 Console::Console(std::wstring _logFilepath, std::wstring* _pOutputBuffer) : logFilepath(_logFilepath), pOutputBuffer(_pOutputBuffer)
 {
-	SetFileApisToOEM();
-
 	hLogWrite = NULL;
 	hLogRead = NULL;
+
+	hSubOutWr = NULL;
+	hSubOutRd = NULL;
 
 	ActiveHandles.clear();
 	cmdLines.clear();
 
+	currentCmdIndex = 0;
 
 	bDone = false;
 	bConsoleDone = false;
@@ -32,11 +36,16 @@ void Console::RunConsole()
 	GetFileHandle(logFilepath.c_str(), CREATE_ALWAYS, &hLogWrite, true, FILE_SHARE_READ, GENERIC_WRITE);
 	AddActiveHandle(hLogWrite);
 
-	thWrite = std::move(std::thread(&Console::WriteLog, this));
-	thRead = std::move(std::thread(&Console::ReadLog, this));
+	SECURITY_ATTRIBUTES secAttr = { };
+	secAttr.bInheritHandle = TRUE;
+	secAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+	secAttr.lpSecurityDescriptor = NULL;
+	if (!CreatePipe(&hSubOutRd, &hSubOutWr, &secAttr, 0)) ErrorWithCode("CreatePipe", GetLastError(), ERR_PIPE);
+	AddActiveHandle(hSubOutRd);
+	AddActiveHandle(hSubOutWr);
 
-	thWrite.join();
-	thRead.join();
+
+	WriteLog();
 
 	ExitSafe(ERR_SUCCESS);
 	bConsoleDone = true;
@@ -48,29 +57,10 @@ void Console::RunConsole()
 void Console::WriteLog()
 {
 	///*
-	PrintLogNarrow("----------------------------   Start of session.   ----------------------------\n");
+	PrintLogAndConsoleNarrow("----------------------------   Start of session.   ----------------------------\n");
 	
-	PrintLogNarrow("----------------------------   Time: [");
-	std::tm current_time = GetCurrentDateAndTime();
-	unsigned int mt = current_time.tm_mon;
-	unsigned int dd = current_time.tm_mday;
-	unsigned int yyyy = current_time.tm_year;
-	unsigned int hh = current_time.tm_hour;
-	unsigned int mn = current_time.tm_min;
-	unsigned int ss = current_time.tm_sec;
-	PrintLogNarrow(NumToStr(mt, 10, 2) + "-");
-	PrintLogNarrow(NumToStr(dd, 10, 2) + "-");
-	PrintLogNarrow(NumToStr(yyyy, 10, 4) + ": ");
-
-	PrintLogNarrow(NumToStr(hh, 10, 2) + ":");
-	PrintLogNarrow(NumToStr(mn, 10, 2) + ":");
-	PrintLogNarrow(NumToStr(ss, 10, 2));
-
-	PrintLogNarrow(" UTC+0]\n");
-	PrintLogNarrow("-------------------------------------------------------------------------------\n");
+	PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
 	//*/
-	PrintLog(L"¹êñó¿Ÿæœ³\n");
-	//PrintLog("\n");
 
 
 	RunBatch();
@@ -80,81 +70,49 @@ void Console::WriteLog()
 
 void Console::RunBatch()
 {
-	for (int i = 0; i < cmdLines.size(); i++)
+	currentCmdIndex = 0;
+
+	while (currentCmdIndex < cmdLines.size())
 	{
-		RunProcess(cmdLines[i]);
-		if (i + 1 < cmdLines.size()) PrintLog(L"\n\n");
-	}
+		RunProcess(cmdLines[currentCmdIndex]);
+		currentCmdIndex++;
+	};
 }
+
+// CreateProc, CreateProcWrapper
 
 void Console::RunProcess(std::wstring wPath)
 {
 	if (wPath.empty()) return;
 
-	// arg matches CreateProcessW
-	std::string path = EncodeToUTF8(wPath);
-
-	setlocale(LC_ALL, "en_US.utf8");
-
-
+	std::wstring path = (wPath);
 	
 
 	auto typeVar = path[0];
-	// CreateProcess' lpCommandLine arg has to be non-const
 	decltype(typeVar)* szPath = (decltype(typeVar)*)calloc(path.size() + 1, sizeof(decltype(typeVar)));
-	if (szPath == nullptr) Error("calloc");		// exits the program if nullptr
-	
-	// TEST TYPE DEDUCTION:
-	/*
-	MessageDialog("typeVar's type: " + std::string(typeid(decltype(typeVar)).name()) + "\nszPath's type: " + std::string(typeid(decltype(szPath)).name())
-					+ "\npath.c_str()'s type: " + std::string(typeid(decltype(path.c_str())).name()));
-	free(szPath);
-	return;
-	*/
-	//----------------------------------------------------------
-
-	
-	
+	if (szPath == nullptr) Error("calloc");
 	
 	for (int i = 0; i < path.size(); i++) szPath[i] = path[i];
 	szPath[path.size()] = '\0';
 
-
+	PrintLogAndConsole(L"-------------------------------------------------------------------------------\n");
+	PrintLogAndConsole(L"----------------------------   Executing process:\n" + (wPath) + L"\n");
+	PrintLogAndConsole(L"----------------------------   Start of process.   ----------------------------\n\n");
 	
-	PrintLog(L"Executing process:\n" + (wPath) + L"\n\n");
 	
-	bool bUseNativeConsole = true;
-
-	STARTUPINFOA startupInfo = { };
+	STARTUPINFO startupInfo = { };
+	startupInfo.hStdOutput = hSubOutWr;
+	startupInfo.hStdError = hSubOutWr;
+	startupInfo.dwFlags = STARTF_USESTDHANDLES;
+	
 	DWORD dwCreationFlags = 0;
-
-	startupInfo.hStdOutput = hLogWrite;
-	startupInfo.hStdError = hLogWrite;
-	
-
-
-	if (bUseNativeConsole)
-	{
-		AllocConsole();
-		//if (!SetConsoleOutputCP(CP_UTF8)) ErrorWithCode("SetConsoleOutputCP", GetLastError());
-		//if (!SetConsoleCP(CP_UTF8)) ErrorWithCode("SetConsoleCP", GetLastError());
-		
-		HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-		Write(hOut, fromWide(wPath));
-		Write(hOut, "\n");
-	}
-	else
-	{
-		startupInfo.dwFlags = STARTF_USESTDHANDLES;
-		dwCreationFlags |= CREATE_NO_WINDOW;
-		//dwCreationFlags |= CREATE_UNICODE_ENVIRONMENT;
-	}
-
+	dwCreationFlags |= CREATE_NO_WINDOW;
 
 	PROCESS_INFORMATION processInfo = { };
-	BOOL bResult = CreateProcessA(NULL, szPath, NULL, NULL, TRUE, dwCreationFlags,
-								  NULL, NULL, &startupInfo, &processInfo);
-	free(szPath);	// after CreateProcess() is done szPath has to be deallocated regardless of the result
+	BOOL bResult = CreateProcessW(
+		NULL, szPath, NULL, NULL, TRUE, dwCreationFlags,
+		NULL, NULL, &startupInfo, &processInfo);
+	free(szPath);
 	if (!bResult) ErrorWithCode("CreateProcess", GetLastError());
 
 
@@ -162,13 +120,13 @@ void Console::RunProcess(std::wstring wPath)
 	DWORD dwExitCode;
 	do
 	{
-		GetExitCodeProcess(processInfo.hProcess, &dwExitCode);
+		if (!GetExitCodeProcess(processInfo.hProcess, &dwExitCode)) ErrorWithCode("GetExitCodeProcess", GetLastError());
+		GetSubOutput();
 	} while (dwExitCode == STILL_ACTIVE);
-	PrintLog(L"\n\nProcess finished with exit code: " + toWide(HexToStr(dwExitCode)) + L"\n");
-	PrintLog(L"----------------------------     End of process.   ----------------------------\n");
-
-
 	
+	PrintLogAndConsoleNarrow("\n\nProcess finished with exit code: " + (NumToStr(dwExitCode)) + " (" + (HexToStr(dwExitCode)) + ")\n");
+	PrintLogAndConsoleNarrow("----------------------------     End of process.   ----------------------------\n");
+
 	CloseProperHandle(processInfo.hThread);
 	CloseProperHandle(processInfo.hProcess);
 }
@@ -179,15 +137,17 @@ void Console::RunProcess(std::wstring wPath)
 
 
 
-void Console::PrintLog(std::wstring buf)
+void Console::PrintLogAndConsole(std::wstring buf)
 {
+	PrintConsole(buf);
+
 	std::lock_guard<std::mutex> filePosLock(filePosMutex);
 	Write(hLogWrite, EncodeToUTF8(buf));
 }
 
-void Console::PrintLogNarrow(std::string buf)
+void Console::PrintLogAndConsoleNarrow(std::string buf)
 {
-	PrintLog(toWide(buf));
+	PrintLogAndConsole(toWide(buf));
 }
 
 void Console::PrintConsole(std::wstring buf)
@@ -214,68 +174,60 @@ void Console::Read(HANDLE hIn, std::string& buf)
 	unsigned char* chBuf = (unsigned char*)calloc(buf.size(), sizeof(unsigned char));
 	if (chBuf == nullptr) Error("calloc");
 
-	if (!ReadFile(hIn, chBuf, buf.size() * sizeof(chBuf[0]), &dwRead, NULL))
+	BOOL bResult = ReadFile(hIn, chBuf, buf.size() * sizeof(chBuf[0]), &dwRead, NULL);
+	if (bResult)
 	{
-		free(chBuf);
-		ErrorWithCode("ReadFile", GetLastError(), ERR_READ);
-	}
-	
-	std::string encoded = "";
-	for (int i = 0; i < dwRead; i++) encoded += chBuf[i];
-	free(chBuf);
+		std::string encoded = "";
+		for (int i = 0; i < dwRead; i++) encoded += chBuf[i];
 
-	buf = encoded;
+		buf = encoded;
+	}
+
+	free(chBuf);
+	if (!bResult) ErrorWithCode("ReadFile", GetLastError(), ERR_READ);
+}
+
+unsigned long Console::GetPipeBufSize()
+{
+	unsigned long return_value = 0;
+	if (!PeekNamedPipe(hSubOutRd, NULL, NULL, NULL, &return_value, NULL)) ErrorWithCode("PeekNamedPipe", GetLastError());
+	return return_value;
 }
 
 
 
-void Console::ReadLog()
+std::wstring Console::GetWideFromRawCodePoints(const char* raw)
 {
-	bool bLastIter = false;
-	DWORD dwRead;
-	unsigned int totalRead = 0;
+	std::wstring raw_input = L"";
+	for (int i = 0; raw[i] != '\0'; i += 2)
+	{
+		raw_input.push_back(0x00);
+		raw_input.back() += raw[i];
+		raw_input.back() += (raw[i + 1] << 8);
+	}
 
+	return raw_input;
+}
+
+void Console::GetSubOutput()
+{
+	DWORD dwRead;
 	for (;;)
 	{
-		GetFileHandle(logFilepath.c_str(), OPEN_EXISTING, &hLogRead, true, FILE_SHARE_WRITE | FILE_SHARE_READ, GENERIC_READ);
-		AddActiveHandle(hLogRead);
-
-		const unsigned int BUFSIZE = 4096;
-		//unsigned char chBuf[BUFSIZE];
 		std::string buf;
-		buf.resize(BUFSIZE);
+		buf.resize(GetPipeBufSize());
 
-		{
-			std::lock_guard<std::mutex> filePosLock(filePosMutex);
-			if (SetFilePointer(hLogRead, totalRead, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER) ErrorWithCode("SetFilePointer", GetLastError());
-		}
-		//ReadFile(hLogRead, &chBuf, BUFSIZE, &dwRead, NULL);
-		Read(hLogRead, buf);
+		if (!buf.empty()) Read(hSubOutRd, buf);
+		
 		dwRead = buf.size();
+
+		if (beginWith(cmdLines[currentCmdIndex], L"cmd /u") || beginWith(cmdLines[currentCmdIndex], L"CMD /U"))
 		{
-			std::lock_guard<std::mutex> filePosLock(filePosMutex);
-			if (SetFilePointer(hLogRead, 0, NULL, FILE_END) == INVALID_SET_FILE_POINTER) ErrorWithCode("SetFilePointer", GetLastError());
+			PrintLogAndConsole(GetWideFromRawCodePoints(buf.c_str()));
 		}
+		else PrintLogAndConsole(DecodeFromUTF8(buf));
 
-		totalRead += dwRead;
-		RemoveActiveHandle(hLogRead);
-
-		std::string encoded = buf;
-
-		std::wstring decoded = DecodeFromUTF8(encoded);
-		PrintConsole(decoded);
-		//PrintConsole(toWide(encoded));
-
-		if (bLastIter)
-		{
-			if (dwRead == 0) break;
-			else continue;
-		}
-		if (bDone && dwRead == 0)
-		{
-			bLastIter = true;
-			continue;
-		}
+		if (!GetPipeBufSize()) break;
 	}
 }
 
@@ -285,9 +237,9 @@ void Console::ReadLog()
 void Console::GetFileHandle(std::wstring wPath, DWORD dwCreationDisposition, HANDLE* hDest, bool bInheritable,
 							DWORD dwShareMode, DWORD dwDesiredAccess)
 {
-	std::string path = EncodeToUTF8(wPath);
+	std::wstring path = (wPath);
 
-	if (!bInheritable) *hDest = CreateFileA(path.c_str(), dwDesiredAccess, dwShareMode, NULL, dwCreationDisposition, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (!bInheritable) *hDest = CreateFileW(path.c_str(), dwDesiredAccess, dwShareMode, NULL, dwCreationDisposition, FILE_ATTRIBUTE_NORMAL, NULL);
 	else
 	{
 		SECURITY_ATTRIBUTES secAttr ={ };
@@ -295,7 +247,7 @@ void Console::GetFileHandle(std::wstring wPath, DWORD dwCreationDisposition, HAN
 		secAttr.lpSecurityDescriptor = NULL;
 		secAttr.bInheritHandle = true;
 
-		*hDest = CreateFileA(path.c_str(), dwDesiredAccess, dwShareMode, &secAttr, dwCreationDisposition, FILE_ATTRIBUTE_NORMAL, NULL);
+		*hDest = CreateFileW(path.c_str(), dwDesiredAccess, dwShareMode, &secAttr, dwCreationDisposition, FILE_ATTRIBUTE_NORMAL, NULL);
 	}
 
 	if (*hDest == INVALID_HANDLE_VALUE) ErrorWithCode("CreateFile", GetLastError(), ERR_FILE);
@@ -339,7 +291,7 @@ void Console::RemoveActiveHandle(HANDLE hActive)
 
 void Console::Error(std::string function, unsigned long exit_code)
 {
-	std::string output = ErrorOutput(function);
+	std::string output = FuncErrOutput(function);
 
 	if (exit_code != ERR_SUCCESS) MessageDialog(output);
 	ExitSafe(exit_code);
@@ -347,7 +299,7 @@ void Console::Error(std::string function, unsigned long exit_code)
 
 void Console::ErrorWithCode(std::string function, unsigned long external_code, unsigned long exit_code)
 {
-	std::string output = ErrorOutput(function, external_code);
+	std::string output = FuncErrOutput(function, external_code);
 
 	if (exit_code != ERR_SUCCESS) MessageDialog(output);
 	ExitSafe(exit_code);
@@ -355,30 +307,16 @@ void Console::ErrorWithCode(std::string function, unsigned long external_code, u
 
 
 
-std::string Console::ErrorOutput(std::string function)
-{
-	std::string output = "Failed to invoke " + function + "()";
-	return output;
-}
-
-std::string Console::ErrorOutput(std::string function, unsigned long external_code)
-{
-	std::string output = ErrorOutput(function);
-	output += ": " + NumToStr(external_code) + " (" + HexToStr(external_code) + ")";
-
-	return output;
-}
 
 void Console::ExitSafe(unsigned long exit_code)
 {
+	PrintLogAndConsoleNarrow("Session has finished. Exit code: " + (NumToStr(exit_code)) + " (" + (HexToStr(exit_code)) + ")\n");
+	PrintLogAndConsoleNarrow("----------------------------     End of session.   ----------------------------\n");
+
 	for (int i = 0; i < ActiveHandles.size(); i++)
 	{
 		CloseProperHandle(ActiveHandles[ActiveHandles.size() - 1 - i]);
 	}
-
-	PrintConsole(L"Session has finished. Exit code: " + toWide(NumToStr(exit_code)) + L" (" + toWide(HexToStr(exit_code)) + L")\n");
-
-	PrintConsole(L"----------------------------     End of session.   ----------------------------\n\n\n");
 	if (exit_code != ERR_SUCCESS) ExitProcess(exit_code);
 }
 

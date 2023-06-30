@@ -89,7 +89,7 @@ inline std::string EncodeToUTF8(std::wstring str)
                 encoded += (unsigned char)(((0x80 << 8) + ((character << 2) & (0x3F << 8))) >> 8);
                 encoded += (unsigned char)(((0x80) + (character & 0x3F)));
             }
-            else if (character >= 0x10000)
+            else if (character >= 0x10000)  // abstract (this kind of value would not fit into wchar)
             {
                 // wchar_t is 16-bit on Windows, 0x10000+ code points are not supported
             }
@@ -207,12 +207,12 @@ inline bool isStrNum(std::wstring str)
 
 
 
-inline bool findInStr(std::wstring data, std::wstring query)
+inline bool findInStr(std::wstring str, std::wstring query)
 {
     unsigned int index = 0;
-    for (int i = 0; i < data.size(); i++)
+    for (int i = 0; i < str.size(); i++)
     {
-        if (data[i] == query[index])
+        if (str[i] == query[index])
         {
             index++;
             if (index == query.size())
@@ -225,7 +225,6 @@ inline bool findInStr(std::wstring data, std::wstring query)
             index = 0;
         }
     }
-    //wxMessageBox(data + "\n" + query);
     return false;
 }
 
@@ -275,6 +274,12 @@ inline void replaceAllSubStr(std::wstring& str, std::wstring query, std::wstring
     }
 }
 
+inline bool beginWith(std::wstring str, std::wstring query)
+{
+    if (whereSubStr(str, query) == 0) return true;
+    else return false;
+}
+
 
 
 inline std::wstring toWide(std::string str)
@@ -298,9 +303,16 @@ inline std::string fromWide(std::wstring wstr)
 }
 
 
+
+
+
+
 inline void MessageDialog(std::wstring msg, std::wstring title = L"")
 {
-    if (msg.back() == L'\n') msg.pop_back();
+    if (!msg.empty())
+    {
+        if (msg.back() == L'\n') msg.pop_back();
+    }
 
     MessageBoxW(NULL, msg.c_str(), title.c_str(), MB_OK);
 }
@@ -309,6 +321,40 @@ inline void MessageDialog(std::string msg, std::string title = "")
 {
     MessageDialog(toWide(msg), toWide(title));
 }
+
+
+
+inline std::string FuncErrOutput(std::string function)
+{
+    std::string output = "Failed to invoke " + function + "()";
+    return output;
+}
+
+inline std::string FuncErrOutput(std::string function, unsigned long external_code)
+{
+    std::string output = FuncErrOutput(function);
+    output += ": " + NumToStr(external_code) + " (" + HexToStr(external_code) + ")";
+
+    return output;
+}
+
+inline void ErrDlg(std::string function)
+{
+    std::string output = FuncErrOutput(function);
+
+    MessageDialog(output);
+}
+
+inline void ErrDlgCode(std::string function, unsigned long external_code)
+{
+    std::string output = FuncErrOutput(function, external_code);
+
+    MessageDialog(output);
+}
+
+
+
+
 
 
 inline std::tm GetCurrentDateAndTime()
@@ -321,6 +367,30 @@ inline std::tm GetCurrentDateAndTime()
     calendar.tm_mon += 1;
 
     return calendar;
+}
+
+inline std::string GetDateAndTimeStr()
+{
+    std::tm current_time = GetCurrentDateAndTime();
+    unsigned int mt = current_time.tm_mon;
+    unsigned int dd = current_time.tm_mday;
+    unsigned int yyyy = current_time.tm_year;
+    unsigned int hh = current_time.tm_hour;
+    unsigned int mn = current_time.tm_min;
+    unsigned int ss = current_time.tm_sec;
+ 
+    std::string str = "";
+    str += "[";
+    str += NumToStr(mt, 10, 2) + "-";
+    str += NumToStr(dd, 10, 2) + "-";
+    str += NumToStr(yyyy, 10, 4) + ": ";
+
+    str += NumToStr(hh, 10, 2) + ":";
+    str += NumToStr(mn, 10, 2) + ":";
+    str += NumToStr(ss, 10, 2);
+    str += " UTC+0]";
+
+    return str;
 }
 
 

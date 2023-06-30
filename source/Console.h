@@ -5,10 +5,6 @@
 #include <thread>
 #include <mutex>
 
-#define _UNICODE
-#include <wchar.h>
-#include <tchar.h>
-
 #include <locale.h>
 #include <wchar.h>
 
@@ -33,12 +29,12 @@ public:
 	std::mutex filePosMutex;
 	std::mutex handleMutex;
 private:
-	std::thread thWrite;
-	std::thread thRead;
-private:
 	std::vector<HANDLE> ActiveHandles;
 	HANDLE hLogWrite;
 	HANDLE hLogRead;
+
+	HANDLE hSubOutWr;
+	HANDLE hSubOutRd;
 	bool bDone;
 public:
 	bool bConsoleDone;
@@ -47,17 +43,21 @@ private:
 	std::wstring* pOutputBuffer;
 
 	std::vector<std::wstring> cmdLines;
+	unsigned int currentCmdIndex;
 public:
 	void RunConsole();
 private:
+	std::wstring GetWideFromRawCodePoints(const char*);
+	void GetSubOutput();
+	unsigned long GetPipeBufSize();
+
 	void WriteLog();
-	void ReadLog();
 
 	void RunBatch();
 	void RunProcess(std::wstring);
 
-	void PrintLogNarrow(std::string);
-	void PrintLog(std::wstring buf);
+	void PrintLogAndConsoleNarrow(std::string);
+	void PrintLogAndConsole(std::wstring buf);
 	void PrintConsole(std::wstring buf);
 
 
@@ -76,8 +76,6 @@ private:
 
 	void Error(std::string function, unsigned long exit_code = ERR_DEFAULT);
 	void ErrorWithCode(std::string function, unsigned long external_code, unsigned long exit_code = ERR_DEFAULT);
-	std::string ErrorOutput(std::string function);
-	std::string ErrorOutput(std::string function, unsigned long external_code);
 
 
 	void ExitSafe(unsigned long);
