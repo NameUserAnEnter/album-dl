@@ -52,8 +52,8 @@ inline std::string HexToStr(unsigned long long hex, unsigned int digits = 2)
     return "0x" + NumToStr(hex, 16, digits);
 }
 
-inline int GetThumbnailURL(std::string* returnURL, const char* inputFilename);
-inline int GetResource(const char* host, const char* resource, const char* outputFilename);
+
+
 
 inline void PrintConsole(std::string text)
 {
@@ -67,7 +67,7 @@ inline void PrintConsole(std::wstring text)
     WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), text.c_str(), text.size(), &charsWritten, NULL);
 }
 
-inline void printHex(std::string, std::string = "");
+
 
 inline std::string EncodeToUTF8(std::wstring str)
 {

@@ -53,6 +53,13 @@ private:
     std::mutex consoleSessionMutex;
     bool bDone;
 
+    std::wstring consoleLogFilepath;
+    std::wstring consoleOutputBuf;
+    Console* mainConsole;
+
+    std::string thumbnailURL;
+    std::string resoureceFilename;
+
 
 private:
     void OnButtonPress(wxCommandEvent& event);
@@ -111,8 +118,11 @@ private:
 
     std::vector<std::wstring> RenameFilesStage();
 
+    void GetArtworkPre();
+    void GetArtworkPost();
     std::wstring GetArtworkStage();
-    void AttachArtworkStage();
+
+    void AttachArtworkToAll();
 
     std::wstring CreateAlbumDirectoryStage();
     std::wstring MoveAudioStage();

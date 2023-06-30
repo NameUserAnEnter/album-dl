@@ -139,6 +139,15 @@ void MainFrame::InitValues()
     labelOffset.right = 3;
     labelOffset.top = 15;
     labelOffset.bottom = 3;
+
+
+    resoureceFilename = "index.html";
+    thumbnailURL = "";
+    consoleLogFilepath = L"log";
+    consoleOutputBuf.clear();
+
+    mainConsole = nullptr;
+    mainConsole = new Console(consoleLogFilepath, &consoleOutputBuf);
 }
 
 MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
@@ -172,6 +181,7 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 
 MainFrame::~MainFrame()
 {
+    if (mainConsole != nullptr) delete mainConsole;
     if (consoleThread.joinable()) consoleThread.join();
 }
 
@@ -449,44 +459,49 @@ void MainFrame::GetAlbum()
     SetStatusText("Running the script...");
 
 
-    std::wstring output_buf = L"";
-
-    Console console(L"log", &output_buf);
-    console.AddCmd(DownloadStage());
-    console.AddCmd(ConvertStage());
-    console.AddCmd(CreateTrashDirStage());
-    console.AddCmd(RemoveLeftoverStage());
     /*
-    console.AddCmd(GetTitlesStage());
-    console.AddCmd(RenameFilesStage());
-    
-    console.AddCmd(GetArtworkStage());
-    console.AddCmd(CreateAlbumDirectoryStage());
-    console.AddCmd(MoveAudioStage());
-    console.AddCmd(MoveArtworkStage());
+    mainConsole->AddCmd(DownloadStage());
+    mainConsole->AddCmd(ConvertStage());
+    mainConsole->AddCmd(CreateTrashDirStage());
+    mainConsole->AddCmd(RemoveLeftoverStage());
     */
 
-    std::thread sub_thread(&Console::RunConsole, &console);
+    // mainConsole->AddFunc(ResetTracksFile);
+    //mainConsole->AddCmd(GetTitlesStage());
+    // mainConsole->AddFunc(LoadTrackTitles);
+    // mainConsole->AddFunc(ValidateTrackTitles);
+    // mainConsole->AddFunc(ResetTracksFile);
+
+    //mainConsole->AddCmd(RenameFilesStage());
+
+    /*
+    // mainConsole->AddFunc(GetArtworkPre);
+    mainConsole->AddCmd(GetArtworkStage());
+    // mainConsole->AddFunc(GetArtworkPost);
+
+    // mainConsole->AddFunc(AttachArtworkToAll);
+    mainConsole->AddCmd(CreateAlbumDirectoryStage());
+    mainConsole->AddCmd(MoveAudioStage());
+    mainConsole->AddCmd(MoveArtworkStage());
+    */
+
+    std::thread sub_thread(&Console::RunSession, &mainConsole);
 
     bool bLastIter = false;
     for (;;)
     {
         {
-            std::lock_guard<std::mutex> bufLock(console.outputBufMutex);
-            output_Field->AddFromStream(output_buf);
+            std::lock_guard<std::mutex> bufLock(mainConsole->outputBufMutex);
+            output_Field->AddFromStream(consoleOutputBuf);
         }
 
         if (bLastIter) break;
-        if (console.bConsoleDone) bLastIter = true;
+        if (mainConsole->bConsoleDone) bLastIter = true;
     }
 
     sub_thread.join();
 
-    //AllocConsole();
-    //AttachArtworkStage();
-    //FreeConsole();
-
-    
+    // FIELDS VALUE RESET
     /*
     SetStatusText("Resetting");
     
@@ -545,7 +560,7 @@ std::vector<std::wstring> MainFrame::RemoveLeftoverStage()
 {
     std::vector<std::wstring> rv;
     rv.push_back(L"cmd /u /c \"MOVE \"" + workingDirBackslashes + L"\\td8_index*.mp4\" \"" + workingDirBackslashes + L"\\Trash\"\"");
-    rv.push_back(L"cmd /u /c \"MOVE \"" + workingDirBackslashes + L"\\Trash\\td8_index*.mp4\" \"" + workingDirBackslashes + L"\"\"");
+    //rv.push_back(L"cmd /u /c \"MOVE \"" + workingDirBackslashes + L"\\Trash\\td8_index*.mp4\" \"" + workingDirBackslashes + L"\"\"");
     return rv;
 }
 
@@ -580,10 +595,15 @@ std::vector<std::wstring> MainFrame::RenameFilesStage()
     return cmds;
 }
 
-std::wstring MainFrame::GetArtworkStage()
+void MainFrame::GetArtworkPre()
 {
     std::string host = "";
     std::string resource = "";
+
+    mainConsole->PrintLogAndConsoleNarrow("Downloading album artwork...\n");
+    mainConsole->PrintLogAndConsoleNarrow("host: " + host + '\n');
+    mainConsole->PrintLogAndConsoleNarrow("resource: " + resource + '\n');
+    mainConsole->PrintLogAndConsoleNarrow("\n\n");
 
     unsigned int cFragment = 0;
 
@@ -613,23 +633,25 @@ std::wstring MainFrame::GetArtworkStage()
         }
     }
 
-    const char resourceFilename[] = "index.html";
-    GetResource(host.c_str(), resource.c_str(), resourceFilename);
-    std::string thumbnailURL = "";
+    GetResource(host.c_str(), resource.c_str(), resourceFilename.c_str());
+    thumbnailURL = "";
     GetThumbnailURL(&thumbnailURL, resourceFilename);
+}
 
-    
+void MainFrame::GetArtworkPost()
+{
+    // Erase the resource .html file data
+    FILE* resourceFile;
+    fopen_s(&resourceFile, resourceFilename.c_str(), "w");
+    if (resourceFile != nullptr) fclose(resourceFile);
+}
+
+std::wstring MainFrame::GetArtworkStage()
+{
     std::wstring args = L"";
     args += L"-o \"" + workingDirectory + artworkFilename + "\" \"" + thumbnailURL + "\"";
 
     std::wstring fullCommand = L""; fullCommand += workingDirectory + execName + ' ' + args;
-    
-
-    // Erase the resource .html file data
-    FILE* resourceFile;
-    fopen_s(&resourceFile, resourceFilename, "w");
-    if (resourceFile != nullptr) fclose(resourceFile);
-
     return fullCommand;
 }
 
@@ -652,14 +674,20 @@ std::wstring MainFrame::MoveArtworkStage()
     return cmd;
 }
 
-void MainFrame::AttachArtworkStage()
+void MainFrame::AttachArtworkToAll()
 {
+    SetStatusText("Attaching cover metadata");
+    mainConsole->PrintLogAndConsoleNarrow("Attaching cover metadata\n");
+
     for (int i = 0; i < trackTitles.size(); i++)
     {
-        //std::wstring trackFilepath = workingDirectory + std::to_wstring(i + 1) + L". " + artist + L" - " + trackTitles[i] + L".mp3";
-        std::wstring trackFilepath = albumsDirectory + std::to_wstring(i + 1) + L". " + artist + L" - " + trackTitles[i] + L".mp3";
+        std::wstring trackFilepath = workingDirectory + std::to_wstring(i + 1) + L". " + artist + L" - " + trackTitles[i] + L".mp3";
+        //std::wstring trackFilepath = albumsDirectory + std::to_wstring(i + 1) + L". " + artist + L" - " + trackTitles[i] + L".mp3";
         AttachArtwork(trackFilepath, artworkFilename);
     }
+
+    SetStatusText("Finished attaching cover metadata");
+    mainConsole->PrintLogAndConsoleNarrow("Finished ataching cover metadata\n");
 }
 
 
@@ -673,12 +701,12 @@ void MainFrame::AttachArtwork(std::wstring audioFile, std::wstring artworkFile)
 
     artworkFile = workingDirectory + artworkFile;
 
-    PrintConsole(std::to_wstring(index) + L": " + audioFile.c_str() + L"\n");
-    PrintConsole(std::to_wstring(index) + L": " + artworkFile.c_str() + L"\n\n");
+    mainConsole->PrintLogAndConsole(std::to_wstring(index) + L": " + audioFile.c_str() + L"\n");
+    mainConsole->PrintLogAndConsole(std::to_wstring(index) + L": " + artworkFile.c_str() + L"\n\n");
 
     writeArtwork(audioFile.c_str(), artworkFile.c_str());
 
-    PrintConsole("---------------------------\n");
+    mainConsole->PrintLogAndConsoleNarrow("---------------------------\n");
     index++;
 }
 

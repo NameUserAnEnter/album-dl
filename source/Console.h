@@ -45,8 +45,9 @@ private:
 	std::vector<std::wstring> cmdLines;
 	unsigned int currentCmdIndex;
 public:
-	void RunConsole();
+	void RunSession();
 private:
+	void InitLog();
 	void InitSubOutputPipe();
 	std::wstring GetWideFromRawCodePoints(const char*);
 	void GetSubOutput();
@@ -54,11 +55,11 @@ private:
 
 	void RunBatch();
 	void RunProcess(std::wstring);
-
+public:
 	void PrintLogAndConsoleNarrow(std::string);
 	void PrintLogAndConsole(std::wstring buf);
 	void PrintConsole(std::wstring buf);
-
+private:
 
 
 	void Write(HANDLE hOut, std::string buf);

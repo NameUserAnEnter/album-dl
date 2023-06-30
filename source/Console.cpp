@@ -1,7 +1,5 @@
 #include "Console.h"
 
-#define CREATEFILEW
-#define CREATEPROCW
 
 Console::Console(std::wstring _logFilepath, std::wstring* _pOutputBuffer) : logFilepath(_logFilepath), pOutputBuffer(_pOutputBuffer)
 {
@@ -35,12 +33,18 @@ Console::~Console()
 	cmdLines.clear();
 }
 
-void Console::RunConsole()
+void Console::RunSession()
 {
-	GetFileHandle(logFilepath.c_str(), CREATE_ALWAYS, &hLogWrite, true, FILE_SHARE_READ, GENERIC_WRITE);
-	AddActiveHandle(hLogWrite);
+	if (bConsoleDone) return;	// each console object should be deleted after session is done, if not ignore subsequent calls to RunSession
 
+	InitLog();
 	InitSubOutputPipe();
+
+	///*
+	PrintLogAndConsoleNarrow("----------------------------   Start of session.   ----------------------------\n");
+	PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n\n\n");
+	//*/
+
 	RunBatch();
 
 	ExitSafe(ERR_SUCCESS);
@@ -50,11 +54,6 @@ void Console::RunConsole()
 
 void Console::RunBatch()
 {
-	///*
-	PrintLogAndConsoleNarrow("----------------------------   Start of session.   ----------------------------\n");
-	PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n\n\n");
-	//*/
-
 	currentCmdIndex = 0;
 	while (currentCmdIndex < cmdLines.size())
 	{
@@ -220,6 +219,7 @@ void Console::GetSubOutput()
 }
 
 
+
 void Console::InitSubOutputPipe()
 {
 	SECURITY_ATTRIBUTES secAttr = { };
@@ -231,7 +231,11 @@ void Console::InitSubOutputPipe()
 	AddActiveHandle(hSubOutWr);
 }
 
-
+void Console::InitLog()
+{
+	GetFileHandle(logFilepath.c_str(), CREATE_ALWAYS, &hLogWrite, true, FILE_SHARE_READ, GENERIC_WRITE);
+	AddActiveHandle(hLogWrite);
+}
 
 void Console::GetFileHandle(std::wstring wPath, DWORD dwCreationDisposition, HANDLE* hDest, bool bInheritable,
 							DWORD dwShareMode, DWORD dwDesiredAccess)

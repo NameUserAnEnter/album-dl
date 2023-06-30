@@ -488,7 +488,7 @@ inline int writeArtwork(const wchar_t* audioFilename, const wchar_t* artworkFile
 }
 
 
-inline void printHex(std::string data, std::string stopQuery)
+inline void printHex(std::string data, std::string stopQuery = "")
 {
     bool bStop = false;
     for (int i = 0; i < data.size(); i++)
