@@ -452,22 +452,18 @@ void MainFrame::GetAlbum()
     std::wstring output_buf = L"";
 
     Console console(L"log", &output_buf);
-    console.AddCmdLine(DownloadStage());
+    console.AddCmd(DownloadStage());
+    console.AddCmd(ConvertStage());
+    console.AddCmd(CreateTrashDirStage());
+    console.AddCmd(RemoveLeftoverStage());
     /*
-    console.AddCmdLine(ConvertStage());
-    console.AddCmdLine(CreateTrashDirStage());
-    console.AddCmdLine(RemoveLeftoverStage());
-    console.AddCmdLine(GetTitlesStage());
-    */
-
-    //std::vector<std::wstring> renameCmds = RenameFilesStage();
-    //for (auto cmd : renameCmds) console.AddCmdLine(cmd);
-
-    /*
-    console.AddCmdLine(GetArtworkStage());
-    console.AddCmdLine(CreateAlbumDirectoryStage());
-    console.AddCmdLine(MoveAudioStage());
-    console.AddCmdLine(MoveArtworkStage());
+    console.AddCmd(GetTitlesStage());
+    console.AddCmd(RenameFilesStage());
+    
+    console.AddCmd(GetArtworkStage());
+    console.AddCmd(CreateAlbumDirectoryStage());
+    console.AddCmd(MoveAudioStage());
+    console.AddCmd(MoveArtworkStage());
     */
 
     std::thread sub_thread(&Console::RunConsole, &console);
@@ -523,7 +519,7 @@ std::wstring MainFrame::DownloadStage()
     std::wstring args = L"";
     args += L"--config-location \"" + workingDirectory + configName + L"\"";
     args += ' ';
-    args += L"-o \"" + workingDirectory + L"td8_index%(playlist_index)s.mp4\" " + URL;
+    args += L"-o \"" + workingDirectory + L"td8_index%(playlist_index)s.mp4\"" + " \"" + URL + "\"";
 
     std::wstring fullCommand = L""; fullCommand += workingDirectory + execName + ' ' + args;
 
@@ -545,10 +541,12 @@ std::wstring MainFrame::CreateTrashDirStage()
     return cmd;
 }
 
-std::wstring MainFrame::RemoveLeftoverStage()
+std::vector<std::wstring> MainFrame::RemoveLeftoverStage()
 {
-    std::wstring cmd = L"cmd /u /c \"MOVE \"" + workingDirBackslashes + L"\\td8_index*.mp4\" \"" + workingDirBackslashes + L"\\Trash\"\"";
-    return cmd;
+    std::vector<std::wstring> rv;
+    rv.push_back(L"cmd /u /c \"MOVE \"" + workingDirBackslashes + L"\\td8_index*.mp4\" \"" + workingDirBackslashes + L"\\Trash\"\"");
+    rv.push_back(L"cmd /u /c \"MOVE \"" + workingDirBackslashes + L"\\Trash\\td8_index*.mp4\" \"" + workingDirBackslashes + L"\"\"");
+    return rv;
 }
 
 std::wstring MainFrame::GetTitlesStage()

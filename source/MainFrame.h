@@ -105,7 +105,7 @@ private:
     std::wstring DownloadStage();
     std::wstring ConvertStage();
     std::wstring CreateTrashDirStage();
-    std::wstring RemoveLeftoverStage();
+    std::vector<std::wstring> RemoveLeftoverStage();
 
     std::wstring GetTitlesStage();
 

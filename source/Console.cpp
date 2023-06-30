@@ -6,7 +6,6 @@
 Console::Console(std::wstring _logFilepath, std::wstring* _pOutputBuffer) : logFilepath(_logFilepath), pOutputBuffer(_pOutputBuffer)
 {
 	hLogWrite = NULL;
-	hLogRead = NULL;
 
 	hSubOutWr = NULL;
 	hSubOutRd = NULL;
@@ -20,9 +19,14 @@ Console::Console(std::wstring _logFilepath, std::wstring* _pOutputBuffer) : logF
 	bConsoleDone = false;
 }
 
-void Console::AddCmdLine(std::wstring cmdLine)
+void Console::AddCmd(std::wstring cmdLine)
 {
 	cmdLines.push_back(cmdLine);
+}
+
+void Console::AddCmd(std::vector<std::wstring> newCmdLines)
+{
+	for (auto cmd : newCmdLines) cmdLines.push_back(cmd);
 }
 
 Console::~Console()
@@ -36,47 +40,31 @@ void Console::RunConsole()
 	GetFileHandle(logFilepath.c_str(), CREATE_ALWAYS, &hLogWrite, true, FILE_SHARE_READ, GENERIC_WRITE);
 	AddActiveHandle(hLogWrite);
 
-	SECURITY_ATTRIBUTES secAttr = { };
-	secAttr.bInheritHandle = TRUE;
-	secAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
-	secAttr.lpSecurityDescriptor = NULL;
-	if (!CreatePipe(&hSubOutRd, &hSubOutWr, &secAttr, 0)) ErrorWithCode("CreatePipe", GetLastError(), ERR_PIPE);
-	AddActiveHandle(hSubOutRd);
-	AddActiveHandle(hSubOutWr);
-
-
-	WriteLog();
+	InitSubOutputPipe();
+	RunBatch();
 
 	ExitSafe(ERR_SUCCESS);
 	bConsoleDone = true;
 	return;
 }
 
-
-
-void Console::WriteLog()
+void Console::RunBatch()
 {
 	///*
 	PrintLogAndConsoleNarrow("----------------------------   Start of session.   ----------------------------\n");
-	
-	PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+	PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n\n\n");
 	//*/
 
-
-	RunBatch();
-	bDone = true;
-}
-
-
-void Console::RunBatch()
-{
 	currentCmdIndex = 0;
-
 	while (currentCmdIndex < cmdLines.size())
 	{
 		RunProcess(cmdLines[currentCmdIndex]);
 		currentCmdIndex++;
+
+		if (currentCmdIndex < cmdLines.size()) PrintLogAndConsoleNarrow("\n\n");
 	};
+
+	bDone = true;
 }
 
 // CreateProc, CreateProcWrapper
@@ -95,9 +83,9 @@ void Console::RunProcess(std::wstring wPath)
 	for (int i = 0; i < path.size(); i++) szPath[i] = path[i];
 	szPath[path.size()] = '\0';
 
-	PrintLogAndConsole(L"-------------------------------------------------------------------------------\n");
-	PrintLogAndConsole(L"----------------------------   Executing process:\n" + (wPath) + L"\n");
-	PrintLogAndConsole(L"----------------------------   Start of process.   ----------------------------\n\n");
+	PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+	PrintLogAndConsole		(L"----------------------------   Executing process:\n" + (wPath) + L"\n");
+	PrintLogAndConsoleNarrow("----------------------------   Start of process.   ----------------------------\n\n");
 	
 	
 	STARTUPINFO startupInfo = { };
@@ -125,7 +113,7 @@ void Console::RunProcess(std::wstring wPath)
 	} while (dwExitCode == STILL_ACTIVE);
 	
 	PrintLogAndConsoleNarrow("\n\nProcess finished with exit code: " + (NumToStr(dwExitCode)) + " (" + (HexToStr(dwExitCode)) + ")\n");
-	PrintLogAndConsoleNarrow("----------------------------     End of process.   ----------------------------\n");
+	PrintLogAndConsoleNarrow("----------------------------   End of process.     ----------------------------\n");
 
 	CloseProperHandle(processInfo.hThread);
 	CloseProperHandle(processInfo.hProcess);
@@ -202,35 +190,46 @@ std::wstring Console::GetWideFromRawCodePoints(const char* raw)
 	for (int i = 0; raw[i] != '\0'; i += 2)
 	{
 		raw_input.push_back(0x00);
-		raw_input.back() += raw[i];
-		raw_input.back() += (raw[i + 1] << 8);
+		raw_input.back() += (unsigned char)raw[i];
+		raw_input.back() += (unsigned short)(raw[i + 1] << 8);
 	}
-
 	return raw_input;
 }
 
 void Console::GetSubOutput()
 {
-	DWORD dwRead;
 	for (;;)
 	{
 		std::string buf;
 		buf.resize(GetPipeBufSize());
 
-		if (!buf.empty()) Read(hSubOutRd, buf);
-		
-		dwRead = buf.size();
-
-		if (beginWith(cmdLines[currentCmdIndex], L"cmd /u") || beginWith(cmdLines[currentCmdIndex], L"CMD /U"))
+		if (!buf.empty())
 		{
-			PrintLogAndConsole(GetWideFromRawCodePoints(buf.c_str()));
+			Read(hSubOutRd, buf);
+
+			if (beginWith(cmdLines[currentCmdIndex], L"cmd /u") || beginWith(cmdLines[currentCmdIndex], L"CMD /U"))
+			{
+				PrintLogAndConsole(GetWideFromRawCodePoints(buf.c_str()));
+			}
+			else PrintLogAndConsole(DecodeFromUTF8(buf));
 		}
-		else PrintLogAndConsole(DecodeFromUTF8(buf));
+		
 
 		if (!GetPipeBufSize()) break;
 	}
 }
 
+
+void Console::InitSubOutputPipe()
+{
+	SECURITY_ATTRIBUTES secAttr = { };
+	secAttr.bInheritHandle = TRUE;
+	secAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+	secAttr.lpSecurityDescriptor = NULL;
+	if (!CreatePipe(&hSubOutRd, &hSubOutWr, &secAttr, 0)) ErrorWithCode("CreatePipe", GetLastError(), ERR_PIPE);
+	AddActiveHandle(hSubOutRd);
+	AddActiveHandle(hSubOutWr);
+}
 
 
 
@@ -311,7 +310,8 @@ void Console::ErrorWithCode(std::string function, unsigned long external_code, u
 void Console::ExitSafe(unsigned long exit_code)
 {
 	PrintLogAndConsoleNarrow("Session has finished. Exit code: " + (NumToStr(exit_code)) + " (" + (HexToStr(exit_code)) + ")\n");
-	PrintLogAndConsoleNarrow("----------------------------     End of session.   ----------------------------\n");
+	PrintLogAndConsoleNarrow("----------------------------   End of session.     ----------------------------\n");
+	PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
 
 	for (int i = 0; i < ActiveHandles.size(); i++)
 	{

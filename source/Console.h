@@ -23,7 +23,8 @@ public:
 	Console(std::wstring, std::wstring*);
 	~Console();
 
-	void AddCmdLine(std::wstring cmdLine);
+	void AddCmd(std::wstring);
+	void AddCmd(std::vector<std::wstring>);
 public:
 	std::mutex outputBufMutex;
 	std::mutex filePosMutex;
@@ -31,7 +32,6 @@ public:
 private:
 	std::vector<HANDLE> ActiveHandles;
 	HANDLE hLogWrite;
-	HANDLE hLogRead;
 
 	HANDLE hSubOutWr;
 	HANDLE hSubOutRd;
@@ -47,11 +47,10 @@ private:
 public:
 	void RunConsole();
 private:
+	void InitSubOutputPipe();
 	std::wstring GetWideFromRawCodePoints(const char*);
 	void GetSubOutput();
 	unsigned long GetPipeBufSize();
-
-	void WriteLog();
 
 	void RunBatch();
 	void RunProcess(std::wstring);
