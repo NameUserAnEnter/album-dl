@@ -517,20 +517,20 @@ std::wstring MainFrame::DownloadStage()
 
 std::wstring MainFrame::ConvertStage()
 {
-    std::wstring cmd = L"forfiles /P \"" + workingDirBackslashes + L"\"" + L" /M td8_index*.mp4 /C \"cmd /c ffmpeg.exe -i @file -c:a mp3 -b:a 192k -ar 44100 @fname.mp3\"";
+    std::wstring cmd = L"forfiles /P \"" + workingDirBackslashes + L"\"" + L" /M td8_index*.mp4 /C \"cmd /u /c ffmpeg.exe -i @file -c:a mp3 -b:a 192k -ar 44100 @fname.mp3\"";
     return cmd;
 }
 
 std::wstring MainFrame::CreateTrashDirStage()
 {
     // Execute mkdir in case /Trash/ doesn't exist
-    std::wstring cmd = L"cmd /c \"MKDIR \"" + workingDirBackslashes + L"\\Trash" + L"\"\"";
+    std::wstring cmd = L"cmd /u /c \"MKDIR \"" + workingDirBackslashes + L"\\Trash" + L"\"\"";
     return cmd;
 }
 
 std::wstring MainFrame::RemoveLeftoverStage()
 {
-    std::wstring cmd = L"cmd /c \"MOVE \"" + workingDirBackslashes + L"\\td8_index*.mp4\" \"" + workingDirBackslashes + L"\\Trash\"\"";
+    std::wstring cmd = L"cmd /u /c \"MOVE \"" + workingDirBackslashes + L"\\td8_index*.mp4\" \"" + workingDirBackslashes + L"\\Trash\"\"";
     return cmd;
 }
 
@@ -556,7 +556,7 @@ std::vector<std::wstring> MainFrame::RenameFilesStage()
         num += std::to_wstring(i + 1);
 
         std::wstring cmd = L"";
-        cmd += L"cmd /c \"RENAME \"" + workingDirBackslashes + L"\\td8_index" + num + L".mp3\" \"";
+        cmd += L"cmd /u /c \"RENAME \"" + workingDirBackslashes + L"\\td8_index" + num + L".mp3\" \"";
         cmd += std::to_string(i + 1) + L". " + artist + L" - " + trackTitles[i] + L".mp3\"\"";
 
         cmds.push_back(cmd);
@@ -621,19 +621,19 @@ std::wstring MainFrame::GetArtworkStage()
 
 std::wstring MainFrame::CreateAlbumDirectoryStage()
 {
-    std::wstring cmd = L"cmd /c \"MKDIR \"" + albumPathBackslashes + L"\"\"";
+    std::wstring cmd = L"cmd /u /c \"MKDIR \"" + albumPathBackslashes + L"\"\"";
     return cmd;
 }
 
 std::wstring MainFrame::MoveAudioStage()
 {
-    std::wstring cmd = L"cmd /c \"MOVE \"" + workingDirBackslashes + L"\\*.mp3\" \"" + albumPathBackslashes + L"\"\"";
+    std::wstring cmd = L"cmd /u /c \"MOVE \"" + workingDirBackslashes + L"\\*.mp3\" \"" + albumPathBackslashes + L"\"\"";
     return cmd;
 }
 
 std::wstring MainFrame::MoveArtworkStage()
 {
-    std::wstring cmd = L"cmd /c \"MOVE \"" + workingDirBackslashes + L"\\" + artworkFilename + L"\" \"" + albumPathBackslashes + L"\"\"";
+    std::wstring cmd = L"cmd /u /c \"MOVE \"" + workingDirBackslashes + L"\\" + artworkFilename + L"\" \"" + albumPathBackslashes + L"\"\"";
     return cmd;
 }
 
