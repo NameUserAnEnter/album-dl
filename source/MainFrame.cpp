@@ -457,8 +457,9 @@ void MainFrame::OnButtonPress(wxCommandEvent& event)
 void MainFrame::GetAlbum()
 {
     SetStatusText("Running the script...");
+    output_Field->SetText(L"");
 
-
+    mainConsole->TrashCmds();
     mainConsole->AddCmd(DownloadStage());
     /*
     mainConsole->AddCmd(ConvertStage());
@@ -486,6 +487,7 @@ void MainFrame::GetAlbum()
     */
 
     std::thread sub_thread(&Console::RunSession, mainConsole);
+    mainConsole->bConsoleDone = false;
 
     bool bLastIter = false;
     for (;;)
@@ -500,6 +502,7 @@ void MainFrame::GetAlbum()
     }
 
     sub_thread.join();
+    mainConsole->TrashCmds();
 
     // FIELDS VALUE RESET
     /*

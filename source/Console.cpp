@@ -13,8 +13,10 @@ Console::Console(std::wstring _logFilepath, std::wstring* _pOutputBuffer) : logF
 
 	currentCmdIndex = 0;
 
-	bDone = false;
 	bConsoleDone = false;
+
+	InitLog();
+	InitSubOutputPipe();
 }
 
 void Console::AddCmd(std::wstring cmdLine)
@@ -27,29 +29,30 @@ void Console::AddCmd(std::vector<std::wstring> newCmdLines)
 	for (auto cmd : newCmdLines) cmdLines.push_back(cmd);
 }
 
+void Console::TrashCmds()
+{
+	cmdLines.clear();
+}
+
 Console::~Console()
 {
+	ExitSafe(ERR_SUCCESS);
+
 	ActiveHandles.clear();
 	cmdLines.clear();
 }
 
 void Console::RunSession()
 {
-	if (bConsoleDone) return;	// each console object should be deleted after session is done, if not ignore subsequent calls to RunSession
-
-	InitLog();
-	InitSubOutputPipe();
-
-	///*
-	PrintLogAndConsoleNarrow("----------------------------   Start of session.   ----------------------------\n");
+	PrintLogAndConsoleNarrow("----------------------------   Start of batch session.   ----------------------------\n");
 	PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n\n\n");
-	//*/
 
 	RunBatch();
 
-	ExitSafe(ERR_SUCCESS);
+	PrintLogAndConsoleNarrow("Session has finished. Exit code: " + (NumToStr(ERR_SUCCESS)) + " (" + (HexToStr(ERR_SUCCESS)) + ")\n");
+	PrintLogAndConsoleNarrow("----------------------------   End of batch session.     ----------------------------\n");
+	PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
 	bConsoleDone = true;
-	return;
 }
 
 void Console::RunBatch()
@@ -62,8 +65,6 @@ void Console::RunBatch()
 
 		if (currentCmdIndex < cmdLines.size()) PrintLogAndConsoleNarrow("\n\n");
 	};
-
-	bDone = true;
 }
 
 // CreateProc, CreateProcWrapper
@@ -103,6 +104,7 @@ void Console::RunProcess(std::wstring wPath)
 	if (!bResult) ErrorWithCode("CreateProcess", GetLastError());
 
 
+	// TO DO: CONSIDER INVOKING GetSubOutput() IN LOOP ON A SEPARATE THREAD FOR MORE FREQUENT OUTPUT UPDATES
 
 	DWORD dwExitCode;
 	do
@@ -313,10 +315,6 @@ void Console::ErrorWithCode(std::string function, unsigned long external_code, u
 
 void Console::ExitSafe(unsigned long exit_code)
 {
-	PrintLogAndConsoleNarrow("Session has finished. Exit code: " + (NumToStr(exit_code)) + " (" + (HexToStr(exit_code)) + ")\n");
-	PrintLogAndConsoleNarrow("----------------------------   End of session.     ----------------------------\n");
-	PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
-
 	for (int i = 0; i < ActiveHandles.size(); i++)
 	{
 		CloseProperHandle(ActiveHandles[ActiveHandles.size() - 1 - i]);

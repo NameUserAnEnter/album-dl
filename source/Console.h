@@ -25,7 +25,7 @@ public:
 
 	void AddCmd(std::wstring);
 	void AddCmd(std::vector<std::wstring>);
-
+	void TrashCmds();
 public:
 	std::mutex outputBufMutex;
 	std::mutex filePosMutex;
@@ -36,7 +36,6 @@ private:
 
 	HANDLE hSubOutWr;
 	HANDLE hSubOutRd;
-	bool bDone;
 public:
 	bool bConsoleDone;
 private:
