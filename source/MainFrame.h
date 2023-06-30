@@ -53,7 +53,6 @@ private:
     std::mutex consoleSessionMutex;
     bool bDone;
 
-    std::wstring lineSeparator;
 
 private:
     void OnButtonPress(wxCommandEvent& event);
@@ -64,6 +63,11 @@ private:
 
     void OnClose(wxCloseEvent& event);
 public:
+    void InitBindings();
+    void InitGUI();
+    void InitControls();
+    void InitValues();
+
     void SaveSettings();
     void OpenSettings();
 private:

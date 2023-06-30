@@ -19,53 +19,8 @@ enum
 };
 
 
-
-MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
+void MainFrame::InitGUI()
 {
-    // FROM GLOBAL VARS
-    bDone = true;
-    lineSeparator = L"\n--------------------------------------------------------------------------------\n"; // remove after stage methods redesign
-
-    mainOffset = wxSize(20, 40);
-    fieldBetweenSpace = wxSize(10, 20);
-
-    TextBoxSize = wxSize(800, 20);
-    LargeBoxSize = wxSize(800, 500);
-    ButtonSize = wxSize(100, 25);
-
-    labelOffset.left = 3;
-    labelOffset.right = 3;
-    labelOffset.top = 15;
-    labelOffset.bottom = 3;
-
-
-    // File:
-    //      Save settings
-    wxMenu* menuFile = new wxMenu;
-    // Characters preceded by an ampersand in menu item text are the mnemonic underlined-in-alt-mode acces-keys for these menu items
-    // The \tShortcut specify the item shortcuts
-    menuFile->Append(ID_Save, "&Save settings\tCtrl+S", "Save Albums directory, Working directory, window position & alert check box");
-    menuFile->AppendSeparator();
-    //      Exit
-    menuFile->Append(wxID_EXIT, "&Exit\tEsc");
-
-    // Help:
-    //      About
-    wxMenu* menuHelp = new wxMenu;
-    menuHelp->Append(wxID_ABOUT);
-
-
-
-    // File | Help
-    wxMenuBar* menuBar = new wxMenuBar;
-    menuBar->Append(menuFile, "&File");
-    menuBar->Append(menuHelp, "&Help");
-
-    SetMenuBar(menuBar);
-
-    CreateStatusBar();
-    SetStatusText("");
-
     // default sizes and pos because it's automatically stretched to the frame anyway
     wxPanel* mainPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 2621440L, "Main Panel");
 
@@ -117,10 +72,10 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     output_Field = new TextBox("Output:", ID_output_Field,
                                wxPoint(mainOffset.x, mainOffset.y), LargeBoxSize, mainPanel, true,
                                labelOffset, mainOffset, fieldBetweenSpace);
+}
 
-    //output_Field->textField->Disable();
-    output_Field->textField->SetEditable(false);
-
+void MainFrame::InitBindings()
+{
     Bind(wxEVT_BUTTON, &MainFrame::OnButtonPress, this, ID_Button);
 
 
@@ -128,10 +83,72 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     Bind(wxEVT_MENU, &MainFrame::OnAbout, this, wxID_ABOUT);
     Bind(wxEVT_MENU, &MainFrame::OnExit, this, wxID_EXIT);
     Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose, this);
+}
 
+void MainFrame::InitControls()
+{
+    InitGUI();
 
     ClientWidth = mainOffset.x + TextBoxSize.x + mainOffset.x;
     ClientHeight = mainOffset.y;
+
+    InitBindings();
+
+
+    // File:
+    //      Save settings
+    wxMenu* menuFile = new wxMenu;
+    // Characters preceded by an ampersand in menu item text are the mnemonic underlined-in-alt-mode acces-keys for these menu items
+    // The \tShortcut specify the item shortcuts
+    menuFile->Append(ID_Save, "&Save settings\tCtrl+S", "Save Albums directory, Working directory, window position & alert check box");
+    menuFile->AppendSeparator();
+    //      Exit
+    menuFile->Append(wxID_EXIT, "&Exit\tEsc");
+
+    // Help:
+    //      About
+    wxMenu* menuHelp = new wxMenu;
+    menuHelp->Append(wxID_ABOUT);
+
+
+
+    // File | Help
+    wxMenuBar* menuBar = new wxMenuBar;
+    menuBar->Append(menuFile, "&File");
+    menuBar->Append(menuHelp, "&Help");
+
+    SetMenuBar(menuBar);
+
+    CreateStatusBar();
+    SetStatusText("");
+}
+
+void MainFrame::InitValues()
+{
+    // FROM GLOBAL VARS
+    bDone = true;
+
+    mainOffset = wxSize(20, 40);
+    fieldBetweenSpace = wxSize(10, 20);
+
+    TextBoxSize = wxSize(800, 20);
+    LargeBoxSize = wxSize(800, 500);
+    ButtonSize = wxSize(100, 25);
+
+    labelOffset.left = 3;
+    labelOffset.right = 3;
+    labelOffset.top = 15;
+    labelOffset.bottom = 3;
+}
+
+MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
+{
+    InitValues();
+    InitControls();
+
+    //output_Field->textField->Disable();
+    output_Field->textField->SetEditable(false);
+
 
     // Sample test values for convenience
     ///*
@@ -435,10 +452,10 @@ void MainFrame::GetAlbum()
     std::wstring output_buf = L"";
 
     Console console(L"log", &output_buf);
-    //console.AddCmdLine(DownloadStage());
-    //console.AddCmdLine(ConvertStage());
-    console.AddCmdLine(CreateTrashDirStage());
+    console.AddCmdLine(DownloadStage());
     /*
+    console.AddCmdLine(ConvertStage());
+    console.AddCmdLine(CreateTrashDirStage());
     console.AddCmdLine(RemoveLeftoverStage());
     console.AddCmdLine(GetTitlesStage());
     */
