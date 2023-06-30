@@ -58,7 +58,7 @@ private:
     Console* mainConsole;
 
     std::string thumbnailURL;
-    std::string resoureceFilename;
+    std::string resourceFilename;
 
 
 private:
@@ -78,8 +78,9 @@ public:
     void SaveSettings();
     void OpenSettings();
 private:
-    void LoadTrackTitles();
     void GetAlbum();
+
+    void LoadTrackTitles();
     void ResetTracksFile();
 
     void AttachArtwork(std::wstring, std::wstring);

@@ -141,7 +141,7 @@ void MainFrame::InitValues()
     labelOffset.bottom = 3;
 
 
-    resoureceFilename = "index.html";
+    resourceFilename = "index.html";
     thumbnailURL = "";
     consoleLogFilepath = L"log";
     consoleOutputBuf.clear();
@@ -459,14 +459,14 @@ void MainFrame::GetAlbum()
     SetStatusText("Running the script...");
 
 
-    /*
     mainConsole->AddCmd(DownloadStage());
+    /*
     mainConsole->AddCmd(ConvertStage());
     mainConsole->AddCmd(CreateTrashDirStage());
     mainConsole->AddCmd(RemoveLeftoverStage());
     */
 
-    // mainConsole->AddFunc(ResetTracksFile);
+    //mainConsole->AddFunc(ResetTracksFile);
     //mainConsole->AddCmd(GetTitlesStage());
     // mainConsole->AddFunc(LoadTrackTitles);
     // mainConsole->AddFunc(ValidateTrackTitles);
@@ -485,7 +485,7 @@ void MainFrame::GetAlbum()
     mainConsole->AddCmd(MoveArtworkStage());
     */
 
-    std::thread sub_thread(&Console::RunSession, &mainConsole);
+    std::thread sub_thread(&Console::RunSession, mainConsole);
 
     bool bLastIter = false;
     for (;;)
@@ -635,7 +635,7 @@ void MainFrame::GetArtworkPre()
 
     GetResource(host.c_str(), resource.c_str(), resourceFilename.c_str());
     thumbnailURL = "";
-    GetThumbnailURL(&thumbnailURL, resourceFilename);
+    GetThumbnailURL(&thumbnailURL, resourceFilename.c_str());
 }
 
 void MainFrame::GetArtworkPost()
@@ -750,10 +750,12 @@ void MainFrame::ValidateTrackTitles()
 
 void MainFrame::SetTracksField()
 {
-    //output_Field->textField->Clear();
+    output_Field->AddText(L"\n\n");
+
     for (int i = 0; i < trackTitles.size(); i++)
     {
-        output_Field->textField->WriteText(NumToStr(i + 1) + L". " + artist + L" - " + trackTitles[i] + (wchar_t)'\n');
+        std::wstring current(NumToStr(i + 1) + L". " + artist + L" - " + trackTitles[i] + (wchar_t)'\n');
+        output_Field->AddText(current);
     }
 }
 

@@ -49,6 +49,11 @@ public:
         buf.clear();
     }
 
+    void AddText(std::wstring text)
+    {
+        textField->AppendText(text);
+    }
+
     std::wstring GetText()
     {
         return textField->GetValue().ToStdWstring();

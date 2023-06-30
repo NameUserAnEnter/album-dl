@@ -25,6 +25,7 @@ public:
 
 	void AddCmd(std::wstring);
 	void AddCmd(std::vector<std::wstring>);
+
 public:
 	std::mutex outputBufMutex;
 	std::mutex filePosMutex;
