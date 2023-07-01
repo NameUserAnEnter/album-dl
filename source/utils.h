@@ -113,7 +113,7 @@ inline std::string FuncErrOutput(std::string function, unsigned long external_co
     return output;
 }
 
-inline void ErrExit(std::string function)
+inline void FuncErrExit(std::string function)
 {
     std::string output = FuncErrOutput(function);
 
@@ -121,7 +121,7 @@ inline void ErrExit(std::string function)
     ExitProcess(0x01);
 }
 
-inline void ErrExitCode(std::string function, unsigned long external_code)
+inline void FuncErrExitCode(std::string function, unsigned long external_code)
 {
     std::string output = FuncErrOutput(function, external_code);
 
@@ -129,6 +129,18 @@ inline void ErrExitCode(std::string function, unsigned long external_code)
     ExitProcess(0x01);
 }
 
+
+inline void ErrMsgExit(std::wstring msg)
+{
+    MessageDialog(msg);
+    ExitProcess(0x01);
+}
+
+inline void ErrMsgExitCode(std::wstring msg, unsigned long external_code)
+{
+    MessageDialog(msg);
+    ExitProcess(0x01);
+}
 
 
 
@@ -230,7 +242,7 @@ inline int GetFileData(const wchar_t* filename, std::string* returnData = nullpt
     _wfopen_s(&file, filename, L"rb");
     if (file == nullptr)
     {
-        MessageDialog(L"Cannot open: " + std::wstring(filename) + L'\n');
+        ErrMsgExit(L"Cannot open: " + std::wstring(filename) + L'\n');
         return 1;
     }
 
@@ -252,7 +264,7 @@ inline int WriteDataToFile(std::string data, const wchar_t* filename)
     _wfopen_s(&file, filename, L"wb");
     if (file == nullptr)
     {
-        MessageDialog(L"Cannot open: " + std::wstring(filename) + L'\n');
+        ErrMsgExit(L"Cannot open: " + std::wstring(filename) + L'\n');
         return 1;
     }
 

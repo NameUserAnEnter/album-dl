@@ -141,8 +141,6 @@ void Console::PrintLogAndConsoleNarrow(std::string buf)
 
 void Console::PrintConsole(std::wstring buf)
 {
-	//Write(GetStdHandle(STD_OUTPUT_HANDLE), buf);
-
 	std::lock_guard<std::mutex> bufLock(outputBufMutex);
 	*pOutputBuffer += (buf);
 }

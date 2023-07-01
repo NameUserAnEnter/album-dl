@@ -43,10 +43,22 @@ public:
         textField->SetValue(text);
     }
 
-    void AddFromStream(std::wstring& buf)
+    void PopFirstLine()
     {
-        textField->AppendText(buf);
-        buf.clear();
+        std::wstring data = GetText();
+        std::wstring newdata = L"";
+        bool bAdd = false;
+        for (int i = 0; i < data.size(); i++)
+        {
+            if (bAdd)
+            {
+                newdata += data[i];
+                continue;
+            }
+
+            if (data[i] == '\n' && !bAdd) bAdd = true;
+        }
+        SetText(newdata);
     }
 
     void AddText(std::wstring text)

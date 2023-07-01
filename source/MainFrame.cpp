@@ -466,9 +466,17 @@ void MainFrame::UpdateOutput()
     bool bLastIter = false;
     for (;;)
     {
+        //if (consoleOutputBuf.size() >= 80)
         {
             std::lock_guard<std::mutex> bufLock(mainConsole->outputBufMutex);
-            output_Field->AddFromStream(consoleOutputBuf);
+
+            if (output_Field->textField->GetNumberOfLines() >= 25)
+            {
+                output_Field->PopFirstLine();
+            }
+
+            output_Field->AddText(consoleOutputBuf);
+            consoleOutputBuf.clear();
         }
 
         if (bLastIter) break;
@@ -489,7 +497,7 @@ void MainFrame::GetAlbum()
     output_Field->SetText(L"");
     SetStatusText("Running the script...");
     
-    mainConsole->AddCmd(DownloadStage());
+    //mainConsole->AddCmd(DownloadStage());
     mainConsole->AddCmd(ConvertStage());
     mainConsole->AddCmd(CreateTrashDirStage());
     mainConsole->AddCmd(RemoveLeftoverStage());
@@ -524,10 +532,10 @@ void MainFrame::GetAlbum()
     //--------------------------------------------------
     AttachArtworkToAll();
 
-    mainConsole->AddCmd(CreateAlbumDirectoryStage());
-    mainConsole->AddCmd(MoveAudioStage());
-    mainConsole->AddCmd(MoveArtworkStage());
-    ExecuteBatchSession();
+    //mainConsole->AddCmd(CreateAlbumDirectoryStage());
+    //mainConsole->AddCmd(MoveAudioStage());
+    //mainConsole->AddCmd(MoveArtworkStage());
+    //ExecuteBatchSession();
 
     
     // FIELDS VALUE RESET
