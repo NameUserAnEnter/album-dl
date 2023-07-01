@@ -456,7 +456,6 @@ void MainFrame::OnButtonPress(wxCommandEvent& event)
 
 void MainFrame::ExecuteBatchSession()
 {
-    output_Field->SetText(L"");
     std::thread sub_thread(&Console::RunSession, mainConsole);
     mainConsole->bConsoleDone = false;
 
@@ -478,8 +477,9 @@ void MainFrame::ExecuteBatchSession()
 
 void MainFrame::GetAlbum()
 {
+    output_Field->SetText(L"");
     SetStatusText("Running the script...");
-
+    
     mainConsole->AddCmd(DownloadStage());
     mainConsole->AddCmd(ConvertStage());
     mainConsole->AddCmd(CreateTrashDirStage());
@@ -620,11 +620,6 @@ void MainFrame::GetArtworkPre()
     std::string host = "";
     std::string resource = "";
 
-    mainConsole->PrintLogAndConsoleNarrow("Downloading album artwork...\n");
-    mainConsole->PrintLogAndConsoleNarrow("host: " + host + '\n');
-    mainConsole->PrintLogAndConsoleNarrow("resource: " + resource + '\n');
-    mainConsole->PrintLogAndConsoleNarrow("\n\n");
-
     unsigned int cFragment = 0;
 
     for (int i = 0; i < artworkURL.size(); i++)
@@ -652,6 +647,11 @@ void MainFrame::GetArtworkPre()
             resource += artworkURL[i];
         }
     }
+
+    mainConsole->PrintLogAndConsoleNarrow("Downloading album artwork...\n");
+    mainConsole->PrintLogAndConsoleNarrow("host: " + host + '\n');
+    mainConsole->PrintLogAndConsoleNarrow("resource: " + resource + '\n');
+    mainConsole->PrintLogAndConsoleNarrow("\n\n");
 
     GetResource(host.c_str(), resource.c_str(), resourceFilename.c_str());
     thumbnailURL = "";
@@ -712,6 +712,7 @@ void MainFrame::AttachArtworkToAll()
 
     SetStatusText("Finished attaching cover metadata");
     mainConsole->PrintLogAndConsoleNarrow("Finished ataching cover metadata\n");
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
     mainConsole->PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
 }
 

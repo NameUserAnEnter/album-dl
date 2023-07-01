@@ -44,14 +44,12 @@ Console::~Console()
 
 void Console::RunSession()
 {
-	PrintLogAndConsoleNarrow("----------------------------   Start of batch session.   ----------------------------\n");
-	PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n\n\n");
+	PrintLogAndConsoleNarrow("----------------------------   Start of session.   ----------------------------\n");
 
 	RunBatch();
 
 	PrintLogAndConsoleNarrow("Session has finished. Exit code: " + (NumToStr(ERR_SUCCESS)) + " (" + (HexToStr(ERR_SUCCESS)) + ")\n");
-	PrintLogAndConsoleNarrow("----------------------------   End of batch session.     ----------------------------\n");
-	PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+	PrintLogAndConsoleNarrow("----------------------------   End of session.     ----------------------------\n");
 	bConsoleDone = true;
 }
 
@@ -83,9 +81,9 @@ void Console::RunProcess(std::wstring wPath)
 	for (int i = 0; i < path.size(); i++) szPath[i] = path[i];
 	szPath[path.size()] = '\0';
 
-	PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+	PrintLogAndConsoleNarrow( "----------------------------   Time: " + GetDateAndTimeStr() + "\n");
 	PrintLogAndConsole		(L"----------------------------   Executing process:\n" + (wPath) + L"\n");
-	PrintLogAndConsoleNarrow("----------------------------   Start of process.   ----------------------------\n\n");
+	PrintLogAndConsoleNarrow( "----------------------------   Start of process.   ----------------------------\n\n");
 	
 	
 	STARTUPINFO startupInfo = { };
@@ -104,7 +102,7 @@ void Console::RunProcess(std::wstring wPath)
 	if (!bResult) ErrorWithCode("CreateProcess", GetLastError());
 
 
-	// TO DO: CONSIDER INVOKING GetSubOutput() IN LOOP ON A SEPARATE THREAD FOR MORE FREQUENT OUTPUT UPDATES
+
 
 	DWORD dwExitCode;
 	do
@@ -112,8 +110,10 @@ void Console::RunProcess(std::wstring wPath)
 		if (!GetExitCodeProcess(processInfo.hProcess, &dwExitCode)) ErrorWithCode("GetExitCodeProcess", GetLastError());
 		GetSubOutput();
 	} while (dwExitCode == STILL_ACTIVE);
-	
-	PrintLogAndConsoleNarrow("\n\nProcess finished with exit code: " + (NumToStr(dwExitCode)) + " (" + (HexToStr(dwExitCode)) + ")\n");
+
+	PrintLogAndConsoleNarrow("\n\n");
+	PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+	PrintLogAndConsoleNarrow("Process finished with exit code: " + (NumToStr(dwExitCode)) + " (" + (HexToStr(dwExitCode)) + ")\n");
 	PrintLogAndConsoleNarrow("----------------------------   End of process.     ----------------------------\n");
 
 	CloseProperHandle(processInfo.hThread);
