@@ -454,38 +454,9 @@ void MainFrame::OnButtonPress(wxCommandEvent& event)
 
 
 
-void MainFrame::GetAlbum()
+void MainFrame::ExecuteBatchSession()
 {
-    SetStatusText("Running the script...");
     output_Field->SetText(L"");
-
-    mainConsole->TrashCmds();
-    mainConsole->AddCmd(DownloadStage());
-    /*
-    mainConsole->AddCmd(ConvertStage());
-    mainConsole->AddCmd(CreateTrashDirStage());
-    mainConsole->AddCmd(RemoveLeftoverStage());
-    */
-
-    //mainConsole->AddFunc(ResetTracksFile);
-    //mainConsole->AddCmd(GetTitlesStage());
-    // mainConsole->AddFunc(LoadTrackTitles);
-    // mainConsole->AddFunc(ValidateTrackTitles);
-    // mainConsole->AddFunc(ResetTracksFile);
-
-    //mainConsole->AddCmd(RenameFilesStage());
-
-    /*
-    // mainConsole->AddFunc(GetArtworkPre);
-    mainConsole->AddCmd(GetArtworkStage());
-    // mainConsole->AddFunc(GetArtworkPost);
-
-    // mainConsole->AddFunc(AttachArtworkToAll);
-    mainConsole->AddCmd(CreateAlbumDirectoryStage());
-    mainConsole->AddCmd(MoveAudioStage());
-    mainConsole->AddCmd(MoveArtworkStage());
-    */
-
     std::thread sub_thread(&Console::RunSession, mainConsole);
     mainConsole->bConsoleDone = false;
 
@@ -503,7 +474,53 @@ void MainFrame::GetAlbum()
 
     sub_thread.join();
     mainConsole->TrashCmds();
+}
 
+void MainFrame::GetAlbum()
+{
+    SetStatusText("Running the script...");
+
+    mainConsole->AddCmd(DownloadStage());
+    mainConsole->AddCmd(ConvertStage());
+    mainConsole->AddCmd(CreateTrashDirStage());
+    mainConsole->AddCmd(RemoveLeftoverStage());
+    ExecuteBatchSession();
+    
+    
+    //--------------------------------------------------
+    ResetTracksFile();
+
+    mainConsole->AddCmd(GetTitlesStage());
+    ExecuteBatchSession();
+
+    LoadTrackTitles();
+    ValidateTrackTitles();
+    ResetTracksFile();
+    
+    
+    //--------------------------------------------------
+    mainConsole->AddCmd(RenameFilesStage());
+    ExecuteBatchSession();
+    
+    
+    //--------------------------------------------------
+    GetArtworkPre();
+
+    mainConsole->AddCmd(GetArtworkStage());
+    ExecuteBatchSession();
+
+    GetArtworkPost();
+    
+    
+    //--------------------------------------------------
+    AttachArtworkToAll();
+
+    mainConsole->AddCmd(CreateAlbumDirectoryStage());
+    mainConsole->AddCmd(MoveAudioStage());
+    mainConsole->AddCmd(MoveArtworkStage());
+    ExecuteBatchSession();
+    
+    
     // FIELDS VALUE RESET
     /*
     SetStatusText("Resetting");
@@ -679,6 +696,10 @@ std::wstring MainFrame::MoveArtworkStage()
 
 void MainFrame::AttachArtworkToAll()
 {
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "AttachArtworkToAll()" "\n");
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
+    
     SetStatusText("Attaching cover metadata");
     mainConsole->PrintLogAndConsoleNarrow("Attaching cover metadata\n");
 
@@ -691,6 +712,7 @@ void MainFrame::AttachArtworkToAll()
 
     SetStatusText("Finished attaching cover metadata");
     mainConsole->PrintLogAndConsoleNarrow("Finished ataching cover metadata\n");
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
 }
 
 
