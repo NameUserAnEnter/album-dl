@@ -49,7 +49,8 @@ private:
 
 
 private:
-    std::thread consoleThread;
+    std::thread workingThread;
+    std::thread outputThread;
     std::mutex consoleSessionMutex;
     bool bDone;
 
@@ -81,6 +82,7 @@ private:
     void GetAlbum();
 
     void ExecuteBatchSession(bool = true);
+    void UpdateOutput();
 
     void LoadTrackTitles();
     void ResetTracksFile();

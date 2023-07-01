@@ -185,8 +185,9 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 
 MainFrame::~MainFrame()
 {
-    //if (mainConsole != nullptr) delete mainConsole;
-    if (consoleThread.joinable()) consoleThread.join();
+    if (mainConsole != nullptr) delete mainConsole;
+    if (workingThread.joinable()) workingThread.join();
+    if (outputThread.joinable()) outputThread.join();
 }
 
 
@@ -200,7 +201,8 @@ void MainFrame::OnClose(wxCloseEvent& event)
 
 void MainFrame::OnExit(wxCommandEvent& event)
 {
-    if (consoleThread.joinable()) consoleThread.join();
+    if (workingThread.joinable()) workingThread.join();
+    if (outputThread.joinable()) outputThread.join();
     Close(true);
 }
 
@@ -448,19 +450,19 @@ void MainFrame::OnButtonPress(wxCommandEvent& event)
 
 
     bDone = false;
-    if (consoleThread.joinable()) consoleThread.join();
-    consoleThread = std::move(std::thread(&MainFrame::GetAlbum, this));
+    if (workingThread.joinable()) workingThread.join();
+    workingThread = std::move(std::thread(&MainFrame::GetAlbum, this));
+
+    if (outputThread.joinable()) outputThread.join();
+    outputThread = std::move(std::thread(&MainFrame::UpdateOutput, this));
 }
 
 
 
 
 
-void MainFrame::ExecuteBatchSession(bool addPadding)
+void MainFrame::UpdateOutput()
 {
-    std::thread sub_thread(&Console::RunSession, mainConsole);
-    mainConsole->bConsoleDone = false;
-
     bool bLastIter = false;
     for (;;)
     {
@@ -470,10 +472,13 @@ void MainFrame::ExecuteBatchSession(bool addPadding)
         }
 
         if (bLastIter) break;
-        if (mainConsole->bConsoleDone) bLastIter = true;
+        if (bDone) bLastIter = true;
     }
+}
 
-    sub_thread.join();
+void MainFrame::ExecuteBatchSession(bool addPadding)
+{
+    mainConsole->RunSession();
     mainConsole->TrashCmds();
 
     if (addPadding) mainConsole->PrintLogAndConsoleNarrow("\n\n");
@@ -483,14 +488,14 @@ void MainFrame::GetAlbum()
 {
     output_Field->SetText(L"");
     SetStatusText("Running the script...");
-    /*
+    
     mainConsole->AddCmd(DownloadStage());
     mainConsole->AddCmd(ConvertStage());
     mainConsole->AddCmd(CreateTrashDirStage());
     mainConsole->AddCmd(RemoveLeftoverStage());
     ExecuteBatchSession();
-    */
 
+    
     //--------------------------------------------------
     ResetTracksFile();
 
@@ -506,7 +511,7 @@ void MainFrame::GetAlbum()
     mainConsole->AddCmd(RenameFilesStage());
     ExecuteBatchSession();
 
-    /*
+
     //--------------------------------------------------
     GetArtworkPre();
 
@@ -523,7 +528,7 @@ void MainFrame::GetAlbum()
     mainConsole->AddCmd(MoveAudioStage());
     mainConsole->AddCmd(MoveArtworkStage());
     ExecuteBatchSession();
-    */
+
     
     // FIELDS VALUE RESET
     /*

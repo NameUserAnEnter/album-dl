@@ -33,8 +33,6 @@ private:
 
 	HANDLE hSubOutWr;
 	HANDLE hSubOutRd;
-public:
-	bool bConsoleDone;
 private:
 	std::wstring logFilepath;
 	std::wstring* pOutputBuffer;

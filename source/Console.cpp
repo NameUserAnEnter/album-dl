@@ -13,8 +13,6 @@ Console::Console(std::wstring _logFilepath, std::wstring* _pOutputBuffer) : logF
 
 	currentCmdIndex = 0;
 
-	bConsoleDone = false;
-
 	InitLog();
 	InitSubOutputPipe();
 }
@@ -53,7 +51,6 @@ void Console::RunSession()
 
 	PrintLogAndConsoleNarrow("Session has finished. Exit code: " + (NumToStr(ERR_SUCCESS)) + " (" + (HexToStr(ERR_SUCCESS)) + ")\n");
 	PrintLogAndConsoleNarrow("----------------------------   End of session.     ----------------------------\n");
-	bConsoleDone = true;
 }
 
 void Console::RunBatch()
