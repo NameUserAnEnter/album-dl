@@ -156,6 +156,8 @@ void MainFrame::InitValues()
     mainConsole.InitConsole(consoleLogFilepath, &consoleOutputBuf, &printMutex);
     tag::SetConsole(&mainConsole);
     net::SetConsole(&mainConsole);
+
+    uMaxOutputLines = 300;
 }
 
 MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
@@ -359,9 +361,8 @@ void MainFrame::UpdateOutput()
     bool bLastIter = false;
     for (;;)
     {
-        //if (consoleOutputBuf.size() >= 80)
         {
-            if (output_Field->textField->GetNumberOfLines() >= 25)
+            if (output_Field->textField->GetNumberOfLines() >= uMaxOutputLines)
             {
                 output_Field->PopFirstLine();
             }
@@ -388,6 +389,8 @@ void MainFrame::ExecuteBatchSession(bool addPadding)
 
 void MainFrame::GetAlbum()
 {
+    if (bLog) mainConsole.OpenLog();
+
     output_Field->SetText(L"");
     SetStatusText("Running the script...");
     
@@ -396,19 +399,19 @@ void MainFrame::GetAlbum()
 
     
     //--------------------------------------------------
-    ResetTracksFile();
+    //ResetTracksFile();
 
-    mainConsole.AddCmd(GetTitlesStage());
-    ExecuteBatchSession();
+    //mainConsole.AddCmd(GetTitlesStage());
+    //ExecuteBatchSession();
 
-    LoadTrackTitles();
-    ValidateTrackTitles();
-    ResetTracksFile();
+    //LoadTrackTitles();
+    //ValidateTrackTitles();
+    //ResetTracksFile();
     
     
     //--------------------------------------------------
-    mainConsole.AddCmd(ConvertStage());
-    //mainConsole.AddCmd(CreateTrashDirStage());
+    //mainConsole.AddCmd(ConvertStage());
+    mainConsole.AddCmd(CreateTrashDirStage());
     //mainConsole.AddCmd(RemoveLeftoverStage());
     //mainConsole.AddCmd(RenameFilesStage());
     ExecuteBatchSession();
@@ -450,7 +453,9 @@ void MainFrame::GetAlbum()
     
     SetStatusText("Done");
     if (checkAlert->GetValue() == true) MessageBoxA(NULL, "Script has finished.", "Done", MB_OK);
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Program finished.   ----------------------------\n");
 
+    if (bLog) mainConsole.CloseLog();
     std::lock_guard<std::mutex> switchLock(doneSwitchMutex);
     bDone = true;
 }
@@ -478,9 +483,6 @@ std::wstring MainFrame::DownloadStage()
 
 std::vector<std::wstring> MainFrame::ConvertStage()
 {
-    //cmd += L"forfiles /P \"" + workingDirBackslashes + L"\"" + L"\" /M td8_index*.mp4 /C \"cmd /u /c ";
-    //cmd += converterExec + " -i @file -c:a mp3 -b:a 192k -ar 44100 @fname.mp3\"";
-
     std::vector<std::wstring> cmds;
 
     unsigned int maxNumDigits = std::to_string(trackTitles.size()).size();

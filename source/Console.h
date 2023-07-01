@@ -28,6 +28,7 @@ public:
 private:
 	std::mutex* pPrintMutex;
 	bool bInit;
+	bool bLogOpen;
 
 	std::vector<HANDLE> ActiveHandles;
 	HANDLE hLogWrite;
@@ -41,9 +42,10 @@ private:
 	std::vector<std::wstring> cmdLines;
 	unsigned int currentCmdIndex;
 public:
+	void OpenLog();
+	void CloseLog();
 	void RunSession();
 private:
-	void InitLog();
 	void InitSubOutputPipe();
 	std::wstring GetWideFromRawCodePoints(const char*);
 	void GetSubOutput();

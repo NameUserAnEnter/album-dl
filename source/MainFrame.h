@@ -54,6 +54,8 @@ private:
     std::mutex doneSwitchMutex;
     std::mutex printMutex;
     bool bDone;
+    const bool bLog = true;
+    unsigned int uMaxOutputLines;
 
     std::wstring consoleLogFilepath;
     std::wstring consoleOutputBuf;

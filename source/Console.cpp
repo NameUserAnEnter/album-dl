@@ -4,6 +4,7 @@
 Console::Console()
 {
 	bInit = false;
+	bLogOpen = false;
 
 	logFilepath = L"";
 	pOutputBuffer = nullptr;
@@ -36,9 +37,9 @@ void Console::InitConsole(std::wstring _logFilepath, std::wstring* _pOutputBuffe
 
 	currentCmdIndex = 0;
 
-	InitLog();
 	InitSubOutputPipe();
 
+	bLogOpen = false;
 	bInit = true;
 }
 
@@ -158,13 +159,12 @@ void Console::PrintLogAndConsole(std::wstring buf)
 
 	PrintConsole(buf);
 
+	if (!bLogOpen) return;
 	Write(hLogWrite, EncodeToUTF8(buf));
 }
 
 void Console::PrintLogAndConsoleNarrow(std::string buf)
 {
-	if (!bInit) return;
-
 	PrintLogAndConsole(toWide(buf));
 }
 
@@ -262,10 +262,23 @@ void Console::InitSubOutputPipe()
 	AddActiveHandle(hSubOutWr);
 }
 
-void Console::InitLog()
+void Console::OpenLog()
 {
+	if (!bInit) return;
+
 	GetFileHandle(logFilepath.c_str(), CREATE_ALWAYS, &hLogWrite, true, FILE_SHARE_READ, GENERIC_WRITE);
 	AddActiveHandle(hLogWrite);
+
+	bLogOpen = true;
+}
+
+void Console::CloseLog()
+{
+	if (!bInit) return;
+	if (!bLogOpen) return;
+
+	RemoveActiveHandle(hLogWrite);
+	bLogOpen = false;
 }
 
 void Console::GetFileHandle(std::wstring wPath, DWORD dwCreationDisposition, HANDLE* hDest, bool bInheritable,
