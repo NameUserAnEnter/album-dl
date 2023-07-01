@@ -119,7 +119,7 @@ private:
     std::wstring workingDirBackslashes;
 private:
     std::wstring DownloadStage();
-    std::wstring ConvertStage();
+    std::vector<std::wstring> ConvertStage();
     std::wstring CreateTrashDirStage();
     std::vector<std::wstring> RemoveLeftoverStage();
 

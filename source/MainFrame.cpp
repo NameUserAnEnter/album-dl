@@ -392,10 +392,7 @@ void MainFrame::GetAlbum()
     SetStatusText("Running the script...");
     
     //mainConsole.AddCmd(DownloadStage());
-    mainConsole.AddCmd(ConvertStage());
-    mainConsole.AddCmd(CreateTrashDirStage());
-    mainConsole.AddCmd(RemoveLeftoverStage());
-    ExecuteBatchSession();
+    //ExecuteBatchSession();
 
     
     //--------------------------------------------------
@@ -410,21 +407,24 @@ void MainFrame::GetAlbum()
     
     
     //--------------------------------------------------
-    mainConsole.AddCmd(RenameFilesStage());
+    mainConsole.AddCmd(ConvertStage());
+    //mainConsole.AddCmd(CreateTrashDirStage());
+    //mainConsole.AddCmd(RemoveLeftoverStage());
+    //mainConsole.AddCmd(RenameFilesStage());
     ExecuteBatchSession();
 
 
     //--------------------------------------------------
-    GetArtworkPre();
+    //GetArtworkPre();
 
-    mainConsole.AddCmd(GetArtworkStage());
-    ExecuteBatchSession();
+    //mainConsole.AddCmd(GetArtworkStage());
+    //ExecuteBatchSession();
 
-    GetArtworkPost();
+    //GetArtworkPost();
 
 
     //--------------------------------------------------
-    AttachArtworkToAll();
+    //AttachArtworkToAll();
 
     //mainConsole.AddCmd(CreateAlbumDirectoryStage());
     //mainConsole.AddCmd(MoveAudioStage());
@@ -468,18 +468,41 @@ std::wstring MainFrame::DownloadStage()
     args += ' ';
     args += L"-o \"" + workingDirectory + L"td8_index%(playlist_index)s.mp4\"" + " \"" + URL + "\"";
 
-    std::wstring fullCommand = L""; fullCommand += workingDirectory + downloaderExec + ' ' + args;
+    std::wstring fullCommand = L"";
+    fullCommand += L"\"" + workingDirectory + downloaderExec + L"\"" + ' ' + args;
 
 
 
     return fullCommand;
 }
 
-std::wstring MainFrame::ConvertStage()
+std::vector<std::wstring> MainFrame::ConvertStage()
 {
-    std::wstring cmd = L"";
-    cmd += L"forfiles /P \"" + workingDirBackslashes + L"\"" + L"\" /M td8_index*.mp4 /C \"cmd /u /c " + converterExec + " -i @file -c:a mp3 -b : a 192k -ar 44100 @fname.mp3\"";
-    return cmd;
+    //cmd += L"forfiles /P \"" + workingDirBackslashes + L"\"" + L"\" /M td8_index*.mp4 /C \"cmd /u /c ";
+    //cmd += converterExec + " -i @file -c:a mp3 -b:a 192k -ar 44100 @fname.mp3\"";
+
+    std::vector<std::wstring> cmds;
+
+    unsigned int maxNumDigits = std::to_string(trackTitles.size()).size();
+
+    for (int i = 0; i < trackTitles.size(); i++)
+    {
+        std::wstring num = L"";
+
+        unsigned int numDigits = std::to_string(i + 1).size();
+        for (int j = 0; j < maxNumDigits - numDigits; j++) num += L'0';
+        num += std::to_wstring(i + 1);
+
+        std::wstring fname = L"td8_index" + num;
+        std::wstring file = fname + L".mp4";
+
+        std::wstring cmd = L"";
+        cmd += L"\"" + workingDirectory + converterExec + L"\"";
+        cmd += " -i \"" + workingDirectory + L"/" + file + L"\" -c:a mp3 -b:a 192k -ar 44100 \"" + workingDirectory + L"/" + fname + L".mp3\"";
+
+        cmds.push_back(cmd);
+    }
+    return cmds;
 }
 
 std::wstring MainFrame::CreateTrashDirStage()
@@ -506,7 +529,6 @@ std::wstring MainFrame::GetTitlesStage()
 std::vector<std::wstring> MainFrame::RenameFilesStage()
 {
     std::vector<std::wstring> cmds;
-    cmds.clear();
     
     unsigned int maxNumDigits = std::to_string(trackTitles.size()).size();
     
