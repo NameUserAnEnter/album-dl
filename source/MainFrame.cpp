@@ -208,7 +208,6 @@ void MainFrame::OnAbout(wxCommandEvent& event)
 {
     std::string output = "";
 
-#define VER 1.2
     unsigned int fraction_digits = 0;
     float uVer = VER;
     while (uVer != (int)uVer)
@@ -414,7 +413,6 @@ void MainFrame::OnButtonPress(wxCommandEvent& event)
     }
 
     trackTitles.clear();
-    SetTracksField();
     artworkFilename = L"artwork.png";
 
 
@@ -491,8 +489,8 @@ void MainFrame::GetAlbum()
     mainConsole->AddCmd(CreateTrashDirStage());
     mainConsole->AddCmd(RemoveLeftoverStage());
     ExecuteBatchSession();
-    
-    
+    */
+
     //--------------------------------------------------
     ResetTracksFile();
 
@@ -507,8 +505,8 @@ void MainFrame::GetAlbum()
     //--------------------------------------------------
     mainConsole->AddCmd(RenameFilesStage());
     ExecuteBatchSession();
-    
-    */
+
+    /*
     //--------------------------------------------------
     GetArtworkPre();
 
@@ -516,15 +514,14 @@ void MainFrame::GetAlbum()
     ExecuteBatchSession();
 
     GetArtworkPost();
-    
-    /*
+
+
     //--------------------------------------------------
     AttachArtworkToAll();
 
     mainConsole->AddCmd(CreateAlbumDirectoryStage());
     mainConsole->AddCmd(MoveAudioStage());
     mainConsole->AddCmd(MoveArtworkStage());
-    //ExecuteBatchSession(false);
     ExecuteBatchSession();
     */
     
@@ -781,19 +778,19 @@ void MainFrame::ValidateTrackTitles()
     SetStatusText("Analysing track titles in terms of forbidden & unwanted characters...");
     for (int i = 0; i < trackTitles.size(); i++) ValidateFilesystemString(trackTitles[i]);
 
-    SetTracksField();
+    PrintTracks();
     SetStatusText("Track titles validated");
 }
 
 
-void MainFrame::SetTracksField()
+void MainFrame::PrintTracks()
 {
-    output_Field->AddText(L"\n\n");
+    mainConsole->PrintLogAndConsoleNarrow("\n\nValidated tracknames:\n");
 
     for (int i = 0; i < trackTitles.size(); i++)
     {
-        std::wstring current(NumToStr(i + 1) + L". " + artist + L" - " + trackTitles[i] + (wchar_t)'\n');
-        output_Field->AddText(current);
+        std::wstring current(toWide(NumToStr(i + 1)) + L". " + artist + L" - " + trackTitles[i] + (wchar_t)'\n');
+        mainConsole->PrintLogAndConsole(current);
     }
 }
 
@@ -807,8 +804,6 @@ void MainFrame::ResetTracksFile()
 
 void MainFrame::LoadTrackTitles()
 {
-    output_Field->textField->Clear();
-
     FILE* tracksFile = nullptr;
     std::string path = "tracks";
     fopen_s(&tracksFile, path.c_str(), "r");
@@ -885,7 +880,11 @@ void MainFrame::LoadTrackTitles()
                 if (currentWord.size() > 0)
                 {
                     trackTitles.push_back(currentWord);
-                    SetTracksField();
+                    
+                    int i = trackTitles.size() - 1;
+                    std::wstring newTrack = toWide(NumToStr(i + 1)) + L". " + artist + L" - " + trackTitles[i] + (wchar_t)'\n';
+                    if (i == 0) mainConsole->PrintLogAndConsoleNarrow("Unvalidated tracknames:\n");
+                    mainConsole->PrintLogAndConsole(newTrack);
                 }
                 currentWord = L"";
             }

@@ -6,6 +6,8 @@
 #include <wx/wx.h>
 #endif
 
+#define VER 1.2
+
 #include "TextBox.h"
 #include "validate.h"
 #include "utils.h"
@@ -88,7 +90,7 @@ private:
     void ValidateFilesystemString(std::wstring& str);
     void ValidateTrackTitles();
 
-    void SetTracksField();
+    void PrintTracks();
 private:
     std::wstring URL;
     std::wstring artworkURL;
