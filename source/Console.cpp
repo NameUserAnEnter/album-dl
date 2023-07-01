@@ -3,8 +3,6 @@
 
 Console::Console(std::wstring _logFilepath, std::wstring* _pOutputBuffer) : logFilepath(_logFilepath), pOutputBuffer(_pOutputBuffer)
 {
-	hDefaultOut = GetStdHandle(STD_OUTPUT_HANDLE);
-
 	hLogWrite = NULL;
 
 	hSubOutWr = NULL;
@@ -38,9 +36,6 @@ void Console::TrashCmds()
 
 Console::~Console()
 {
-	// use ErrDlgCode() instead of ErrorWithCode(), to avoid calling dtor again by ErrorWithCode()
-	// the object will be destroyed anyway, the code is just for debugging
-	if (!SetStdHandle(STD_OUTPUT_HANDLE, hDefaultOut)) ErrDlgCode("SetStdHandle", GetLastError());
 	for (int i = 0; i < ActiveHandles.size(); i++)
 	{
 		CloseProperHandle(ActiveHandles[ActiveHandles.size() - 1 - i]);
@@ -245,8 +240,6 @@ void Console::InitLog()
 {
 	GetFileHandle(logFilepath.c_str(), CREATE_ALWAYS, &hLogWrite, true, FILE_SHARE_READ, GENERIC_WRITE);
 	AddActiveHandle(hLogWrite);
-
-	if (!SetStdHandle(STD_OUTPUT_HANDLE, hLogWrite)) ErrorWithCode("SetStdHandle", GetLastError());
 }
 
 void Console::GetFileHandle(std::wstring wPath, DWORD dwCreationDisposition, HANDLE* hDest, bool bInheritable,

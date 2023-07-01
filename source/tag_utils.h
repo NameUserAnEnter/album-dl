@@ -2,10 +2,37 @@
 #define TAG_UTILS_H
 
 #include "utils.h"
+#include "Console.h"
+
+namespace tag
+{
+    Console* con = nullptr;
+
+    inline void SetConsole(Console*);
+    inline void PrintConsole(std::string text);
+    inline void PrintConsole(std::wstring text);
+}
+
+inline void tag::SetConsole(Console* _con)
+{
+    tag::con = _con;
+}
+
+inline void tag::PrintConsole(std::string text)
+{
+    if (tag::con != nullptr) tag::con->PrintLogAndConsoleNarrow(text);
+}
+
+inline void tag::PrintConsole(std::wstring text)
+{
+    if (tag::con != nullptr) tag::con->PrintLogAndConsole(text);
+}
 
 
 inline unsigned int fromSynchsafe(unsigned char synchsafe[4])
 {
+    using namespace tag;
+
     unsigned int return_value = 0;
     for (int i = 0; i < 4; i++)
     {
@@ -16,6 +43,8 @@ inline unsigned int fromSynchsafe(unsigned char synchsafe[4])
 
 inline void toSynchsafe(unsigned int data, unsigned char* ptr)
 {
+    using namespace tag;
+
     for (int i = 0; i < 4; i++)
     {
         ptr[4 - 1 - i] = (data >> 7 * i) & 127;
@@ -31,6 +60,8 @@ inline void toSynchsafe(unsigned int data, unsigned char* ptr)
 inline int FindTheTag(const wchar_t* filename, unsigned int* returnTagStartIndex = nullptr, unsigned int* returnSizeMinusHeader = nullptr,
                std::string* returnTag = nullptr)
 {
+    using namespace tag;
+
     std::string fileData;
     if (GetFileData(filename, &fileData)) return 1;
 
@@ -110,6 +141,8 @@ inline int FindTheTag(const wchar_t* filename, unsigned int* returnTagStartIndex
 
 inline int UnsynchroData(std::string data, std::string* returnData)
 {
+    using namespace tag;
+
     std::string newData = "";
     for (int i = 0; i < data.size(); i++)
     {
@@ -132,6 +165,8 @@ inline int ConstructPictureFrame(const wchar_t* filename, std::string* returnFra
                           std::string* returnInQuestionData = nullptr,
                           std::string* returnPictureData = nullptr)
 {
+    using namespace tag;
+
     // Constructing the APIC frame
     // frame = frameHeader + inQuestionData + pictureDataUnsynchronised;
 
@@ -225,6 +260,8 @@ inline int ConstructPictureFrame(const wchar_t* filename, std::string* returnFra
 
 inline int AppendFrameToTag(std::string tag, std::string frame, std::string* returnTag)
 {
+    using namespace tag;
+
     // Finding the padding start
     bool bPaddingFound = false;
     unsigned int paddingStart;
@@ -338,6 +375,8 @@ inline int AppendFrameToTag(std::string tag, std::string frame, std::string* ret
 
 inline int UpdateTagSize(std::string tag, std::string* returnTag)
 {
+    using namespace tag;
+
     if (tag.size() < 10) return 1;
     unsigned int newSizeMinusHeader = tag.size() - 10;
     unsigned char newSizeMinusHeaderSynchsafe[4];
@@ -354,6 +393,8 @@ inline int UpdateTagSize(std::string tag, std::string* returnTag)
 
 inline int ReplaceTag(const wchar_t* filename, std::string tag, const wchar_t* outputFilename = nullptr)
 {
+    using namespace tag;
+
     std::string fileData;
     if (GetFileData(filename, &fileData)) return 1;
 
@@ -386,6 +427,8 @@ inline int ReplaceTag(const wchar_t* filename, std::string tag, const wchar_t* o
 
 inline int writeArtwork(const wchar_t* audioFilename, const wchar_t* artworkFilename, const wchar_t* outputAudioFilename = nullptr)
 {
+    using namespace tag;
+
     unsigned int oldTagSizeMinusHeader, foundAtIndex;
     std::string tag;
     FindTheTag(audioFilename, &foundAtIndex, &oldTagSizeMinusHeader, &tag);
@@ -490,6 +533,8 @@ inline int writeArtwork(const wchar_t* audioFilename, const wchar_t* artworkFile
 
 inline void printHex(std::string data, std::string stopQuery = "")
 {
+    using namespace tag;
+
     bool bStop = false;
     for (int i = 0; i < data.size(); i++)
     {

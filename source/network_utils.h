@@ -3,10 +3,37 @@
 
 #include <wininet.h>
 #include "utils.h"
+#include "Console.h"
+
+namespace net
+{
+    Console* con = nullptr;
+
+    inline void SetConsole(Console*);
+    inline void PrintConsole(std::string text);
+    inline void PrintConsole(std::wstring text);
+}
+
+inline void net::SetConsole(Console* _con)
+{
+    net::con = _con;
+}
+
+inline void net::PrintConsole(std::string text)
+{
+    if (net::con != nullptr) net::con->PrintLogAndConsoleNarrow(text);
+}
+
+inline void net::PrintConsole(std::wstring text)
+{
+    if (net::con != nullptr) net::con->PrintLogAndConsole(text);
+}
 
 
 inline int GetResource(const char* host, const char* resource, const char* outputFilename)
 {
+    using namespace net;
+
     // Figure out what does the "Retrieves configuration from the registry" mean for INTERNET_OPEN_TYPE_PRECONFIG
     // dwAccessType: INTERNET_OPEN_TYPE_PRECONFIG or INTERNET_OPEN_TYPE_DIRECT
     // dwFlags: INTERNET_FLAG_ASYNC or NULL
@@ -156,6 +183,8 @@ inline int GetResource(const char* host, const char* resource, const char* outpu
 
 inline int GetThumbnailURL(std::string* returnURL, const char* inputFilename)
 {
+    using namespace net;
+
     FILE* resourceFile = nullptr;
     fopen_s(&resourceFile, inputFilename, "r");
     if (resourceFile == nullptr)

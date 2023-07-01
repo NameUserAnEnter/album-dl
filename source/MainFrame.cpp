@@ -1,4 +1,6 @@
 #include "MainFrame.h"
+#include "network_utils.h"
+#include "tag_utils.h"
 
 
 // ID's for GUI-elements
@@ -148,6 +150,8 @@ void MainFrame::InitValues()
 
     mainConsole = nullptr;
     mainConsole = new Console(consoleLogFilepath, &consoleOutputBuf);
+    tag::SetConsole(mainConsole);
+    net::SetConsole(mainConsole);
 }
 
 MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
@@ -181,7 +185,7 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 
 MainFrame::~MainFrame()
 {
-    if (mainConsole != nullptr) delete mainConsole;
+    //if (mainConsole != nullptr) delete mainConsole;
     if (consoleThread.joinable()) consoleThread.join();
 }
 
@@ -656,6 +660,10 @@ void MainFrame::GetArtworkPre()
     mainConsole->PrintLogAndConsoleNarrow("resource: " + resource + '\n');
     mainConsole->PrintLogAndConsoleNarrow("\n\n");
 
+
+
+    using namespace net;
+
     GetResource(host.c_str(), resource.c_str(), resourceFilename.c_str());
     thumbnailURL = "";
     GetThumbnailURL(&thumbnailURL, resourceFilename.c_str());
@@ -733,6 +741,7 @@ void MainFrame::AttachArtwork(std::wstring audioFile, std::wstring artworkFile)
     mainConsole->PrintLogAndConsole(std::to_wstring(index) + L": " + audioFile.c_str() + L"\n");
     mainConsole->PrintLogAndConsole(std::to_wstring(index) + L": " + artworkFile.c_str() + L"\n\n");
 
+    using namespace tag;
     writeArtwork(audioFile.c_str(), artworkFile.c_str());
 
     mainConsole->PrintLogAndConsoleNarrow("---------------------------\n");

@@ -6,6 +6,7 @@
 #include <windows.h>
 #include <thread>
 #include <time.h>
+#include "Console.h"
 
 inline double power(double base, unsigned int exponent)
 {
@@ -55,17 +56,89 @@ inline std::string HexToStr(unsigned long long hex, unsigned int digits = 2)
 
 
 
-inline void PrintConsole(std::string text)
+
+inline std::wstring toWide(std::string str)
 {
-    unsigned long charsWritten = 0;
-    WriteConsoleA(GetStdHandle(STD_OUTPUT_HANDLE), text.c_str(), text.size(), &charsWritten, NULL);
+    std::wstring wide;
+    for (int i = 0; i < str.size(); i++)
+    {
+        wide += (wchar_t)str[i];
+    }
+    return wide;
 }
 
-inline void PrintConsole(std::wstring text)
+inline std::string fromWide(std::wstring wstr)
 {
-    unsigned long charsWritten = 0;
-    WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), text.c_str(), text.size(), &charsWritten, NULL);
+    std::string str;
+    for (int i = 0; i < wstr.size(); i++)
+    {
+        str += (unsigned char)wstr[i];
+    }
+    return str;
 }
+
+
+
+
+
+
+inline void MessageDialog(std::wstring msg, std::wstring title = L"")
+{
+    if (!msg.empty())
+    {
+        if (msg.back() == L'\n') msg.pop_back();
+    }
+
+    MessageBoxW(NULL, msg.c_str(), title.c_str(), MB_OK);
+}
+
+inline void MessageDialog(std::string msg, std::string title = "")
+{
+    MessageDialog(toWide(msg), toWide(title));
+}
+
+
+
+inline std::string FuncErrOutput(std::string function)
+{
+    std::string output = "Failed to invoke " + function + "()";
+    return output;
+}
+
+inline std::string FuncErrOutput(std::string function, unsigned long external_code)
+{
+    std::string output = FuncErrOutput(function);
+    output += ": " + NumToStr(external_code) + " (" + HexToStr(external_code) + ")";
+
+    return output;
+}
+
+inline void ErrExit(std::string function)
+{
+    std::string output = FuncErrOutput(function);
+
+    MessageDialog(output);
+    ExitProcess(0x01);
+}
+
+inline void ErrExitCode(std::string function, unsigned long external_code)
+{
+    std::string output = FuncErrOutput(function, external_code);
+
+    MessageDialog(output);
+    ExitProcess(0x01);
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -157,7 +230,7 @@ inline int GetFileData(const wchar_t* filename, std::string* returnData = nullpt
     _wfopen_s(&file, filename, L"rb");
     if (file == nullptr)
     {
-        PrintConsole(L"Cannot open: " + std::wstring(filename) + L'\n');
+        MessageDialog(L"Cannot open: " + std::wstring(filename) + L'\n');
         return 1;
     }
 
@@ -179,7 +252,7 @@ inline int WriteDataToFile(std::string data, const wchar_t* filename)
     _wfopen_s(&file, filename, L"wb");
     if (file == nullptr)
     {
-        PrintConsole(L"Cannot open: " + std::wstring(filename) + L'\n');
+        MessageDialog(L"Cannot open: " + std::wstring(filename) + L'\n');
         return 1;
     }
 
@@ -282,75 +355,7 @@ inline bool beginWith(std::wstring str, std::wstring query)
 
 
 
-inline std::wstring toWide(std::string str)
-{
-    std::wstring wide;
-    for (int i = 0; i < str.size(); i++)
-    {
-        wide += (wchar_t)str[i];
-    }
-    return wide;
-}
 
-inline std::string fromWide(std::wstring wstr)
-{
-    std::string str;
-    for (int i = 0; i < wstr.size(); i++)
-    {
-        str += (unsigned char)wstr[i];
-    }
-    return str;
-}
-
-
-
-
-
-
-inline void MessageDialog(std::wstring msg, std::wstring title = L"")
-{
-    if (!msg.empty())
-    {
-        if (msg.back() == L'\n') msg.pop_back();
-    }
-
-    MessageBoxW(NULL, msg.c_str(), title.c_str(), MB_OK);
-}
-
-inline void MessageDialog(std::string msg, std::string title = "")
-{
-    MessageDialog(toWide(msg), toWide(title));
-}
-
-
-
-inline std::string FuncErrOutput(std::string function)
-{
-    std::string output = "Failed to invoke " + function + "()";
-    return output;
-}
-
-inline std::string FuncErrOutput(std::string function, unsigned long external_code)
-{
-    std::string output = FuncErrOutput(function);
-    output += ": " + NumToStr(external_code) + " (" + HexToStr(external_code) + ")";
-
-    return output;
-}
-
-inline void ErrDlg(std::string function)
-{
-    std::string output = FuncErrOutput(function);
-
-    MessageDialog(output);
-}
-
-inline void ErrDlgCode(std::string function, unsigned long external_code)
-{
-    std::string output = FuncErrOutput(function, external_code);
-
-    MessageDialog(output);
-}
 
 
 

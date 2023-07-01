@@ -2,11 +2,8 @@
 #define CONSOLE_H
 
 #include "utils.h"
-#include <thread>
 #include <mutex>
 
-#include <locale.h>
-#include <wchar.h>
 
 
 #define ERR_SUCCESS		0x00
@@ -36,8 +33,6 @@ private:
 
 	HANDLE hSubOutWr;
 	HANDLE hSubOutRd;
-
-	HANDLE hDefaultOut;
 public:
 	bool bConsoleDone;
 private:
