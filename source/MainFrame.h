@@ -6,8 +6,7 @@
 #include <wx/wx.h>
 #endif
 
-#define VER 1.2
-
+#include "info.h"
 #include "TextBox.h"
 #include "validate.h"
 #include "utils.h"

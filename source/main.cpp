@@ -1,16 +1,5 @@
-#include <wx/wxprec.h>
-
-#ifndef WX_PRECOMP
-#include <wx/wx.h>
-#endif
-
-
-
-
-
-
-
 #include "MainFrame.h"
+
 
 
 
@@ -31,6 +20,9 @@ wxIMPLEMENT_APP(MainApp);
 
 bool MainApp::OnInit()
 {
+    //DumpLicense();
+    //DumpReadMe();
+
     MainFrame* frame = new MainFrame();
 
 
