@@ -189,8 +189,8 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 
 MainFrame::~MainFrame()
 {
-    if (outputThread.joinable()) outputThread.join();
-    if (workingThread.joinable()) workingThread.join();
+    // ExitProcess() exits the calling process and all it's threads
+    ExitProcess(ERR_SUCCESS);
 }
 
 
@@ -200,18 +200,17 @@ void MainFrame::OnClose(wxCloseEvent& event)
     SaveSettings();
 
     Destroy();
-    ExitProcess(0x01);
 }
 
 void MainFrame::OnExit(wxCommandEvent& event)
 {
-    if (workingThread.joinable()) workingThread.join();
-    if (outputThread.joinable()) outputThread.join();
+    // File / Exit
     Close(true);
 }
 
 void MainFrame::OnAbout(wxCommandEvent& event)
 {
+    // Help / About
     std::string output = "";
 
     unsigned int fraction_digits = 0;
@@ -331,6 +330,7 @@ void MainFrame::OnAbout(wxCommandEvent& event)
 
 void MainFrame::OnSave(wxCommandEvent& event)
 {
+    // File / Save settings
     SaveSettings();
     wxMessageBox("Settings have been saved.", "album-dl", wxOK | wxICON_NONE);
 }

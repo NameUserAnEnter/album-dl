@@ -12,6 +12,7 @@
 #define ERR_READ		0x03
 #define ERR_FILE		0x04
 #define ERR_PIPE		0x05
+#define ERR_INTERRUPTED	0x06
 
 
 class Console
