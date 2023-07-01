@@ -51,7 +51,7 @@ private:
 private:
     std::thread workingThread;
     std::thread outputThread;
-    std::mutex consoleSessionMutex;
+    std::mutex doneSwitchMutex;
     bool bDone;
 
     std::wstring consoleLogFilepath;

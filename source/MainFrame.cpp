@@ -185,9 +185,10 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 
 MainFrame::~MainFrame()
 {
-    if (mainConsole != nullptr) delete mainConsole;
     if (workingThread.joinable()) workingThread.join();
     if (outputThread.joinable()) outputThread.join();
+
+    if (mainConsole != nullptr) delete mainConsole;
 }
 
 
@@ -480,6 +481,8 @@ void MainFrame::UpdateOutput()
         }
 
         if (bLastIter) break;
+
+        std::lock_guard<std::mutex> switchLock(doneSwitchMutex);
         if (bDone) bLastIter = true;
     }
 }
@@ -557,6 +560,7 @@ void MainFrame::GetAlbum()
     SetStatusText("Done");
     if (checkAlert->GetValue() == true) MessageBoxA(NULL, "Script has finished.", "Done", MB_OK);
 
+    std::lock_guard<std::mutex> switchLock(doneSwitchMutex);
     bDone = true;
 }
 
@@ -634,6 +638,10 @@ std::vector<std::wstring> MainFrame::RenameFilesStage()
 
 void MainFrame::GetArtworkPre()
 {
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "GetArtworkPre()" "\n");
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
+
     std::string host = "";
     std::string resource = "";
 
@@ -677,14 +685,21 @@ void MainFrame::GetArtworkPre()
     GetResource(host.c_str(), resource.c_str(), resourceFilename.c_str());
     thumbnailURL = "";
     GetThumbnailURL(&thumbnailURL, resourceFilename.c_str());
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
 }
 
 void MainFrame::GetArtworkPost()
 {
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "GetArtworkPost()" "\n");
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
     // Erase the resource .html file data
     FILE* resourceFile;
     fopen_s(&resourceFile, resourceFilename.c_str(), "w");
     if (resourceFile != nullptr) fclose(resourceFile);
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
 }
 
 std::wstring MainFrame::GetArtworkStage()
@@ -788,11 +803,17 @@ void MainFrame::ValidateFilesystemString(std::wstring& str)
 
 void MainFrame::ValidateTrackTitles()
 {
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "ValidateTrackTitles()" "\n");
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
+
     SetStatusText("Analysing track titles in terms of forbidden & unwanted characters...");
     for (int i = 0; i < trackTitles.size(); i++) ValidateFilesystemString(trackTitles[i]);
 
     PrintTracks();
     SetStatusText("Track titles validated");
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
 }
 
 
@@ -809,14 +830,25 @@ void MainFrame::PrintTracks()
 
 void MainFrame::ResetTracksFile()
 {
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "ResetTracksFile()" "\n");
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
+
     FILE* tracksFile = nullptr;
     std::string path = "tracks";
     fopen_s(&tracksFile, path.c_str(), "w");
     if (tracksFile != nullptr) fclose(tracksFile);
+
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
 }
 
 void MainFrame::LoadTrackTitles()
 {
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "LoadTrackTitles()" "\n");
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
+
     FILE* tracksFile = nullptr;
     std::string path = "tracks";
     fopen_s(&tracksFile, path.c_str(), "r");
@@ -910,6 +942,9 @@ void MainFrame::LoadTrackTitles()
     {
         SetStatusText("Failed to load track titles from file");
     }
+
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+    mainConsole->PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
 }
 
 
