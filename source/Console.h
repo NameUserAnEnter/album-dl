@@ -36,6 +36,8 @@ private:
 
 	HANDLE hSubOutWr;
 	HANDLE hSubOutRd;
+
+	HANDLE hDefaultOut;
 public:
 	bool bConsoleDone;
 private:
@@ -78,7 +80,6 @@ private:
 	void ErrorWithCode(std::string function, unsigned long external_code, unsigned long exit_code = ERR_DEFAULT);
 
 
-	void ExitSafe(unsigned long);
 	void CloseProperHandle(HANDLE hHandle);
 };
 

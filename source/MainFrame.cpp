@@ -454,7 +454,7 @@ void MainFrame::OnButtonPress(wxCommandEvent& event)
 
 
 
-void MainFrame::ExecuteBatchSession()
+void MainFrame::ExecuteBatchSession(bool addPadding)
 {
     std::thread sub_thread(&Console::RunSession, mainConsole);
     mainConsole->bConsoleDone = false;
@@ -473,13 +473,15 @@ void MainFrame::ExecuteBatchSession()
 
     sub_thread.join();
     mainConsole->TrashCmds();
+
+    if (addPadding) mainConsole->PrintLogAndConsoleNarrow("\n\n");
 }
 
 void MainFrame::GetAlbum()
 {
     output_Field->SetText(L"");
     SetStatusText("Running the script...");
-    
+    /*
     mainConsole->AddCmd(DownloadStage());
     mainConsole->AddCmd(ConvertStage());
     mainConsole->AddCmd(CreateTrashDirStage());
@@ -502,7 +504,7 @@ void MainFrame::GetAlbum()
     mainConsole->AddCmd(RenameFilesStage());
     ExecuteBatchSession();
     
-    
+    */
     //--------------------------------------------------
     GetArtworkPre();
 
@@ -511,15 +513,16 @@ void MainFrame::GetAlbum()
 
     GetArtworkPost();
     
-    
+    /*
     //--------------------------------------------------
     AttachArtworkToAll();
 
     mainConsole->AddCmd(CreateAlbumDirectoryStage());
     mainConsole->AddCmd(MoveAudioStage());
     mainConsole->AddCmd(MoveArtworkStage());
+    //ExecuteBatchSession(false);
     ExecuteBatchSession();
-    
+    */
     
     // FIELDS VALUE RESET
     /*

@@ -80,7 +80,7 @@ public:
 private:
     void GetAlbum();
 
-    void ExecuteBatchSession();
+    void ExecuteBatchSession(bool = true);
 
     void LoadTrackTitles();
     void ResetTracksFile();

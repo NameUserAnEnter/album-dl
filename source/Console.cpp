@@ -3,6 +3,8 @@
 
 Console::Console(std::wstring _logFilepath, std::wstring* _pOutputBuffer) : logFilepath(_logFilepath), pOutputBuffer(_pOutputBuffer)
 {
+	hDefaultOut = GetStdHandle(STD_OUTPUT_HANDLE);
+
 	hLogWrite = NULL;
 
 	hSubOutWr = NULL;
@@ -36,7 +38,13 @@ void Console::TrashCmds()
 
 Console::~Console()
 {
-	ExitSafe(ERR_SUCCESS);
+	// use ErrDlgCode() instead of ErrorWithCode(), to avoid calling dtor again by ErrorWithCode()
+	// the object will be destroyed anyway, the code is just for debugging
+	if (!SetStdHandle(STD_OUTPUT_HANDLE, hDefaultOut)) ErrDlgCode("SetStdHandle", GetLastError());
+	for (int i = 0; i < ActiveHandles.size(); i++)
+	{
+		CloseProperHandle(ActiveHandles[ActiveHandles.size() - 1 - i]);
+	}
 
 	ActiveHandles.clear();
 	cmdLines.clear();
@@ -237,6 +245,8 @@ void Console::InitLog()
 {
 	GetFileHandle(logFilepath.c_str(), CREATE_ALWAYS, &hLogWrite, true, FILE_SHARE_READ, GENERIC_WRITE);
 	AddActiveHandle(hLogWrite);
+
+	if (!SetStdHandle(STD_OUTPUT_HANDLE, hLogWrite)) ErrorWithCode("SetStdHandle", GetLastError());
 }
 
 void Console::GetFileHandle(std::wstring wPath, DWORD dwCreationDisposition, HANDLE* hDest, bool bInheritable,
@@ -299,7 +309,7 @@ void Console::Error(std::string function, unsigned long exit_code)
 	std::string output = FuncErrOutput(function);
 
 	if (exit_code != ERR_SUCCESS) MessageDialog(output);
-	ExitSafe(exit_code);
+	ExitProcess(exit_code);	// the destructor contains the kill-handles loop, so end the lifetime by ending process
 }
 
 void Console::ErrorWithCode(std::string function, unsigned long external_code, unsigned long exit_code)
@@ -307,20 +317,11 @@ void Console::ErrorWithCode(std::string function, unsigned long external_code, u
 	std::string output = FuncErrOutput(function, external_code);
 
 	if (exit_code != ERR_SUCCESS) MessageDialog(output);
-	ExitSafe(exit_code);
+	ExitProcess(exit_code);
 }
 
 
 
-
-void Console::ExitSafe(unsigned long exit_code)
-{
-	for (int i = 0; i < ActiveHandles.size(); i++)
-	{
-		CloseProperHandle(ActiveHandles[ActiveHandles.size() - 1 - i]);
-	}
-	if (exit_code != ERR_SUCCESS) ExitProcess(exit_code);
-}
 
 void Console::CloseProperHandle(HANDLE hHandle)
 {
