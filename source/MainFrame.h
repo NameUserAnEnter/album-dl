@@ -52,11 +52,12 @@ private:
     std::thread workingThread;
     std::thread outputThread;
     std::mutex doneSwitchMutex;
+    std::mutex printMutex;
     bool bDone;
 
     std::wstring consoleLogFilepath;
     std::wstring consoleOutputBuf;
-    Console* mainConsole;
+    Console mainConsole;
 
     std::string thumbnailURL;
     std::string resourceFilename;
@@ -75,6 +76,8 @@ public:
     void InitGUI();
     void InitControls();
     void InitValues();
+
+    void ValidateFields();
 
     void SaveSettings();
     void OpenSettings();
@@ -100,7 +103,8 @@ private:
     std::wstring albumsDirectory;
     std::wstring workingDirectory;
 
-    std::wstring execName;
+    std::wstring converterExec;
+    std::wstring downloaderExec;
     std::wstring configName;
 
     std::wstring artist;

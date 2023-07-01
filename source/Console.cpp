@@ -1,8 +1,31 @@
 #include "Console.h"
 
 
-Console::Console(std::wstring _logFilepath, std::wstring* _pOutputBuffer) : logFilepath(_logFilepath), pOutputBuffer(_pOutputBuffer)
+Console::Console()
 {
+	bInit = false;
+
+	logFilepath = L"";
+	pOutputBuffer = nullptr;
+	pPrintMutex = nullptr;
+
+	hLogWrite = NULL;
+
+	hSubOutWr = NULL;
+	hSubOutRd = NULL;
+
+	ActiveHandles.clear();
+	cmdLines.clear();
+
+	currentCmdIndex = 0;
+}
+
+void Console::InitConsole(std::wstring _logFilepath, std::wstring* _pOutputBuffer, std::mutex* _pPrintMutex)
+{
+	logFilepath = _logFilepath;
+	pOutputBuffer = _pOutputBuffer;
+	pPrintMutex = _pPrintMutex;
+
 	hLogWrite = NULL;
 
 	hSubOutWr = NULL;
@@ -15,6 +38,8 @@ Console::Console(std::wstring _logFilepath, std::wstring* _pOutputBuffer) : logF
 
 	InitLog();
 	InitSubOutputPipe();
+
+	bInit = true;
 }
 
 void Console::AddCmd(std::wstring cmdLine)
@@ -45,6 +70,7 @@ Console::~Console()
 
 void Console::RunSession()
 {
+	if (!bInit) return;
 	PrintLogAndConsoleNarrow("----------------------------   Start of session.   ----------------------------\n");
 
 	RunBatch();
@@ -128,20 +154,25 @@ void Console::RunProcess(std::wstring wPath)
 
 void Console::PrintLogAndConsole(std::wstring buf)
 {
+	if (!bInit) return;
+
 	PrintConsole(buf);
 
-	std::lock_guard<std::mutex> filePosLock(filePosMutex);
 	Write(hLogWrite, EncodeToUTF8(buf));
 }
 
 void Console::PrintLogAndConsoleNarrow(std::string buf)
 {
+	if (!bInit) return;
+
 	PrintLogAndConsole(toWide(buf));
 }
 
 void Console::PrintConsole(std::wstring buf)
 {
-	std::lock_guard<std::mutex> bufLock(outputBufMutex);
+	if (!bInit) return;
+
+	std::lock_guard<std::mutex> bufLock(*pPrintMutex);
 	*pOutputBuffer += (buf);
 }
 
@@ -315,7 +346,6 @@ void Console::CloseProperHandle(HANDLE hHandle)
 {
 	if (hHandle != NULL && hHandle != INVALID_HANDLE_VALUE)
 	{
-		std::lock_guard<std::mutex> handleLock(handleMutex);
 		if (!CloseHandle(hHandle)) ErrorWithCode("CloseHandle", GetLastError());
 	}
 }

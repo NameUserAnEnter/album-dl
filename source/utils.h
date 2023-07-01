@@ -105,6 +105,12 @@ inline std::string FuncErrOutput(std::string function)
     return output;
 }
 
+inline std::wstring FuncErrOutput(std::wstring function)
+{
+    std::wstring output = L"Failed to invoke " + function + L"()";
+    return output;
+}
+
 inline std::string FuncErrOutput(std::string function, unsigned long external_code)
 {
     std::string output = FuncErrOutput(function);
@@ -113,7 +119,15 @@ inline std::string FuncErrOutput(std::string function, unsigned long external_co
     return output;
 }
 
-inline void FuncErrExit(std::string function)
+inline std::wstring FuncErrOutput(std::wstring function, unsigned long external_code)
+{
+    std::wstring output = FuncErrOutput(function);
+    output += L": " + toWide(NumToStr(external_code)) + L" (" + toWide(HexToStr(external_code)) + L")";
+
+    return output;
+}
+
+inline void ErrFuncExit(std::string function)
 {
     std::string output = FuncErrOutput(function);
 
@@ -121,7 +135,7 @@ inline void FuncErrExit(std::string function)
     ExitProcess(0x01);
 }
 
-inline void FuncErrExitCode(std::string function, unsigned long external_code)
+inline void ErrFuncExitCode(std::string function, unsigned long external_code)
 {
     std::string output = FuncErrOutput(function, external_code);
 
@@ -129,6 +143,34 @@ inline void FuncErrExitCode(std::string function, unsigned long external_code)
     ExitProcess(0x01);
 }
 
+inline void ErrFuncExit(std::wstring function)
+{
+    std::wstring output = FuncErrOutput(function);
+
+    MessageDialog(output);
+    ExitProcess(0x01);
+}
+
+inline void ErrFuncExitCode(std::wstring function, unsigned long external_code)
+{
+    std::wstring output = FuncErrOutput(function, external_code);
+
+    MessageDialog(output);
+    ExitProcess(0x01);
+}
+
+
+inline void ErrMsgExit(std::string msg)
+{
+    MessageDialog(msg);
+    ExitProcess(0x01);
+}
+
+inline void ErrMsgExitCode(std::string msg, unsigned long external_code)
+{
+    MessageDialog(msg);
+    ExitProcess(0x01);
+}
 
 inline void ErrMsgExit(std::wstring msg)
 {

@@ -143,15 +143,19 @@ void MainFrame::InitValues()
     labelOffset.bottom = 3;
 
 
+    converterExec = L"ffmpeg.exe";
+    downloaderExec = L"yt-dlp.exe";
+    configName = L"config.txt";
     resourceFilename = "index.html";
-    thumbnailURL = "";
     consoleLogFilepath = L"log";
+    artworkFilename = L"artwork.png";
+
+    thumbnailURL = "";
     consoleOutputBuf.clear();
 
-    mainConsole = nullptr;
-    mainConsole = new Console(consoleLogFilepath, &consoleOutputBuf);
-    tag::SetConsole(mainConsole);
-    net::SetConsole(mainConsole);
+    mainConsole.InitConsole(consoleLogFilepath, &consoleOutputBuf, &printMutex);
+    tag::SetConsole(&mainConsole);
+    net::SetConsole(&mainConsole);
 }
 
 MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
@@ -185,19 +189,18 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 
 MainFrame::~MainFrame()
 {
-    if (workingThread.joinable()) workingThread.join();
     if (outputThread.joinable()) outputThread.join();
-
-    if (mainConsole != nullptr) delete mainConsole;
+    if (workingThread.joinable()) workingThread.join();
 }
 
 
 
 void MainFrame::OnClose(wxCloseEvent& event)
 {
-    //SaveSettings();
+    SaveSettings();
 
     Destroy();
+    ExitProcess(0x01);
 }
 
 void MainFrame::OnExit(wxCommandEvent& event)
@@ -336,118 +339,7 @@ void MainFrame::OnButtonPress(wxCommandEvent& event)
 {
     if (!bDone) return;
 
-    URL = URL_Field->textField->GetValue().ToStdWstring();
-    artworkURL = URL_Artwork_Field->textField->GetValue().ToStdWstring();
-
-    albumsDirectory = albumsDir_Field->textField->GetValue().ToStdWstring();
-    workingDirectory = workingDir_Field->textField->GetValue().ToStdWstring();
-    execName = L"yt-dlp.exe";
-    configName = L"config.txt";
-
-    artist = artist_Field->textField->GetValue().ToStdWstring();
-    albumName = albumName_Field->textField->GetValue().ToStdWstring();
-    albumYear = albumYear_Field->textField->GetValue().ToStdWstring();
-
-    ValidateFilesystemString(artist);
-    ValidateFilesystemString(albumName);
-    ValidateFilesystemString(albumYear);
-
-
-    if (!validField(albumsDirectory))
-    {
-        wxMessageBox("Albums directory invalid.", "Error", wxOK | wxICON_ERROR);
-        return;
-    }
-    if (!validField(workingDirectory))
-    {
-        wxMessageBox("Working directory invalid.", "Error", wxOK | wxICON_ERROR);
-        return;
-    }
-
-
-
-    std::vector<std::wstring> validPlaylistURLs ={
-        L"https://youtube.com/", L"https://www.youtube.com/", L"http://youtube.com/", L"http://www.youtube.com/"
-    };
-    if (!validField(URL, validPlaylistURLs))
-    {
-        std::wstring output = L"Playlist URL invalid.\n\nRequires either of:";
-        for (int i = 0; i < validPlaylistURLs.size(); i++)
-        {
-            output += L"\n" + validPlaylistURLs[i];
-        }
-        wxMessageBox(output, "Error", wxOK | wxICON_ERROR);
-        return;
-    }
-
-    std::vector<std::wstring> validArtworkURLs ={
-        L"https://youtube.com/playlist?", L"https://www.youtube.com/playlist?", L"http://youtube.com/playlist?", L"http://www.youtube.com/playlist?"
-    };
-    if (!validField(artworkURL, validArtworkURLs))
-    {
-        if (!validField(URL, validArtworkURLs))
-        {
-            std::wstring output = L"Artwork Playlist URL invalid.\n\nRequires either of:";
-            for (int i = 0; i < validArtworkURLs.size(); i++)
-            {
-                output += L"\n" + validArtworkURLs[i];
-            }
-            wxMessageBox(output, "Error", wxOK | wxICON_ERROR);
-            return;
-        }
-        else
-        {
-            SetStatusText("Copying Playlist URL as Artwork Playlist URL");
-            URL_Artwork_Field->textField->SetValue(URL);
-            artworkURL = URL;
-        }
-    }
-
-    if (albumsDirectory[albumsDirectory.size() - 1] != '/')
-    {
-        albumsDirectory += '/';
-        albumsDir_Field->textField->SetValue(albumsDirectory);
-    }
-
-    if (workingDirectory[workingDirectory.size() - 1] != '/')
-    {
-        workingDirectory += '/';
-        workingDir_Field->textField->SetValue(workingDirectory);
-    }
-
-    trackTitles.clear();
-    artworkFilename = L"artwork.png";
-
-
-
-    albumsDirBackslashes = L"";
-    for (int i = 0; i < albumsDirectory.size(); i++)
-    {
-        if (albumsDirectory[i] != '/')
-        {
-            albumsDirBackslashes += albumsDirectory[i];
-        }
-        else if (!(i == albumsDirectory.size() - 1 && albumsDirectory[i] == '/'))
-        {
-            albumsDirBackslashes += L"\\";
-        }
-    }
-
-    albumPathBackslashes = albumsDirBackslashes + L"\\" + artist + L" - " + albumName + L" (" + albumYear + L")";
-
-    workingDirBackslashes = L"";
-    for (int i = 0; i < workingDirectory.size(); i++)
-    {
-        if (workingDirectory[i] != '/')
-        {
-            workingDirBackslashes += workingDirectory[i];
-        }
-        else if (!(i == workingDirectory.size() - 1 && workingDirectory[i] == '/'))
-        {
-            workingDirBackslashes += L"\\";
-        }
-    }
-
+    ValidateFields();
 
 
     bDone = false;
@@ -469,13 +361,12 @@ void MainFrame::UpdateOutput()
     {
         //if (consoleOutputBuf.size() >= 80)
         {
-            std::lock_guard<std::mutex> bufLock(mainConsole->outputBufMutex);
-
             if (output_Field->textField->GetNumberOfLines() >= 25)
             {
                 output_Field->PopFirstLine();
             }
 
+            std::lock_guard<std::mutex> bufLock(printMutex);
             output_Field->AddText(consoleOutputBuf);
             consoleOutputBuf.clear();
         }
@@ -489,10 +380,10 @@ void MainFrame::UpdateOutput()
 
 void MainFrame::ExecuteBatchSession(bool addPadding)
 {
-    mainConsole->RunSession();
-    mainConsole->TrashCmds();
+    mainConsole.RunSession();
+    mainConsole.TrashCmds();
 
-    if (addPadding) mainConsole->PrintLogAndConsoleNarrow("\n\n");
+    if (addPadding) mainConsole.PrintLogAndConsoleNarrow("\n\n");
 }
 
 void MainFrame::GetAlbum()
@@ -500,17 +391,17 @@ void MainFrame::GetAlbum()
     output_Field->SetText(L"");
     SetStatusText("Running the script...");
     
-    //mainConsole->AddCmd(DownloadStage());
-    mainConsole->AddCmd(ConvertStage());
-    mainConsole->AddCmd(CreateTrashDirStage());
-    mainConsole->AddCmd(RemoveLeftoverStage());
+    //mainConsole.AddCmd(DownloadStage());
+    mainConsole.AddCmd(ConvertStage());
+    mainConsole.AddCmd(CreateTrashDirStage());
+    mainConsole.AddCmd(RemoveLeftoverStage());
     ExecuteBatchSession();
 
     
     //--------------------------------------------------
     ResetTracksFile();
 
-    mainConsole->AddCmd(GetTitlesStage());
+    mainConsole.AddCmd(GetTitlesStage());
     ExecuteBatchSession();
 
     LoadTrackTitles();
@@ -519,14 +410,14 @@ void MainFrame::GetAlbum()
     
     
     //--------------------------------------------------
-    mainConsole->AddCmd(RenameFilesStage());
+    mainConsole.AddCmd(RenameFilesStage());
     ExecuteBatchSession();
 
 
     //--------------------------------------------------
     GetArtworkPre();
 
-    mainConsole->AddCmd(GetArtworkStage());
+    mainConsole.AddCmd(GetArtworkStage());
     ExecuteBatchSession();
 
     GetArtworkPost();
@@ -535,9 +426,9 @@ void MainFrame::GetAlbum()
     //--------------------------------------------------
     AttachArtworkToAll();
 
-    //mainConsole->AddCmd(CreateAlbumDirectoryStage());
-    //mainConsole->AddCmd(MoveAudioStage());
-    //mainConsole->AddCmd(MoveArtworkStage());
+    //mainConsole.AddCmd(CreateAlbumDirectoryStage());
+    //mainConsole.AddCmd(MoveAudioStage());
+    //mainConsole.AddCmd(MoveArtworkStage());
     //ExecuteBatchSession();
 
     
@@ -577,7 +468,7 @@ std::wstring MainFrame::DownloadStage()
     args += ' ';
     args += L"-o \"" + workingDirectory + L"td8_index%(playlist_index)s.mp4\"" + " \"" + URL + "\"";
 
-    std::wstring fullCommand = L""; fullCommand += workingDirectory + execName + ' ' + args;
+    std::wstring fullCommand = L""; fullCommand += workingDirectory + downloaderExec + ' ' + args;
 
 
 
@@ -586,7 +477,8 @@ std::wstring MainFrame::DownloadStage()
 
 std::wstring MainFrame::ConvertStage()
 {
-    std::wstring cmd = L"forfiles /P \"" + workingDirBackslashes + L"\"" + L" /M td8_index*.mp4 /C \"cmd /u /c ffmpeg.exe -i @file -c:a mp3 -b:a 192k -ar 44100 @fname.mp3\"";
+    std::wstring cmd = L"";
+    cmd += L"forfiles /P \"" + workingDirBackslashes + L"\"" + L"\" /M td8_index*.mp4 /C \"cmd /u /c " + converterExec + " -i @file -c:a mp3 -b : a 192k -ar 44100 @fname.mp3\"";
     return cmd;
 }
 
@@ -607,7 +499,7 @@ std::vector<std::wstring> MainFrame::RemoveLeftoverStage()
 
 std::wstring MainFrame::GetTitlesStage()
 {
-    std::wstring cmd = L""; cmd += workingDirectory + execName + ' ' + L"-e --print-to-file %(title)s \"tracks\" " + URL;
+    std::wstring cmd = L""; cmd += workingDirectory + downloaderExec + ' ' + L"-e --print-to-file %(title)s \"tracks\" " + URL;
     return cmd;
 }
 
@@ -638,9 +530,9 @@ std::vector<std::wstring> MainFrame::RenameFilesStage()
 
 void MainFrame::GetArtworkPre()
 {
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "GetArtworkPre()" "\n");
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "GetArtworkPre()" "\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
 
     std::string host = "";
     std::string resource = "";
@@ -673,10 +565,10 @@ void MainFrame::GetArtworkPre()
         }
     }
 
-    mainConsole->PrintLogAndConsoleNarrow("Downloading album artwork...\n");
-    mainConsole->PrintLogAndConsoleNarrow("host: " + host + '\n');
-    mainConsole->PrintLogAndConsoleNarrow("resource: " + resource + '\n');
-    mainConsole->PrintLogAndConsoleNarrow("\n\n");
+    mainConsole.PrintLogAndConsoleNarrow("Downloading album artwork...\n");
+    mainConsole.PrintLogAndConsoleNarrow("host: " + host + '\n');
+    mainConsole.PrintLogAndConsoleNarrow("resource: " + resource + '\n');
+    mainConsole.PrintLogAndConsoleNarrow("\n\n");
 
 
 
@@ -685,21 +577,23 @@ void MainFrame::GetArtworkPre()
     GetResource(host.c_str(), resource.c_str(), resourceFilename.c_str());
     thumbnailURL = "";
     GetThumbnailURL(&thumbnailURL, resourceFilename.c_str());
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
+    mainConsole.PrintLogAndConsoleNarrow("\n\n");
 }
 
 void MainFrame::GetArtworkPost()
 {
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "GetArtworkPost()" "\n");
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "GetArtworkPost()" "\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
     // Erase the resource .html file data
     FILE* resourceFile;
     fopen_s(&resourceFile, resourceFilename.c_str(), "w");
     if (resourceFile != nullptr) fclose(resourceFile);
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
+    mainConsole.PrintLogAndConsoleNarrow("\n\n");
 }
 
 std::wstring MainFrame::GetArtworkStage()
@@ -707,7 +601,7 @@ std::wstring MainFrame::GetArtworkStage()
     std::wstring args = L"";
     args += L"-o \"" + workingDirectory + artworkFilename + "\" \"" + thumbnailURL + "\"";
 
-    std::wstring fullCommand = L""; fullCommand += workingDirectory + execName + ' ' + args;
+    std::wstring fullCommand = L""; fullCommand += workingDirectory + downloaderExec + ' ' + args;
     return fullCommand;
 }
 
@@ -732,24 +626,24 @@ std::wstring MainFrame::MoveArtworkStage()
 
 void MainFrame::AttachArtworkToAll()
 {
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "AttachArtworkToAll()" "\n");
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "AttachArtworkToAll()" "\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
     
     SetStatusText("Attaching cover metadata");
-    mainConsole->PrintLogAndConsoleNarrow("Attaching cover metadata\n");
+    mainConsole.PrintLogAndConsoleNarrow("Attaching cover metadata\n");
 
     for (int i = 0; i < trackTitles.size(); i++)
     {
         std::wstring trackFilepath = workingDirectory + std::to_wstring(i + 1) + L". " + artist + L" - " + trackTitles[i] + L".mp3";
-        //std::wstring trackFilepath = albumsDirectory + std::to_wstring(i + 1) + L". " + artist + L" - " + trackTitles[i] + L".mp3";
         AttachArtwork(trackFilepath, artworkFilename);
     }
 
     SetStatusText("Finished attaching cover metadata");
-    mainConsole->PrintLogAndConsoleNarrow("Finished ataching cover metadata\n");
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
+    mainConsole.PrintLogAndConsoleNarrow("Finished ataching cover metadata\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
+    mainConsole.PrintLogAndConsoleNarrow("\n\n");
 }
 
 
@@ -763,13 +657,13 @@ void MainFrame::AttachArtwork(std::wstring audioFile, std::wstring artworkFile)
 
     artworkFile = workingDirectory + artworkFile;
 
-    mainConsole->PrintLogAndConsole(std::to_wstring(index) + L": " + audioFile.c_str() + L"\n");
-    mainConsole->PrintLogAndConsole(std::to_wstring(index) + L": " + artworkFile.c_str() + L"\n\n");
+    mainConsole.PrintLogAndConsole(std::to_wstring(index) + L": " + audioFile.c_str() + L"\n");
+    mainConsole.PrintLogAndConsole(std::to_wstring(index) + L": " + artworkFile.c_str() + L"\n\n");
 
     using namespace tag;
     writeArtwork(audioFile.c_str(), artworkFile.c_str());
 
-    mainConsole->PrintLogAndConsoleNarrow("---------------------------\n");
+    mainConsole.PrintLogAndConsoleNarrow("---------------------------\n");
     index++;
 }
 
@@ -803,51 +697,53 @@ void MainFrame::ValidateFilesystemString(std::wstring& str)
 
 void MainFrame::ValidateTrackTitles()
 {
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "ValidateTrackTitles()" "\n");
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "ValidateTrackTitles()" "\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
 
     SetStatusText("Analysing track titles in terms of forbidden & unwanted characters...");
     for (int i = 0; i < trackTitles.size(); i++) ValidateFilesystemString(trackTitles[i]);
 
     PrintTracks();
     SetStatusText("Track titles validated");
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
+    mainConsole.PrintLogAndConsoleNarrow("\n\n");
 }
 
 
 void MainFrame::PrintTracks()
 {
-    mainConsole->PrintLogAndConsoleNarrow("\n\nValidated tracknames:\n");
+    mainConsole.PrintLogAndConsoleNarrow("\n\nValidated tracknames:\n");
 
     for (int i = 0; i < trackTitles.size(); i++)
     {
         std::wstring current(toWide(NumToStr(i + 1)) + L". " + artist + L" - " + trackTitles[i] + (wchar_t)'\n');
-        mainConsole->PrintLogAndConsole(current);
+        mainConsole.PrintLogAndConsole(current);
     }
 }
 
 void MainFrame::ResetTracksFile()
 {
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "ResetTracksFile()" "\n");
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "ResetTracksFile()" "\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
 
     FILE* tracksFile = nullptr;
     std::string path = "tracks";
     fopen_s(&tracksFile, path.c_str(), "w");
     if (tracksFile != nullptr) fclose(tracksFile);
 
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
+    mainConsole.PrintLogAndConsoleNarrow("\n\n");
 }
 
 void MainFrame::LoadTrackTitles()
 {
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "LoadTrackTitles()" "\n");
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "LoadTrackTitles()" "\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
 
     FILE* tracksFile = nullptr;
     std::string path = "tracks";
@@ -928,8 +824,8 @@ void MainFrame::LoadTrackTitles()
                     
                     int i = trackTitles.size() - 1;
                     std::wstring newTrack = toWide(NumToStr(i + 1)) + L". " + artist + L" - " + trackTitles[i] + (wchar_t)'\n';
-                    if (i == 0) mainConsole->PrintLogAndConsoleNarrow("Unvalidated tracknames:\n");
-                    mainConsole->PrintLogAndConsole(newTrack);
+                    if (i == 0) mainConsole.PrintLogAndConsoleNarrow("Unvalidated tracknames:\n");
+                    mainConsole.PrintLogAndConsole(newTrack);
                 }
                 currentWord = L"";
             }
@@ -943,14 +839,128 @@ void MainFrame::LoadTrackTitles()
         SetStatusText("Failed to load track titles from file");
     }
 
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
-    mainConsole->PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
+    mainConsole.PrintLogAndConsoleNarrow("\n\n");
 }
 
 
 
 
 
+
+
+void MainFrame::ValidateFields()
+{
+    URL = URL_Field->textField->GetValue().ToStdWstring();
+    artworkURL = URL_Artwork_Field->textField->GetValue().ToStdWstring();
+
+    albumsDirectory = albumsDir_Field->textField->GetValue().ToStdWstring();
+    workingDirectory = workingDir_Field->textField->GetValue().ToStdWstring();
+
+    artist = artist_Field->textField->GetValue().ToStdWstring();
+    albumName = albumName_Field->textField->GetValue().ToStdWstring();
+    albumYear = albumYear_Field->textField->GetValue().ToStdWstring();
+
+    ValidateFilesystemString(artist);
+    ValidateFilesystemString(albumName);
+    ValidateFilesystemString(albumYear);
+
+
+    if (!validField(albumsDirectory))
+    {
+        wxMessageBox("Albums directory invalid.", "Error", wxOK | wxICON_ERROR);
+        return;
+    }
+    if (!validField(workingDirectory))
+    {
+        wxMessageBox("Working directory invalid.", "Error", wxOK | wxICON_ERROR);
+        return;
+    }
+
+
+
+    std::vector<std::wstring> validPlaylistURLs = {
+        L"https://youtube.com/", L"https://www.youtube.com/", L"http://youtube.com/", L"http://www.youtube.com/"
+    };
+    if (!validField(URL, validPlaylistURLs))
+    {
+        std::wstring output = L"Playlist URL invalid.\n\nRequires either of:";
+        for (int i = 0; i < validPlaylistURLs.size(); i++)
+        {
+            output += L"\n" + validPlaylistURLs[i];
+        }
+        wxMessageBox(output, "Error", wxOK | wxICON_ERROR);
+        return;
+    }
+
+    std::vector<std::wstring> validArtworkURLs = {
+        L"https://youtube.com/playlist?", L"https://www.youtube.com/playlist?", L"http://youtube.com/playlist?", L"http://www.youtube.com/playlist?"
+    };
+    if (!validField(artworkURL, validArtworkURLs))
+    {
+        if (!validField(URL, validArtworkURLs))
+        {
+            std::wstring output = L"Artwork Playlist URL invalid.\n\nRequires either of:";
+            for (int i = 0; i < validArtworkURLs.size(); i++)
+            {
+                output += L"\n" + validArtworkURLs[i];
+            }
+            wxMessageBox(output, "Error", wxOK | wxICON_ERROR);
+            return;
+        }
+        else
+        {
+            SetStatusText("Copying Playlist URL as Artwork Playlist URL");
+            URL_Artwork_Field->textField->SetValue(URL);
+            artworkURL = URL;
+        }
+    }
+
+    if (albumsDirectory[albumsDirectory.size() - 1] != '/')
+    {
+        albumsDirectory += '/';
+        albumsDir_Field->textField->SetValue(albumsDirectory);
+    }
+
+    if (workingDirectory[workingDirectory.size() - 1] != '/')
+    {
+        workingDirectory += '/';
+        workingDir_Field->textField->SetValue(workingDirectory);
+    }
+
+    trackTitles.clear();
+
+
+
+    albumsDirBackslashes = L"";
+    for (int i = 0; i < albumsDirectory.size(); i++)
+    {
+        if (albumsDirectory[i] != '/')
+        {
+            albumsDirBackslashes += albumsDirectory[i];
+        }
+        else if (!(i == albumsDirectory.size() - 1 && albumsDirectory[i] == '/'))
+        {
+            albumsDirBackslashes += L"\\";
+        }
+    }
+
+    albumPathBackslashes = albumsDirBackslashes + L"\\" + artist + L" - " + albumName + L" (" + albumYear + L")";
+
+    workingDirBackslashes = L"";
+    for (int i = 0; i < workingDirectory.size(); i++)
+    {
+        if (workingDirectory[i] != '/')
+        {
+            workingDirBackslashes += workingDirectory[i];
+        }
+        else if (!(i == workingDirectory.size() - 1 && workingDirectory[i] == '/'))
+        {
+            workingDirBackslashes += L"\\";
+        }
+    }
+}
 
 void MainFrame::OpenSettings()
 {

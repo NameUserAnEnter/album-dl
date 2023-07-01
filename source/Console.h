@@ -17,17 +17,17 @@
 class Console
 {
 public:
-	Console(std::wstring, std::wstring*);
+	Console();
+	void InitConsole(std::wstring, std::wstring*, std::mutex*);
 	~Console();
 
 	void AddCmd(std::wstring);
 	void AddCmd(std::vector<std::wstring>);
 	void TrashCmds();
-public:
-	std::mutex outputBufMutex;
-	std::mutex filePosMutex;
-	std::mutex handleMutex;
 private:
+	std::mutex* pPrintMutex;
+	bool bInit;
+
 	std::vector<HANDLE> ActiveHandles;
 	HANDLE hLogWrite;
 
