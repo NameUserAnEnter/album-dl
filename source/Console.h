@@ -14,6 +14,19 @@
 #define ERR_PIPE		0x05
 #define ERR_INTERRUPTED	0x06
 
+enum OUTPUT_MODE
+{
+	FIXED_UNICODE16,
+	FIXED_UNICODE8,
+	UTF8
+};
+
+struct CMD
+{
+	std::wstring line;
+	OUTPUT_MODE mode;
+};
+
 
 class Console
 {
@@ -22,8 +35,8 @@ public:
 	void InitConsole(std::wstring, std::wstring*, std::mutex*);
 	~Console();
 
-	void AddCmd(std::wstring);
-	void AddCmd(std::vector<std::wstring>);
+	void AddCmd(std::wstring, OUTPUT_MODE = UTF8);
+	void AddCmd(std::vector<std::wstring>, OUTPUT_MODE = UTF8);
 	void TrashCmds();
 private:
 	std::mutex* pPrintMutex;
@@ -39,15 +52,15 @@ private:
 	std::wstring logFilepath;
 	std::wstring* pOutputBuffer;
 
-	std::vector<std::wstring> cmdLines;
+	std::vector<CMD> cmdLines;
 	unsigned int currentCmdIndex;
 public:
 	void OpenLog();
 	void CloseLog();
 	void RunSession();
 private:
+	std::string GetModeStr();
 	void InitSubOutputPipe();
-	std::wstring GetWideFromRawCodePoints(const char*);
 	void GetSubOutput();
 	unsigned long GetPipeBufSize();
 

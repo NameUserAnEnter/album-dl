@@ -43,14 +43,19 @@ void Console::InitConsole(std::wstring _logFilepath, std::wstring* _pOutputBuffe
 	bInit = true;
 }
 
-void Console::AddCmd(std::wstring cmdLine)
+void Console::AddCmd(std::wstring cmdLine, OUTPUT_MODE mode)
 {
-	cmdLines.push_back(cmdLine);
+	if (beginWith(cmdLine, L"cmd /u") || beginWith(cmdLine, L"CMD /U")) mode = FIXED_UNICODE16;
+	cmdLines.push_back({ cmdLine, mode });
 }
 
-void Console::AddCmd(std::vector<std::wstring> newCmdLines)
+void Console::AddCmd(std::vector<std::wstring> newCmdLines, OUTPUT_MODE mode)
 {
-	for (auto cmd : newCmdLines) cmdLines.push_back(cmd);
+	for (auto cmd : newCmdLines)
+	{
+		if (beginWith(cmd, L"cmd /u") || beginWith(cmd, L"CMD /U")) mode = FIXED_UNICODE16;
+		cmdLines.push_back({ cmd, mode });
+	}
 }
 
 void Console::TrashCmds()
@@ -85,7 +90,7 @@ void Console::RunBatch()
 	currentCmdIndex = 0;
 	while (currentCmdIndex < cmdLines.size())
 	{
-		RunProcess(cmdLines[currentCmdIndex]);
+		RunProcess(cmdLines[currentCmdIndex].line);
 		currentCmdIndex++;
 
 		if (currentCmdIndex < cmdLines.size()) PrintLogAndConsoleNarrow("\n\n");
@@ -108,7 +113,9 @@ void Console::RunProcess(std::wstring wPath)
 	for (int i = 0; i < path.size(); i++) szPath[i] = path[i];
 	szPath[path.size()] = '\0';
 
+
 	PrintLogAndConsoleNarrow( "----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+	PrintLogAndConsoleNarrow( "----------------------------   Output mode: " + GetModeStr() + "\n");
 	PrintLogAndConsole		(L"----------------------------   Executing process:\n" + (wPath) + L"\n");
 	PrintLogAndConsoleNarrow( "----------------------------   Start of process.   ----------------------------\n\n");
 	
@@ -214,18 +221,6 @@ unsigned long Console::GetPipeBufSize()
 
 
 
-std::wstring Console::GetWideFromRawCodePoints(const char* raw)
-{
-	std::wstring raw_input = L"";
-	for (int i = 0; raw[i] != '\0'; i += 2)
-	{
-		raw_input.push_back(0x00);
-		raw_input.back() += (unsigned char)raw[i];
-		raw_input.back() += (unsigned short)(raw[i + 1] << 8);
-	}
-	return raw_input;
-}
-
 void Console::GetSubOutput()
 {
 	for (;;)
@@ -237,11 +232,20 @@ void Console::GetSubOutput()
 		{
 			Read(hSubOutRd, buf);
 
-			if (beginWith(cmdLines[currentCmdIndex], L"cmd /u") || beginWith(cmdLines[currentCmdIndex], L"CMD /U"))
+			switch (cmdLines[currentCmdIndex].mode)
 			{
-				PrintLogAndConsole(GetWideFromRawCodePoints(buf.c_str()));
+				case FIXED_UNICODE16:
+					PrintLogAndConsole(GetWideFromFixedUnicode16(buf.c_str()));
+					break;
+				case FIXED_UNICODE8:
+					PrintLogAndConsole(GetWideFromFixedUnicode8(buf.c_str()));
+					break;
+				
+				case UTF8:
+				default:
+					PrintLogAndConsole(DecodeFromUTF8(buf));
+					break;
 			}
-			else PrintLogAndConsole(DecodeFromUTF8(buf));
 		}
 		
 
@@ -250,6 +254,14 @@ void Console::GetSubOutput()
 }
 
 
+std::string Console::GetModeStr()
+{
+	std::string modeStr = "";
+	if (cmdLines[currentCmdIndex].mode == FIXED_UNICODE16) modeStr = "FIXED_UNICODE16";
+	if (cmdLines[currentCmdIndex].mode == FIXED_UNICODE8) modeStr = "FIXED_UNICODE8";
+	if (cmdLines[currentCmdIndex].mode == UTF8) modeStr = "UTF8";
+	return modeStr;
+}
 
 void Console::InitSubOutputPipe()
 {

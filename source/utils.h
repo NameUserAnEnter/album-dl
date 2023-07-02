@@ -230,7 +230,7 @@ inline std::wstring DecodeFromUTF8(std::string str)
     std::wstring decoded = L"";
     for (int i = 0; i < str.size(); i++)
     {
-        wchar_t currentChar = str[i];
+        wchar_t currentChar = (unsigned char)str[i];
         if ((currentChar & 128) == 128 && (currentChar & 64) == 64)
         {
             if ((currentChar & 32) == 0 && i + 1 < str.size())
@@ -276,6 +276,33 @@ inline std::wstring DecodeFromUTF8(std::string str)
     return decoded;
 }
 
+inline std::wstring GetWideFromFixedUnicode16(const char* raw)
+{
+    std::wstring raw_input = L"";
+    for (int i = 0; raw[i] != '\0'; i += 2)
+    {
+        raw_input.push_back(0x00);
+        raw_input.back() += (unsigned char)raw[i];
+        raw_input.back() += (unsigned short)(raw[i + 1] << 8);
+    }
+    return raw_input;
+}
+
+inline std::wstring GetWideFromFixedUnicode8(const char* raw)
+{
+    std::wstring raw_input = L"";
+    for (int i = 0; raw[i] != '\0'; i++)
+    {
+        unsigned char currentByte = (unsigned char)raw[i];
+        raw_input.push_back((wchar_t)currentByte);
+    }
+    return raw_input;
+}
+
+
+
+
+
 inline int GetFileData(const wchar_t* filename, std::string* returnData = nullptr)
 {
     std::string data = "";
@@ -307,6 +334,25 @@ inline int WriteDataToFile(std::string data, const wchar_t* filename)
     if (file == nullptr)
     {
         ErrMsgExit(L"Cannot open: " + std::wstring(filename) + L'\n');
+        return 1;
+    }
+
+    for (int i = 0; i < data.size(); i++)
+    {
+        putc((unsigned char)data[i], file);
+    }
+    fclose(file);
+
+    return 0;
+}
+
+inline int AppendDataToFile(std::string data, const wchar_t* filename)
+{
+    FILE* file;
+    _wfopen_s(&file, filename, L"a+b");
+    if (file == nullptr)
+    {
+        ErrMsgExit(L"Cannot open: " + std::wstring(filename) + L"\n");
         return 1;
     }
 

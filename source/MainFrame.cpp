@@ -288,15 +288,18 @@ void MainFrame::GetAlbum()
     output_Field->SetText(L"");
     SetStatusText("Running the script...");
     
-    //mainConsole.AddCmd(DownloadStage());
-    //ExecuteBatchSession();
+    mainConsole.AddCmd(DownloadStage(), FIXED_UNICODE8);
+    ExecuteBatchSession();
+
+    mainConsole.AddCmd(DownloadStage());
+    ExecuteBatchSession();
 
     
     //--------------------------------------------------
-    ResetTracksFile();
+    //ResetTracksFile();
 
-    mainConsole.AddCmd(GetTitlesStage());
-    ExecuteBatchSession();
+    //mainConsole.AddCmd(GetTitlesStage(), FIXED_UNICODE8);
+    //ExecuteBatchSession();
 
     //LoadTrackTitles();
     //ValidateTrackTitles();
@@ -418,7 +421,7 @@ std::vector<std::wstring> MainFrame::RemoveLeftoverStage()
 
 std::wstring MainFrame::GetTitlesStage()
 {
-    std::wstring cmd = L"\"" + workingDirectory + downloaderExec + L"\" -e --print-to-file %(title)s \"tracks\" \"" + URL + L"\"";
+    std::wstring cmd = L"cmd /a /c \"\"" + workingDirectory + downloaderExec + L"\" -e --print-to-file %(title)s \"tracks\" \"" + URL + L"\"\"";
     return cmd;
 }
 
@@ -595,6 +598,12 @@ void MainFrame::ValidateFilesystemString(std::wstring& str)
 
     for (int i = 0; i < str.size(); i++)
     {
+        replaceAllSubStr(str, L" \\ ", L"; ");
+        replaceAllSubStr(str, L" / ", L"; ");
+
+        if (whereSubStr(str, L"/") == str.size() - 1) replaceAllSubStr(str, L"/", L"");
+        else replaceAllSubStr(str, L"/", L"; ");
+
         if (whereSubStr(str, L"\\") == str.size() - 1) replaceAllSubStr(str, L"\\", L"");
         else replaceAllSubStr(str, L"\\", L"; ");
 
