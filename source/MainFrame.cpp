@@ -170,29 +170,28 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 
 
     // Sample test values for convenience
-    ///*
+    /*
     artist_Field->textField->SetValue("Goat");
     albumName_Field->textField->SetValue("World Music");
     albumYear_Field->textField->SetValue("2012");
     URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
     //URL_Artwork_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
-    //*/
+    */
 
     /*
     artist_Field->textField->SetValue("Big Black");
     albumName_Field->textField->SetValue("Lungs");
     albumYear_Field->textField->SetValue("1982");
     URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_lSCRmY_Qw8RCNnMKHcp05O1K8fAIyqLjs");
-    URL_Artwork_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_lSCRmY_Qw8RCNnMKHcp05O1K8fAIyqLjs");
     */
 
-    /*
+    ///*
     artist_Field->textField->SetValue("O.S.T.R.");
     albumName_Field->textField->SetValue("Tylko Dla Doros³ych");
     albumYear_Field->textField->SetValue("2010");
     URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=PLIKxxmyVA3HZ5vCNl3b0gQXDhuMWLz-mG");
     URL_Artwork_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_l6DSlExq2EbVR7ILChbL9ZHn-1SbyKRO8");
-    */
+    //*/
 
     artist_Field->textField->SetFocus();
 }
@@ -287,19 +286,17 @@ void MainFrame::GetAlbum()
 
     output_Field->SetText(L"");
     SetStatusText("Running the script...");
-    
-    mainConsole.AddCmd(DownloadStage(), FIXED_UNICODE8);
-    ExecuteBatchSession();
 
-    mainConsole.AddCmd(DownloadStage());
-    ExecuteBatchSession();
+    mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
+    //mainConsole.AddCmd(DownloadStage());
+    //ExecuteBatchSession();
 
     
     //--------------------------------------------------
-    //ResetTracksFile();
+    ResetTracksFile();
 
-    //mainConsole.AddCmd(GetTitlesStage(), FIXED_UNICODE8);
-    //ExecuteBatchSession();
+    mainConsole.AddCmd(GetTitlesStage(), WINDOWS1250);
+    ExecuteBatchSession();
 
     //LoadTrackTitles();
     //ValidateTrackTitles();

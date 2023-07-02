@@ -3,8 +3,14 @@
 
 Console::Console()
 {
+	InitValues();
+}
+
+void Console::InitValues()
+{
 	bInit = false;
 	bLogOpen = false;
+	bDumpBytes = true;
 
 	logFilepath = L"";
 	pOutputBuffer = nullptr;
@@ -23,19 +29,12 @@ Console::Console()
 
 void Console::InitConsole(std::wstring _logFilepath, std::wstring* _pOutputBuffer, std::mutex* _pPrintMutex)
 {
+	if (bInit) ErrMsgExit("Tried to re-initialize a Console object.");
+	InitValues();
+
 	logFilepath = _logFilepath;
 	pOutputBuffer = _pOutputBuffer;
 	pPrintMutex = _pPrintMutex;
-
-	hLogWrite = NULL;
-
-	hSubOutWr = NULL;
-	hSubOutRd = NULL;
-
-	ActiveHandles.clear();
-	cmdLines.clear();
-
-	currentCmdIndex = 0;
 
 	InitSubOutputPipe();
 
@@ -45,16 +44,25 @@ void Console::InitConsole(std::wstring _logFilepath, std::wstring* _pOutputBuffe
 
 void Console::AddCmd(std::wstring cmdLine, OUTPUT_MODE mode)
 {
-	if (beginWith(cmdLine, L"cmd /u") || beginWith(cmdLine, L"CMD /U")) mode = FIXED_UNICODE16;
+	if (mode == OUTPUT_MODE::DEFAULT)
+	{
+		if (beginWith(cmdLine, L"cmd /u") || beginWith(cmdLine, L"CMD /U")) mode = FIXED_UNICODE16;
+		else mode = UTF8;
+	}
 	cmdLines.push_back({ cmdLine, mode });
 }
 
 void Console::AddCmd(std::vector<std::wstring> newCmdLines, OUTPUT_MODE mode)
 {
-	for (auto cmd : newCmdLines)
+	for (auto cmdLine : newCmdLines)
 	{
-		if (beginWith(cmd, L"cmd /u") || beginWith(cmd, L"CMD /U")) mode = FIXED_UNICODE16;
-		cmdLines.push_back({ cmd, mode });
+		if (mode == OUTPUT_MODE::DEFAULT)
+		{
+			if (beginWith(cmdLine, L"cmd /u") || beginWith(cmdLine, L"CMD /U")) mode = FIXED_UNICODE16;
+			else mode = UTF8;
+		}
+
+		cmdLines.push_back({ cmdLine, mode });
 	}
 }
 
@@ -87,6 +95,13 @@ void Console::RunSession()
 
 void Console::RunBatch()
 {
+	if (bDumpBytes)
+	{
+		ClearFileData(L"bytes");
+		ClearFileData(L"bytes_buf");
+	}
+
+
 	currentCmdIndex = 0;
 	while (currentCmdIndex < cmdLines.size())
 	{
@@ -231,14 +246,16 @@ void Console::GetSubOutput()
 		if (!buf.empty())
 		{
 			Read(hSubOutRd, buf);
+			if (bDumpBytes) AppendBytesDump(buf);
+
 
 			switch (cmdLines[currentCmdIndex].mode)
 			{
 				case FIXED_UNICODE16:
 					PrintLogAndConsole(GetWideFromFixedUnicode16(buf.c_str()));
 					break;
-				case FIXED_UNICODE8:
-					PrintLogAndConsole(GetWideFromFixedUnicode8(buf.c_str()));
+				case WINDOWS1250:
+					PrintLogAndConsole(GetWideFromWindows1250(buf.c_str()));
 					break;
 				
 				case UTF8:
@@ -254,11 +271,27 @@ void Console::GetSubOutput()
 }
 
 
+void Console::AppendBytesDump(std::string buf)
+{
+	std::string output = "";
+	static int si = 0;
+	for (int i = 0; i < buf.size(); i++)
+	{
+		output += NumToStr((unsigned char)buf[i], 16, 2);
+
+		si++;
+		if (si % 16 == 0) output += "\n";
+		else output += " ";
+	}
+	AppendDataToFile(output, L"bytes");
+	AppendDataToFile(buf, L"bytes_buf");
+}
+
 std::string Console::GetModeStr()
 {
 	std::string modeStr = "";
 	if (cmdLines[currentCmdIndex].mode == FIXED_UNICODE16) modeStr = "FIXED_UNICODE16";
-	if (cmdLines[currentCmdIndex].mode == FIXED_UNICODE8) modeStr = "FIXED_UNICODE8";
+	if (cmdLines[currentCmdIndex].mode == WINDOWS1250) modeStr = "WINDOWS1250";
 	if (cmdLines[currentCmdIndex].mode == UTF8) modeStr = "UTF8";
 	return modeStr;
 }

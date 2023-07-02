@@ -17,8 +17,9 @@
 enum OUTPUT_MODE
 {
 	FIXED_UNICODE16,
-	FIXED_UNICODE8,
-	UTF8
+	WINDOWS1250,
+	UTF8,
+	DEFAULT
 };
 
 struct CMD
@@ -35,11 +36,12 @@ public:
 	void InitConsole(std::wstring, std::wstring*, std::mutex*);
 	~Console();
 
-	void AddCmd(std::wstring, OUTPUT_MODE = UTF8);
-	void AddCmd(std::vector<std::wstring>, OUTPUT_MODE = UTF8);
+	void AddCmd(std::wstring, OUTPUT_MODE = DEFAULT);
+	void AddCmd(std::vector<std::wstring>, OUTPUT_MODE = DEFAULT);
 	void TrashCmds();
 private:
 	std::mutex* pPrintMutex;
+	bool bDumpBytes;
 	bool bInit;
 	bool bLogOpen;
 
@@ -59,7 +61,11 @@ public:
 	void CloseLog();
 	void RunSession();
 private:
+	void AppendBytesDump(std::string);
 	std::string GetModeStr();
+	
+	void InitValues();
+
 	void InitSubOutputPipe();
 	void GetSubOutput();
 	unsigned long GetPipeBufSize();
