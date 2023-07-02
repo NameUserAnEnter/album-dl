@@ -74,17 +74,6 @@ void MainFrame::InitFields()
     output_Field = new TextBox("Output:", ID_output_Field,
                                wxPoint(mainOffset.x, mainOffset.y), LargeBoxSize, mainPanel, true,
                                labelOffset, mainOffset, fieldBetweenSpace);
-
-    unsigned long uForeground = 0xC0C0C0;
-    unsigned long uBackground = 0xFF0000;
-    output_Field->textField->SetForegroundColour(wxColour(uForeground));
-    output_Field->textField->SetBackgroundColour(wxColour(uBackground));
-
-    // NP++:                Courier New, 10 | 0xFFFFFF, 0x1E1E1E
-    // Console: Raster Font (Terminal), 8x12 | 0xC0C0C0, 0x000000
-    //wxFont outputFont(wxFontInfo(9).FaceName("Courier New").Bold());
-    wxFont outputFont(wxFontInfo(wxSize(8, 12)).FaceName("Terminal"));
-    output_Field->textField->SetFont(outputFont);
 }
 
 void MainFrame::InitBindings()
@@ -156,17 +145,39 @@ void MainFrame::InitValues()
     thumbnailURL = "";
     consoleOutputBuf.clear();
 
-    mainConsole.InitConsole(consoleLogFilepath, &consoleOutputBuf, &printMutex, false, 80);
+    mainConsole.InitConsole(consoleLogFilepath, &consoleOutputBuf, &printMutex, false);
     tag::SetConsole(&mainConsole);
     net::SetConsole(&mainConsole);
 
     uMaxOutputLines = 150;
 }
 
+void MainFrame::InitThemes()
+{
+    unsigned long uForeground = 0xC0C0C0;
+    unsigned long uBackground = 0xFF0000;
+    output_Field->textField->SetForegroundColour(wxColour(uForeground));
+    output_Field->textField->SetBackgroundColour(wxColour(uBackground));
+
+    // July 3rd, 2023:
+    // TO DO:
+    // -Investigate encoding-font compatibility
+    // -Implement window auto-scaling relative to screen resolution
+    // -Implement GUI auto-scaling relative to window size
+    // -Disable License/ReadMe dumping in the release build
+    //
+
+    // Notepad++:   Courier New, 10 | 0xFFFFFF, 0x1E1E1E
+    // Console:     Terminal, 8x12  | 0xC0C0C0, 0x000000
+    wxFont outputFont(wxFontInfo(wxSize(8, 12)).FaceName("Terminal"));
+    output_Field->textField->SetFont(outputFont);
+}
+
 MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 {
     InitValues();
     InitFields();
+    InitThemes();
 
     ClientWidth = mainOffset.x + TextBoxSize.x + mainOffset.x;
     ClientHeight = mainOffset.y;
@@ -194,13 +205,13 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_lSCRmY_Qw8RCNnMKHcp05O1K8fAIyqLjs");
     */
 
-    ///*
+    /*
     artist_Field->textField->SetValue("O.S.T.R.");
     albumName_Field->textField->SetValue("Tylko Dla Doros³ych");
     albumYear_Field->textField->SetValue("2010");
     URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=PLIKxxmyVA3HZ5vCNl3b0gQXDhuMWLz-mG");
     URL_Artwork_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_l6DSlExq2EbVR7ILChbL9ZHn-1SbyKRO8");
-    //*/
+    */
 
     artist_Field->textField->SetFocus();
 }
@@ -297,28 +308,27 @@ void MainFrame::GetAlbum()
     SetStatusText("Running the script...");
 
 
-    //mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
-    //ExecuteBatchSession();
+    mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
+    ExecuteBatchSession();
 
     
     //--------------------------------------------------
-    //ResetTracksFile();
+    ResetTracksFile();
 
-    //mainConsole.AddCmd(GetTitlesStage(), WINDOWS1250);
-    //ExecuteBatchSession();
+    mainConsole.AddCmd(GetTitlesStage(), WINDOWS1250);
+    ExecuteBatchSession();
 
-    //LoadTrackTitles();
-    //ValidateTrackTitles();
-    //ResetTracksFile();
+    LoadTrackTitles();
+    ValidateTrackTitles();
+    ResetTracksFile();
     
     
     //--------------------------------------------------
-    //mainConsole.AddCmd(ConvertStage(), UTF8);
-    //mainConsole.AddCmd(CreateTrashDirStage());
-    //mainConsole.AddCmd(RemoveLeftoverStage());
-    //mainConsole.AddCmd(RenameFilesStage(L".mp4"));
-    //mainConsole.AddCmd(ffmpeg_encoding_test, UTF8);
-    //ExecuteBatchSession();
+    mainConsole.AddCmd(ConvertStage(), UTF8);
+    mainConsole.AddCmd(CreateTrashDirStage());
+    mainConsole.AddCmd(RemoveLeftoverStage());
+    mainConsole.AddCmd(RenameFilesStage());
+    ExecuteBatchSession();
 
 
     //--------------------------------------------------
@@ -331,16 +341,16 @@ void MainFrame::GetAlbum()
 
 
     //--------------------------------------------------
-    //AttachArtworkToAll();
+    AttachArtworkToAll();
 
-    //mainConsole.AddCmd(CreateAlbumDirectoryStage());
-    //mainConsole.AddCmd(MoveAudioStage());
-    //mainConsole.AddCmd(MoveArtworkStage());
-    //ExecuteBatchSession();
+    mainConsole.AddCmd(CreateAlbumDirectoryStage());
+    mainConsole.AddCmd(MoveAudioStage());
+    mainConsole.AddCmd(MoveArtworkStage());
+    ExecuteBatchSession();
 
     
     // FIELDS VALUE RESET
-    /*
+    ///*
     SetStatusText("Resetting");
     
     // Reset fields & set focus
@@ -351,7 +361,7 @@ void MainFrame::GetAlbum()
     albumYear_Field->textField->SetValue("");
 
     artist_Field->textField->SetFocus();
-    */
+    //*/
 
     
     

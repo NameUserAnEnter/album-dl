@@ -77,6 +77,7 @@ public:
     void InitFields();
     void InitControls();
     void InitValues();
+    void InitThemes();
 
     void ValidateFields();
 

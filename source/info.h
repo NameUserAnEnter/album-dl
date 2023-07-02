@@ -1,6 +1,6 @@
 #ifndef INFO_H
 #define INFO_H
-#define VER 1.2
+#define VER 1.1
 #include "utils.h"
 
 

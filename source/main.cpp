@@ -20,8 +20,8 @@ wxIMPLEMENT_APP(MainApp);
 
 bool MainApp::OnInit()
 {
-    //DumpLicense();
-    //DumpReadMe();
+    DumpLicense();
+    DumpReadMe();
 
     MainFrame* frame = new MainFrame();
 
