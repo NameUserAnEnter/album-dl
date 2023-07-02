@@ -119,7 +119,7 @@ inline int GetResource(const char* host, const char* resource, const char* outpu
             bContinue = false;
             break;
         }
-        PrintConsole(std::to_string(bytes));
+        PrintConsole(NumToStr(bytes, 10, 4, ' '));
 
         countPrint++;
         if (countPrint % 16 == 0) PrintConsole("\n");

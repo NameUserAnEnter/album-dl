@@ -23,7 +23,7 @@ inline double power(double base, unsigned int exponent)
     return return_value;
 }
 
-inline std::string NumToStr(unsigned long long num, unsigned long long base = 10, unsigned int min_digits = 1)
+inline std::string NumToStr(unsigned long long num, unsigned long long base = 10, unsigned int min_digits = 1, char whitespace = '0')
 {
     std::string str = "";
 
@@ -34,7 +34,7 @@ inline std::string NumToStr(unsigned long long num, unsigned long long base = 10
     unsigned int size = count_digits;
     if (size < min_digits) size = min_digits;
 
-    for (int i = 0; i < size - count_digits; i++) str += '0';
+    for (int i = 0; i < size - count_digits; i++) str += whitespace;
     for (int i = count_digits - 1; i >= 0; i--)
     {
         // 5248 % 10 = 8 -> 8 / 1 = 8
