@@ -100,6 +100,7 @@ inline int GetResource(const char* host, const char* resource, const char* outpu
     fclose(outputFile);
 
     PrintConsole("Bytes available:\n");
+    unsigned int countPrint = 0;
     while (bContinue)
     {
         unsigned long bytes = 0;
@@ -118,7 +119,11 @@ inline int GetResource(const char* host, const char* resource, const char* outpu
             bContinue = false;
             break;
         }
-        PrintConsole(std::to_string(bytes) + ' ');
+        PrintConsole(std::to_string(bytes));
+
+        countPrint++;
+        if (countPrint % 16 == 0) PrintConsole("\n");
+        else PrintConsole(" ");
 
 
         unsigned char* buf = (unsigned char*)calloc(bytes, sizeof(unsigned char));

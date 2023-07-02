@@ -74,7 +74,7 @@ private:
     void OnClose(wxCloseEvent& event);
 public:
     void InitBindings();
-    void InitGUI();
+    void InitFields();
     void InitControls();
     void InitValues();
 
@@ -126,7 +126,7 @@ private:
 
     std::wstring GetTitlesStage();
 
-    std::vector<std::wstring> RenameFilesStage();
+    std::vector<std::wstring> RenameFilesStage(std::wstring ext = L".mp3");
 
     void GetArtworkPre();
     void GetArtworkPost();

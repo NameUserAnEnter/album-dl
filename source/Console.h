@@ -19,7 +19,7 @@ enum OUTPUT_MODE
 	FIXED_UNICODE16,
 	WINDOWS1250,
 	UTF8,
-	DEFAULT
+	DEFAULT				// DEFAULT SETS TO ONE OF THE OTHERS IN AddCmd()s
 };
 
 struct CMD
@@ -33,7 +33,7 @@ class Console
 {
 public:
 	Console();
-	void InitConsole(std::wstring, std::wstring*, std::mutex*);
+	void InitConsole(std::wstring, std::wstring*, std::mutex*, bool = false, unsigned int = 80);
 	~Console();
 
 	void AddCmd(std::wstring, OUTPUT_MODE = DEFAULT);
@@ -44,6 +44,10 @@ private:
 	bool bDumpBytes;
 	bool bInit;
 	bool bLogOpen;
+
+	unsigned int uCurrentColumn;
+	unsigned int uBufferWidth;
+	bool bWrap;
 
 	std::vector<HANDLE> ActiveHandles;
 	HANDLE hLogWrite;

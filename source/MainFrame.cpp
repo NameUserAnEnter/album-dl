@@ -21,7 +21,7 @@ enum
 };
 
 
-void MainFrame::InitGUI()
+void MainFrame::InitFields()
 {
     // default sizes and pos because it's automatically stretched to the frame anyway
     wxPanel* mainPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 2621440L, "Main Panel");
@@ -74,6 +74,17 @@ void MainFrame::InitGUI()
     output_Field = new TextBox("Output:", ID_output_Field,
                                wxPoint(mainOffset.x, mainOffset.y), LargeBoxSize, mainPanel, true,
                                labelOffset, mainOffset, fieldBetweenSpace);
+
+    unsigned long uForeground = 0xC0C0C0;
+    unsigned long uBackground = 0xFF0000;
+    output_Field->textField->SetForegroundColour(wxColour(uForeground));
+    output_Field->textField->SetBackgroundColour(wxColour(uBackground));
+
+    // NP++:                Courier New, 10 | 0xFFFFFF, 0x1E1E1E
+    // Console: Raster Font (Terminal), 8x12 | 0xC0C0C0, 0x000000
+    //wxFont outputFont(wxFontInfo(9).FaceName("Courier New").Bold());
+    wxFont outputFont(wxFontInfo(wxSize(8, 12)).FaceName("Terminal"));
+    output_Field->textField->SetFont(outputFont);
 }
 
 void MainFrame::InitBindings()
@@ -89,14 +100,6 @@ void MainFrame::InitBindings()
 
 void MainFrame::InitControls()
 {
-    InitGUI();
-
-    ClientWidth = mainOffset.x + TextBoxSize.x + mainOffset.x;
-    ClientHeight = mainOffset.y;
-
-    InitBindings();
-
-
     // File:
     //      Save settings
     wxMenu* menuFile = new wxMenu;
@@ -153,7 +156,7 @@ void MainFrame::InitValues()
     thumbnailURL = "";
     consoleOutputBuf.clear();
 
-    mainConsole.InitConsole(consoleLogFilepath, &consoleOutputBuf, &printMutex);
+    mainConsole.InitConsole(consoleLogFilepath, &consoleOutputBuf, &printMutex, false, 80);
     tag::SetConsole(&mainConsole);
     net::SetConsole(&mainConsole);
 
@@ -163,6 +166,12 @@ void MainFrame::InitValues()
 MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 {
     InitValues();
+    InitFields();
+
+    ClientWidth = mainOffset.x + TextBoxSize.x + mainOffset.x;
+    ClientHeight = mainOffset.y;
+
+    InitBindings();
     InitControls();
 
     //output_Field->textField->Disable();
@@ -287,16 +296,16 @@ void MainFrame::GetAlbum()
     output_Field->SetText(L"");
     SetStatusText("Running the script...");
 
-    mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
-    //mainConsole.AddCmd(DownloadStage());
+
+    //mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
     //ExecuteBatchSession();
 
     
     //--------------------------------------------------
-    ResetTracksFile();
+    //ResetTracksFile();
 
-    mainConsole.AddCmd(GetTitlesStage(), WINDOWS1250);
-    ExecuteBatchSession();
+    //mainConsole.AddCmd(GetTitlesStage(), WINDOWS1250);
+    //ExecuteBatchSession();
 
     //LoadTrackTitles();
     //ValidateTrackTitles();
@@ -304,20 +313,21 @@ void MainFrame::GetAlbum()
     
     
     //--------------------------------------------------
-    //mainConsole.AddCmd(ConvertStage());
+    //mainConsole.AddCmd(ConvertStage(), UTF8);
     //mainConsole.AddCmd(CreateTrashDirStage());
     //mainConsole.AddCmd(RemoveLeftoverStage());
-    //mainConsole.AddCmd(RenameFilesStage());
+    //mainConsole.AddCmd(RenameFilesStage(L".mp4"));
+    //mainConsole.AddCmd(ffmpeg_encoding_test, UTF8);
     //ExecuteBatchSession();
 
 
     //--------------------------------------------------
-    //GetArtworkPre();
+    GetArtworkPre();
 
-    //mainConsole.AddCmd(GetArtworkStage());
-    //ExecuteBatchSession();
+    mainConsole.AddCmd(GetArtworkStage(), WINDOWS1250);
+    ExecuteBatchSession();
 
-    //GetArtworkPost();
+    GetArtworkPost();
 
 
     //--------------------------------------------------
@@ -347,7 +357,7 @@ void MainFrame::GetAlbum()
     
     SetStatusText("Done");
     if (checkAlert->GetValue() == true) MessageBoxA(NULL, "Script has finished.", "Done", MB_OK);
-    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Program finished.   ----------------------------\n");
+    mainConsole.PrintLogAndConsoleNarrow("\n----------------------------   Program finished.   ----------------------------\n");
 
     if (bLog) mainConsole.CloseLog();
     std::lock_guard<std::mutex> switchLock(doneSwitchMutex);
@@ -422,7 +432,7 @@ std::wstring MainFrame::GetTitlesStage()
     return cmd;
 }
 
-std::vector<std::wstring> MainFrame::RenameFilesStage()
+std::vector<std::wstring> MainFrame::RenameFilesStage(std::wstring ext)
 {
     std::vector<std::wstring> cmds;
     
@@ -437,8 +447,8 @@ std::vector<std::wstring> MainFrame::RenameFilesStage()
         num += std::to_wstring(i + 1);
 
         std::wstring cmd = L"";
-        cmd += L"cmd /u /c \"RENAME \"" + workingDirBackslashes + L"\\td8_index" + num + L".mp3\" \"";
-        cmd += std::to_string(i + 1) + L". " + artist + L" - " + trackTitles[i] + L".mp3\"\"";
+        cmd += L"cmd /u /c \"RENAME \"" + workingDirBackslashes + L"\\td8_index" + num + ext + L"\" \"";
+        cmd += std::to_string(i + 1) + L". " + artist + L" - " + trackTitles[i] + ext + L"\"\"";
 
         cmds.push_back(cmd);
     }

@@ -10,7 +10,8 @@ void Console::InitValues()
 {
 	bInit = false;
 	bLogOpen = false;
-	bDumpBytes = true;
+	bDumpBytes = false;
+	bWrap = false;
 
 	logFilepath = L"";
 	pOutputBuffer = nullptr;
@@ -25,9 +26,13 @@ void Console::InitValues()
 	cmdLines.clear();
 
 	currentCmdIndex = 0;
+
+	uCurrentColumn = 0;
+	uBufferWidth = 80;
 }
 
-void Console::InitConsole(std::wstring _logFilepath, std::wstring* _pOutputBuffer, std::mutex* _pPrintMutex)
+void Console::InitConsole(std::wstring _logFilepath, std::wstring* _pOutputBuffer, std::mutex* _pPrintMutex,
+						  bool _bWrap, unsigned int _uBufferWidth)
 {
 	if (bInit) ErrMsgExit("Tried to re-initialize a Console object.");
 	InitValues();
@@ -35,6 +40,9 @@ void Console::InitConsole(std::wstring _logFilepath, std::wstring* _pOutputBuffe
 	logFilepath = _logFilepath;
 	pOutputBuffer = _pOutputBuffer;
 	pPrintMutex = _pPrintMutex;
+
+	bWrap = _bWrap;
+	uBufferWidth = _uBufferWidth;
 
 	InitSubOutputPipe();
 
@@ -178,6 +186,23 @@ void Console::RunProcess(std::wstring wPath)
 void Console::PrintLogAndConsole(std::wstring buf)
 {
 	if (!bInit) return;
+
+	if (bWrap)
+	{
+		std::wstring copy = L"";
+		for (int i = 0; i < buf.size(); i++)
+		{
+			copy += buf[i];
+			uCurrentColumn++;
+
+			if (uCurrentColumn >= uBufferWidth)
+			{
+				copy += L'\n';
+			}
+			if (copy.back() == L'\n') uCurrentColumn = 0;
+		}
+		buf = copy;
+	}
 
 	PrintConsole(buf);
 
