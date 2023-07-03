@@ -5,29 +5,29 @@
 
 inline bool validField(std::wstring data)
 {
-    for (int i = 0; i < data.size(); i++)
+    for (auto currentChar : data)
     {
-        if ((unsigned char)data[i] >= (unsigned char)32 && (unsigned char)data[i] <= (unsigned char)126)
+        if (!iswprint(currentChar))
         {
-            return true;
+            return false;
         }
     }
-    return false;
-}
-
-inline bool validField(std::wstring data, std::wstring mandatoryFragment)
-{
-    if (!validField(data)) return false;
-    if (!findInStr(data, mandatoryFragment)) return false;
     return true;
 }
 
-inline bool validField(std::wstring data, std::vector<std::wstring> allPossibleMandatoryFragments)
+inline bool validField(std::wstring data, std::wstring beginningWith)
 {
     if (!validField(data)) return false;
-    for (int i = 0; i < allPossibleMandatoryFragments.size(); i++)
+    if (!beginWith(data, beginningWith)) return false;
+    return true;
+}
+
+inline bool validField(std::wstring data, std::vector<std::wstring> allPossibleBeginnings)
+{
+    if (!validField(data)) return false;
+    for (int i = 0; i < allPossibleBeginnings.size(); i++)
     {
-        if (findInStr(data, allPossibleMandatoryFragments[i])) return true;
+        if (beginWith(data, allPossibleBeginnings[i])) return true;
     }
     return false;
 }

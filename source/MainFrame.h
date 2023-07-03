@@ -37,6 +37,7 @@ public:
     // FROM GLOBAL VARIABLES
     unsigned int ClientWidth, ClientHeight;
 private:
+    wxPoint defaultPos;
     wxSize mainOffset;
     wxSize fieldBetweenSpace;
 
@@ -72,14 +73,12 @@ private:
     void OnAbout(wxCommandEvent& event);
 
     void OnClose(wxCloseEvent& event);
-public:
+private:
     void InitBindings();
     void InitFields();
     void InitControls();
     void InitValues();
     void InitThemes();
-
-    void ValidateFields();
 
     void SaveSettings();
     void OpenSettings();
@@ -96,6 +95,8 @@ private:
 
     void ValidateFilesystemString(std::wstring& str);
     void ValidateTrackTitles();
+
+    bool ValidateFields();
 
     void PrintTracks();
 private:

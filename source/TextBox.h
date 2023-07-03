@@ -9,13 +9,19 @@
 #include <string>
 #include "utils.h"
 
-
+enum TEXT_ENCODING
+{
+    UNICODE_NONE,
+    CP852
+};
 
 class TextBox
 {
 public:
     wxStaticBox* labelBox;
     wxTextCtrl* textField;
+
+    TEXT_ENCODING fieldEncoding = UNICODE_NONE;
 
     TextBox(std::string label, wxWindowID textFieldID, wxPoint position, wxSize size, wxPanel* panel,
             bool multiline, RECT labelOffset, wxSize& mainOffset, wxSize fieldBetweenSpace)
@@ -40,7 +46,8 @@ public:
 
     void SetText(std::wstring text)
     {
-        textField->SetValue(text);
+        if (fieldEncoding == TEXT_ENCODING::CP852) textField->SetValue(EncodeToCP852(text));
+        else textField->SetValue(text);
     }
 
     void PopFirstLine()
@@ -63,7 +70,8 @@ public:
 
     void AddText(std::wstring text)
     {
-        textField->AppendText(text);
+        if (fieldEncoding == TEXT_ENCODING::CP852) textField->AppendText(EncodeToCP852(text));
+        else textField->AppendText(text);
     }
 
     std::wstring GetText()

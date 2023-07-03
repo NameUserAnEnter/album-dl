@@ -24,12 +24,6 @@ bool MainApp::OnInit()
     DumpReadMe();
 
     MainFrame* frame = new MainFrame();
-
-
-    frame->SetClientSize(frame->ClientWidth, frame->ClientHeight);
-    frame->SetPosition(wxPoint(720, 20));
-    frame->OpenSettings();
-    frame->Show(true);
     return true;
 }
 

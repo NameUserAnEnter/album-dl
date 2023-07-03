@@ -21,6 +21,44 @@ enum
 };
 
 
+void MainFrame::InitValues()
+{
+    // FROM GLOBAL VARS
+    bDone = true;
+
+    mainOffset = wxSize(20, 40);
+    fieldBetweenSpace = wxSize(10, 20);
+
+    TextBoxSize = wxSize(800, 20);
+    LargeBoxSize = wxSize(800, 500);
+    ButtonSize = wxSize(100, 25);
+
+    labelOffset.left = 3;
+    labelOffset.right = 3;
+    labelOffset.top = 15;
+    labelOffset.bottom = 3;
+
+
+    converterExec = L"ffmpeg.exe";
+    downloaderExec = L"yt-dlp.exe";
+    configName = L"config.txt";
+    resourceFilename = "index.html";
+    consoleLogFilepath = L"log";
+    artworkFilename = L"artwork.png";
+
+    thumbnailURL = "";
+    consoleOutputBuf.clear();
+
+    mainConsole.InitConsole(consoleLogFilepath, &consoleOutputBuf, &printMutex, false);
+    tag::SetConsole(&mainConsole);
+    net::SetConsole(&mainConsole);
+
+    uMaxOutputLines = 150;
+
+    defaultPos.x = 720;
+    defaultPos.y = 0;
+}
+
 void MainFrame::InitFields()
 {
     // default sizes and pos because it's automatically stretched to the frame anyway
@@ -76,6 +114,38 @@ void MainFrame::InitFields()
                                labelOffset, mainOffset, fieldBetweenSpace);
 }
 
+void MainFrame::InitThemes()
+{
+    unsigned long uForeground = 0xC0C0C0;
+    unsigned long uBackground = 0xFF0000;
+    output_Field->textField->SetForegroundColour(wxColour(uForeground));
+    output_Field->textField->SetBackgroundColour(wxColour(uBackground));
+
+    // July 3rd, 2023:
+    // TO DO:
+    // -Investigate encoding-font compatibility
+    // -Implement window auto-scaling relative to screen resolution
+    // -Implement GUI auto-scaling relative to window size
+    // -Disable License/ReadMe dumping in the release build
+    //
+
+    // Notepad++:   Courier New, 10 | 0xFFFFFF, 0x1E1E1E
+    // Console:     Terminal, 8x12  | 0xC0C0C0, 0x000000
+    //wxFont currentFont;
+    //currentFont = output_Field->textField->GetFont();
+    wxFontEncoding;
+    //MessageDialog("Before\nCurrent font encoding: " + std::to_string(currentFont.GetEncoding()));
+
+    wxFont outputFont(wxFontInfo(wxSize(8, 12)).FaceName("Terminal"));
+    //outputFont.SetEncoding(wxFONTENCODING_CP852);
+    //MessageDialog("\nNew font encoding: " + std::to_string(currentFont.GetEncoding()));
+    output_Field->textField->SetFont(outputFont);
+    output_Field->fieldEncoding = CP852;
+    
+    //currentFont = output_Field->textField->GetFont();
+    //MessageDialog("After\nCurrent font encoding: " + std::to_string(currentFont.GetEncoding()));
+}
+
 void MainFrame::InitBindings()
 {
     Bind(wxEVT_BUTTON, &MainFrame::OnButtonPress, this, ID_Button);
@@ -117,62 +187,6 @@ void MainFrame::InitControls()
     SetStatusText("");
 }
 
-void MainFrame::InitValues()
-{
-    // FROM GLOBAL VARS
-    bDone = true;
-
-    mainOffset = wxSize(20, 40);
-    fieldBetweenSpace = wxSize(10, 20);
-
-    TextBoxSize = wxSize(800, 20);
-    LargeBoxSize = wxSize(800, 500);
-    ButtonSize = wxSize(100, 25);
-
-    labelOffset.left = 3;
-    labelOffset.right = 3;
-    labelOffset.top = 15;
-    labelOffset.bottom = 3;
-
-
-    converterExec = L"ffmpeg.exe";
-    downloaderExec = L"yt-dlp.exe";
-    configName = L"config.txt";
-    resourceFilename = "index.html";
-    consoleLogFilepath = L"log";
-    artworkFilename = L"artwork.png";
-
-    thumbnailURL = "";
-    consoleOutputBuf.clear();
-
-    mainConsole.InitConsole(consoleLogFilepath, &consoleOutputBuf, &printMutex, false);
-    tag::SetConsole(&mainConsole);
-    net::SetConsole(&mainConsole);
-
-    uMaxOutputLines = 150;
-}
-
-void MainFrame::InitThemes()
-{
-    unsigned long uForeground = 0xC0C0C0;
-    unsigned long uBackground = 0xFF0000;
-    output_Field->textField->SetForegroundColour(wxColour(uForeground));
-    output_Field->textField->SetBackgroundColour(wxColour(uBackground));
-
-    // July 3rd, 2023:
-    // TO DO:
-    // -Investigate encoding-font compatibility
-    // -Implement window auto-scaling relative to screen resolution
-    // -Implement GUI auto-scaling relative to window size
-    // -Disable License/ReadMe dumping in the release build
-    //
-
-    // Notepad++:   Courier New, 10 | 0xFFFFFF, 0x1E1E1E
-    // Console:     Terminal, 8x12  | 0xC0C0C0, 0x000000
-    wxFont outputFont(wxFontInfo(wxSize(8, 12)).FaceName("Terminal"));
-    output_Field->textField->SetFont(outputFont);
-}
-
 MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 {
     InitValues();
@@ -205,15 +219,22 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_lSCRmY_Qw8RCNnMKHcp05O1K8fAIyqLjs");
     */
 
-    /*
+    ///*
     artist_Field->textField->SetValue("O.S.T.R.");
     albumName_Field->textField->SetValue("Tylko Dla Doros³ych");
     albumYear_Field->textField->SetValue("2010");
     URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=PLIKxxmyVA3HZ5vCNl3b0gQXDhuMWLz-mG");
     URL_Artwork_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_l6DSlExq2EbVR7ILChbL9ZHn-1SbyKRO8");
-    */
+    //*/
 
     artist_Field->textField->SetFocus();
+
+    
+    
+    SetClientSize(ClientWidth, ClientHeight);           // RESIZE WINDOW
+    SetPosition(wxPoint(defaultPos.x, defaultPos.y));   // SET WINDOW POS TO DEFAULT POS
+    OpenSettings();                                     // LOAD SETTINGS (MAY REPOS WINDOW)
+    Show(true);                                         // SHOW WINDOW
 }
 
 MainFrame::~MainFrame()
@@ -254,7 +275,7 @@ void MainFrame::OnButtonPress(wxCommandEvent& event)
 {
     if (!bDone) return;
 
-    ValidateFields();
+    if (!ValidateFields()) return;
 
 
     bDone = false;
@@ -308,45 +329,45 @@ void MainFrame::GetAlbum()
     SetStatusText("Running the script...");
 
 
-    mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
-    ExecuteBatchSession();
+    //mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
+    //ExecuteBatchSession();
 
     
     //--------------------------------------------------
-    ResetTracksFile();
+    //ResetTracksFile();
 
-    mainConsole.AddCmd(GetTitlesStage(), WINDOWS1250);
-    ExecuteBatchSession();
+    //mainConsole.AddCmd(GetTitlesStage(), WINDOWS1250);
+    //ExecuteBatchSession();
 
     LoadTrackTitles();
     ValidateTrackTitles();
-    ResetTracksFile();
+    //ResetTracksFile();
     
     
     //--------------------------------------------------
-    mainConsole.AddCmd(ConvertStage(), UTF8);
-    mainConsole.AddCmd(CreateTrashDirStage());
-    mainConsole.AddCmd(RemoveLeftoverStage());
-    mainConsole.AddCmd(RenameFilesStage());
-    ExecuteBatchSession();
+    //mainConsole.AddCmd(ConvertStage(), UTF8);
+    //mainConsole.AddCmd(CreateTrashDirStage());
+    //mainConsole.AddCmd(RemoveLeftoverStage());
+    //mainConsole.AddCmd(RenameFilesStage());
+    //ExecuteBatchSession();
 
 
     //--------------------------------------------------
-    GetArtworkPre();
+    //GetArtworkPre();
 
-    mainConsole.AddCmd(GetArtworkStage(), WINDOWS1250);
-    ExecuteBatchSession();
+    //mainConsole.AddCmd(GetArtworkStage(), WINDOWS1250);
+    //ExecuteBatchSession();
 
-    GetArtworkPost();
+    //GetArtworkPost();
 
 
     //--------------------------------------------------
-    AttachArtworkToAll();
+    //AttachArtworkToAll();
 
-    mainConsole.AddCmd(CreateAlbumDirectoryStage());
-    mainConsole.AddCmd(MoveAudioStage());
-    mainConsole.AddCmd(MoveArtworkStage());
-    ExecuteBatchSession();
+    //mainConsole.AddCmd(CreateAlbumDirectoryStage());
+    //mainConsole.AddCmd(MoveAudioStage());
+    //mainConsole.AddCmd(MoveArtworkStage());
+    //ExecuteBatchSession();
 
     
     // FIELDS VALUE RESET
@@ -444,6 +465,7 @@ std::wstring MainFrame::GetTitlesStage()
 
 std::vector<std::wstring> MainFrame::RenameFilesStage(std::wstring ext)
 {
+    ext = L".mp4";  // stage testing: use whatever format is available
     std::vector<std::wstring> cmds;
     
     unsigned int maxNumDigits = std::to_string(trackTitles.size()).size();
@@ -457,11 +479,35 @@ std::vector<std::wstring> MainFrame::RenameFilesStage(std::wstring ext)
         num += std::to_wstring(i + 1);
 
         std::wstring cmd = L"";
-        cmd += L"cmd /u /c \"RENAME \"" + workingDirBackslashes + L"\\td8_index" + num + ext + L"\" \"";
-        cmd += std::to_string(i + 1) + L". " + artist + L" - " + trackTitles[i] + ext + L"\"\"";
+        cmd += L"cmd /u /c \"RENAME \"" + workingDirBackslashes +  L"\\";
+        cmd += L"td8_index" + num + ext + L"\"";
+        cmd += L" \"";
+        cmd += std::to_string(i + 1) + L". " + artist + L" - " + trackTitles[i] + ext + L"\"";
+        cmd += L"\"";
 
         cmds.push_back(cmd);
     }
+
+    // stage testing: reverse the renaming, so it can be performed again instantly
+    ///*
+    for (int i = 0; i < trackTitles.size(); i++)
+    {
+        std::wstring num = L"";
+
+        unsigned int numDigits = std::to_string(i + 1).size();
+        for (int j = 0; j < maxNumDigits - numDigits; j++) num += L'0';
+        num += std::to_wstring(i + 1);
+
+        std::wstring cmd = L"";
+        cmd += L"cmd /u /c \"RENAME \"" + workingDirBackslashes +  L"\\";
+        cmd += std::to_string(i + 1) + L". " + artist + L" - " + trackTitles[i] + ext + L"\"";
+        cmd += L" \"";
+        cmd += L"td8_index" + num + ext + L"\"";
+        cmd += L"\"";
+
+        cmds.push_back(cmd);
+    }
+    //*/
 
     return cmds;
 }
@@ -794,14 +840,37 @@ void MainFrame::LoadTrackTitles()
 
 
 
-void MainFrame::ValidateFields()
+bool MainFrame::ValidateFields()
 {
-    URL = URL_Field->textField->GetValue().ToStdWstring();
-    artworkURL = URL_Artwork_Field->textField->GetValue().ToStdWstring();
-
+    // VALIDATING DIRECTORIES
     albumsDirectory = albumsDir_Field->textField->GetValue().ToStdWstring();
     workingDirectory = workingDir_Field->textField->GetValue().ToStdWstring();
 
+    if (!validField(albumsDirectory))
+    {
+        wxMessageBox("Albums directory invalid.", "Error", wxOK | wxICON_ERROR);
+        return false;
+    }
+    if (!validField(workingDirectory))
+    {
+        wxMessageBox("Working directory invalid.", "Error", wxOK | wxICON_ERROR);
+        return false;
+    }
+
+    if (albumsDirectory[albumsDirectory.size() - 1] != '/')
+    {
+        albumsDirectory += '/';
+        albumsDir_Field->textField->SetValue(albumsDirectory);
+    }
+
+    if (workingDirectory[workingDirectory.size() - 1] != '/')
+    {
+        workingDirectory += '/';
+        workingDir_Field->textField->SetValue(workingDirectory);
+    }
+
+
+    // VALIDATING ALBUM DATA
     artist = artist_Field->textField->GetValue().ToStdWstring();
     albumName = albumName_Field->textField->GetValue().ToStdWstring();
     albumYear = albumYear_Field->textField->GetValue().ToStdWstring();
@@ -811,18 +880,10 @@ void MainFrame::ValidateFields()
     ValidateFilesystemString(albumYear);
 
 
-    if (!validField(albumsDirectory))
-    {
-        wxMessageBox("Albums directory invalid.", "Error", wxOK | wxICON_ERROR);
-        return;
-    }
-    if (!validField(workingDirectory))
-    {
-        wxMessageBox("Working directory invalid.", "Error", wxOK | wxICON_ERROR);
-        return;
-    }
 
-
+    // VALIDATING URLs
+    URL = URL_Field->textField->GetValue().ToStdWstring();
+    artworkURL = URL_Artwork_Field->textField->GetValue().ToStdWstring();
 
     std::vector<std::wstring> validPlaylistURLs = {
         L"https://youtube.com/", L"https://www.youtube.com/", L"http://youtube.com/", L"http://www.youtube.com/"
@@ -835,7 +896,7 @@ void MainFrame::ValidateFields()
             output += L"\n" + validPlaylistURLs[i];
         }
         wxMessageBox(output, "Error", wxOK | wxICON_ERROR);
-        return;
+        return false;
     }
 
     std::vector<std::wstring> validArtworkURLs = {
@@ -851,7 +912,7 @@ void MainFrame::ValidateFields()
                 output += L"\n" + validArtworkURLs[i];
             }
             wxMessageBox(output, "Error", wxOK | wxICON_ERROR);
-            return;
+            return false;
         }
         else
         {
@@ -861,49 +922,17 @@ void MainFrame::ValidateFields()
         }
     }
 
-    if (albumsDirectory[albumsDirectory.size() - 1] != '/')
-    {
-        albumsDirectory += '/';
-        albumsDir_Field->textField->SetValue(albumsDirectory);
-    }
-
-    if (workingDirectory[workingDirectory.size() - 1] != '/')
-    {
-        workingDirectory += '/';
-        workingDir_Field->textField->SetValue(workingDirectory);
-    }
-
-    trackTitles.clear();
 
 
-
-    albumsDirBackslashes = L"";
-    for (int i = 0; i < albumsDirectory.size(); i++)
-    {
-        if (albumsDirectory[i] != '/')
-        {
-            albumsDirBackslashes += albumsDirectory[i];
-        }
-        else if (!(i == albumsDirectory.size() - 1 && albumsDirectory[i] == '/'))
-        {
-            albumsDirBackslashes += L"\\";
-        }
-    }
+    // GET BACKSLASH DIRS
+    albumsDirBackslashes = GetBackslashPath(albumsDirectory);
+    workingDirBackslashes = GetBackslashPath(workingDirectory);
 
     albumPathBackslashes = albumsDirBackslashes + L"\\" + artist + L" - " + albumName + L" (" + albumYear + L")";
 
-    workingDirBackslashes = L"";
-    for (int i = 0; i < workingDirectory.size(); i++)
-    {
-        if (workingDirectory[i] != '/')
-        {
-            workingDirBackslashes += workingDirectory[i];
-        }
-        else if (!(i == workingDirectory.size() - 1 && workingDirectory[i] == '/'))
-        {
-            workingDirBackslashes += L"\\";
-        }
-    }
+    // RESET TRACK TITLES
+    trackTitles.clear();
+    return true;
 }
 
 void MainFrame::OpenSettings()
