@@ -183,53 +183,28 @@ inline std::string EncodeToCodePage(std::wstring wstr, wchar_t table[])
 
 
 
-inline std::string GetTableDiff(unsigned char table1[], unsigned char table2[])
+inline std::wstring GetTableDiff(wchar_t table1[], wchar_t table2[])
 {
-    std::string diff1 = "";
+    std::wstring tableStr1 = L"";
+    std::wstring tableStr2 = L"";
+
     for (int i = 0; i < 256; i++)
     {
-        bool found = false;
-        for (int j = 0; j < 256; j++)
-        {
-            if (table2[j] == table1[i])
-            {
-                found = true;
-                break;
-            }
-        }
-        if (!found) diff1 += table1[i];
+        tableStr1 += table1[i];
+        tableStr2 += table2[i];
     }
 
-    std::string diff2 = "";
-    for (int i = 0; i < 256; i++)
+    std::wstring diffStr = L"";
+    for (int i = 0; i < tableStr1.size(); i++)
     {
-        bool found = false;
-        for (int j = 0; j < 256; j++)
-        {
-            if (table1[j] == table2[i])
-            {
-                found = true;
-                break;
-            }
-        }
-        if (!found) diff2 += table2[i];
+        if (!findCharInStr(tableStr2, tableStr1[i])) diffStr += tableStr1[i];
     }
 
-    std::string diff = diff1;
-    for (int i = 0; i < diff2.size(); i++)
+    for (int i = 0; i < tableStr2.size(); i++)
     {
-        bool found = false;
-        for (int j = 0; j < diff.size(); j++)
-        {
-            if (diff[j] == diff2[i])
-            {
-                found = true;
-                break;
-            }
-        }
-        if (!found) diff1 += diff2[i];
+        if (!findCharInStr(tableStr1, tableStr2[i]) && !findCharInStr(diffStr, tableStr2[i]));
     }
-    return diff;
+    return diffStr;
 }
 
 

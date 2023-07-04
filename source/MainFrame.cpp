@@ -189,6 +189,10 @@ void MainFrame::InitControls()
     output_Field->textField->SetEditable(false);
 }
 
+void MainFrame::InitOutput()
+{
+}
+
 void MainFrame::InitTestValues()
 {
     bResetFields = false;
@@ -236,7 +240,14 @@ void MainFrame::InitTestValues()
     //URL_Artwork_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
     */
 
-    //
+    std::wstring tableDiff = GetTableDiff(codepage::table_CP852, codepage::table_CP1250);
+    std::wstring output = L"";
+    for (int i = 0; i < tableDiff.size(); i++)
+    {
+        output += toWide(NumToStr(i + 1)) + L": " + tableDiff[i] + L"\n";
+    }
+    output += L"\n\n";
+    mainConsole.PrintLogAndConsole(output);
 }
 
 MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
@@ -249,6 +260,8 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     InitControls();
 
     InitDefaultSize();
+
+    InitOutput();
     InitTestValues();
 
     artist_Field->textField->SetFocus();
@@ -317,7 +330,7 @@ void MainFrame::UpdateOutput()
     for (;;)
     {
         {
-            if (output_Field->textField->GetNumberOfLines() >= uMaxOutputLines)
+            if (output_Field->GetNumberOfLines() >= uMaxOutputLines)
             {
                 output_Field->PopFirstLine();
             }

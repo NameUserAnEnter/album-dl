@@ -83,6 +83,7 @@ private:
     void InitThemes();
     void InitDefaultSize();
     void InitTestValues();
+    void InitOutput();
 
     void SaveSettings();
     void OpenSettings();

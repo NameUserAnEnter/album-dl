@@ -24,6 +24,7 @@ public:
 
     TEXT_ENCODING fieldEncoding = UNICODE_NONE;
 
+
     TextBox(std::string label, wxWindowID textFieldID, wxPoint position, wxSize size, wxPanel* panel,
             bool multiline, RECT labelOffset, wxSize& mainOffset, wxSize fieldBetweenSpace)
     {
@@ -44,6 +45,8 @@ public:
 
         mainOffset.y += size.y + fieldBetweenSpace.y;
     }
+
+
 
     void SetText(std::wstring text)
     {
@@ -78,6 +81,11 @@ public:
     std::wstring GetText()
     {
         return textField->GetValue().ToStdWstring();
+    }
+
+    int GetNumberOfLines()
+    {
+        return textField->GetNumberOfLines();
     }
 
     ~TextBox()

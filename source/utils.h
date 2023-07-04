@@ -289,6 +289,16 @@ inline std::wstring GetBackslashPath(std::wstring forwardslashPath)
 }
 
 
+inline bool findCharInStr(std::wstring str, wchar_t query)
+{
+    for (int i = 0; i < str.size(); i++)
+    {
+        if (str[i] == query) return true;
+    }
+    return false;
+}
+
+
 inline bool isStrNum(std::wstring str)
 {
     for (auto symbol : str)
