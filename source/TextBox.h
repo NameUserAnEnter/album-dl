@@ -27,89 +27,20 @@ public:
     bool bInit;
 
 
-
-    TextBox()
-    {
-        bInit = false;
-        fieldEncoding = UNICODE_NONE;
-        long style = 0;
-    }
+    TextBox();
 
     void Init(std::string label, wxWindowID textFieldID, wxPoint position, wxSize size, wxPanel* panel,
-            bool multiline, RECT labelOffset, wxSize& mainOffset, wxSize fieldBetweenSpace)
-    {
-        labelBox.Create(
-            panel, wxID_ANY, toWide(label),
-            wxPoint(position.x - labelOffset.left, position.y - labelOffset.top),
-            wxSize(labelOffset.left + size.x + labelOffset.right, labelOffset.top + size.y + labelOffset.bottom),
-            0, wxString(label + " label"));
+                       bool multiline, RECT labelOffset, wxSize& mainOffset, wxSize fieldBetweenSpace);
 
+    void SetText(std::wstring text);
 
-        
-        if (multiline) style = wxTE_MULTILINE;
+    void PopFirstLine();
 
-        textField.Create(
-            &labelBox, textFieldID, "",
-            wxPoint(labelOffset.left, labelOffset.top),
-            size,
-            style, wxDefaultValidator, wxString(label + " text field"));
+    void AddText(std::wstring text);
 
-        mainOffset.y += size.y + fieldBetweenSpace.y;
+    std::wstring GetText();
 
-        bInit = true;
-    }
-
-
-
-    void SetText(std::wstring text)
-    {
-        if (!bInit) return;
-
-        if (fieldEncoding == TEXT_ENCODING::CP852) textField.SetValue(EncodeToCodePage(text, codepage::table_CP852));
-        else textField.SetValue(text);
-    }
-
-    void PopFirstLine()
-    {
-        if (!bInit) return;
-
-        std::wstring data = GetText();
-        std::wstring newdata = L"";
-        bool bAdd = false;
-        for (int i = 0; i < data.size(); i++)
-        {
-            if (bAdd)
-            {
-                newdata += data[i];
-                continue;
-            }
-
-            if (data[i] == '\n' && !bAdd) bAdd = true;
-        }
-        SetText(newdata);
-    }
-
-    void AddText(std::wstring text)
-    {
-        if (!bInit) return;
-
-        if (fieldEncoding == TEXT_ENCODING::CP852) textField.AppendText(EncodeToCodePage(text, codepage::table_CP852));
-        else textField.AppendText(text);
-    }
-
-    std::wstring GetText()
-    {
-        if (!bInit) return L"";
-
-        return textField.GetValue().ToStdWstring();
-    }
-
-    int GetNumberOfLines()
-    {
-        if (!bInit) return -1;
-
-        return textField.GetNumberOfLines();
-    }
+    int GetNumberOfLines();
 };
 
 #endif
