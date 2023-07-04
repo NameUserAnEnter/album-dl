@@ -8,7 +8,7 @@ TextBox::TextBox()
 }
 
 void TextBox::Init(std::string label, wxWindowID textFieldID, wxPoint position, wxSize size, wxPanel* panel,
-          bool multiline, RECT labelOffset, wxSize& mainOffset, wxSize fieldBetweenSpace)
+          long style, RECT labelOffset, wxSize& mainOffset, wxSize fieldBetweenSpace)
 {
     labelBox.Create(
         panel, wxID_ANY, toWide(label),
@@ -17,8 +17,6 @@ void TextBox::Init(std::string label, wxWindowID textFieldID, wxPoint position, 
         0, wxString(label + " label"));
 
 
-
-    if (multiline) style = wxTE_MULTILINE;
 
     textField.Create(
         &labelBox, textFieldID, "",
@@ -165,10 +163,10 @@ TextBoxLocked::TextBoxLocked()
 }
 
 void TextBoxLocked::Init(std::mutex* _pTextMutex, std::string label, wxWindowID textFieldID, wxPoint position, wxSize size, wxPanel* panel,
-                         bool multiline, RECT labelOffset, wxSize& mainOffset, wxSize fieldBetweenSpace)
+                         long style, RECT labelOffset, wxSize& mainOffset, wxSize fieldBetweenSpace)
 {
     pTextMutex = _pTextMutex;
-    internal.Init(label, textFieldID, position, size, panel, multiline, labelOffset, mainOffset, fieldBetweenSpace);
+    internal.Init(label, textFieldID, position, size, panel, style, labelOffset, mainOffset, fieldBetweenSpace);
 }
 
 

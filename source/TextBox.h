@@ -20,7 +20,6 @@ class TextBox
 {
 private:
     bool bInit;
-    long style;
 
     wxStaticBox labelBox;
     wxTextCtrl textField;
@@ -29,7 +28,7 @@ private:
 public:
     TextBox();
 
-    void Init(std::string, wxWindowID, wxPoint, wxSize, wxPanel*, bool, RECT, wxSize&, wxSize);
+    void Init(std::string, wxWindowID, wxPoint, wxSize, wxPanel*, long, RECT, wxSize&, wxSize);
 
     void SetText(std::wstring);
     void SetText(std::string);
@@ -66,7 +65,7 @@ private:
 public:
     TextBoxLocked();
 
-    void Init(std::mutex*, std::string, wxWindowID, wxPoint, wxSize, wxPanel*, bool, RECT, wxSize&, wxSize);
+    void Init(std::mutex*, std::string, wxWindowID, wxPoint, wxSize, wxPanel*, long, RECT, wxSize&, wxSize);
 
     void SetText(std::wstring);
     void SetText(std::string);

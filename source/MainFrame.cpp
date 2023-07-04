@@ -68,32 +68,32 @@ void MainFrame::InitFields()
 
 
     fAlbumsDir.Init("Albums directory:", ID_albumsDir_Field,
-                                  wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, false,
+                                  wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, NULL,
                                   labelOffset, mainOffset, fieldBetweenSpace);
     fWorkingDir.Init("Working directory:", ID_workingDir_Field,
-                                   wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, false,
+                                   wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, NULL,
                                    labelOffset, mainOffset, fieldBetweenSpace);
 
     mainOffset.y += fieldBetweenSpace.y;
     fArtistField.Init("Artist:", ID_artist_Field,
-                               wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, false,
+                               wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, NULL,
                                labelOffset, mainOffset, fieldBetweenSpace);
 
     fAlbumName.Init("Album name:", ID_albumName_Field,
-                                  wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, false,
+                                  wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, NULL,
                                   labelOffset, mainOffset, fieldBetweenSpace);
 
     fAlbumYear.Init("Album year:", ID_albumYear_Field,
-                                  wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, false,
+                                  wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, NULL,
                                   labelOffset, mainOffset, fieldBetweenSpace);
 
     fURL.Init("Playlist URL:", ID_URL_Field,
-                            wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, false,
+                            wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, NULL,
                             labelOffset, mainOffset, fieldBetweenSpace);
 
 
     fArtworkURL.Init("Playlist URL with proper artwork:", ID_URL_Artwork_Field,
-                                    wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, false,
+                                    wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, NULL,
                                     labelOffset, mainOffset, fieldBetweenSpace);
 
 
@@ -112,7 +112,7 @@ void MainFrame::InitFields()
 
     mainOffset.y += fieldBetweenSpace.y;
     fOutput.Init(&printMutex, "Output:", ID_output_Field,
-                               wxPoint(mainOffset.x, mainOffset.y), LargeBoxSize, &mainPanel, true,
+                               wxPoint(mainOffset.x, mainOffset.y), LargeBoxSize, &mainPanel, wxTE_MULTILINE | wxTE_READONLY,
                                labelOffset, mainOffset, fieldBetweenSpace);
 }
 
@@ -127,7 +127,7 @@ void MainFrame::InitDefaultSize()
 void MainFrame::InitThemes()
 {
     unsigned long uForeground = 0xC0C0C0;
-    unsigned long uBackground = 0xFF0000;
+    unsigned long uBackground = 0xFF0050;
     fOutput.SetForeground(wxColour(uForeground));
     fOutput.SetBackground(wxColour(uBackground));
 
@@ -187,7 +187,7 @@ void MainFrame::InitControls()
     CreateStatusBar();
     SetStatusText("");
 
-    fOutput.SetEditable(false);
+    //fOutput.SetEditable(false);
 }
 
 void MainFrame::InitOutput()
@@ -264,8 +264,8 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     Show(true);                                         // SHOW WINDOW
 
     
-
-    std::wstring tableDiff = GetTableDiff(codepage::table_CP852, codepage::table_CP852);
+    
+    std::wstring tableDiff = GetTableDiff(codepage::table_CP852, codepage::table_CP1250);
     std::wstring output = L"";
     for (int i = 0; i < tableDiff.size(); i++)
     {
@@ -273,6 +273,7 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     }
     if (!output.empty()) output += L"\n\n";
     mainConsole.PrintLogAndConsole(output);
+    //fOutput.SetText(output);
     
     InitOutput();
 }
@@ -332,7 +333,7 @@ void MainFrame::UpdateOutput()
     while (true)
     {
         if (fOutput.GetNumberOfLines() >= uMaxOutputLines) fOutput.PopFirstLine();
-        fOutput.AddTextClear(consoleOutputBuf);
+        if (!consoleOutputBuf.empty()) fOutput.AddTextClear(consoleOutputBuf);
     }
 }
 
