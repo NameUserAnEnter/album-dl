@@ -18,25 +18,38 @@ enum TEXT_ENCODING
 
 class TextBox
 {
-public:
+private:
+    bool bInit;
+    long style;
+
     wxStaticBox labelBox;
     wxTextCtrl textField;
 
     TEXT_ENCODING fieldEncoding;
-    long style;
-    bool bInit;
-
-
+public:
     TextBox();
 
-    void Init(std::string label, wxWindowID textFieldID, wxPoint position, wxSize size, wxPanel* panel,
-                       bool multiline, RECT labelOffset, wxSize& mainOffset, wxSize fieldBetweenSpace);
+    void Init(std::string, wxWindowID, wxPoint, wxSize, wxPanel*, bool, RECT, wxSize&, wxSize);
 
-    void SetText(std::wstring text);
+    void SetText(std::wstring);
+    void SetText(std::string);
+
+    void AddText(std::wstring);
+    void AddText(std::string);
+
+    void SetFocus();
+    void SetEditable(bool);
+
+    void SetForeground(wxColour);
+    void SetBackground(wxColour);
+
+    void SetFont(wxFont);
+    void SetEncoding(TEXT_ENCODING);
+
+
+    bool IsEmpty();
 
     void PopFirstLine();
-
-    void AddText(std::wstring text);
 
     std::wstring GetText();
 

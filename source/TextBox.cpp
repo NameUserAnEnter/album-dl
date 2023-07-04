@@ -33,6 +33,9 @@ void TextBox::Init(std::string label, wxWindowID textFieldID, wxPoint position, 
 
 
 
+
+
+
 void TextBox::SetText(std::wstring text)
 {
     if (!bInit) return;
@@ -40,6 +43,76 @@ void TextBox::SetText(std::wstring text)
     if (fieldEncoding == TEXT_ENCODING::CP852) textField.SetValue(EncodeToCodePage(text, codepage::table_CP852));
     else textField.SetValue(text);
 }
+
+void TextBox::AddText(std::wstring text)
+{
+    if (!bInit) return;
+
+    if (fieldEncoding == TEXT_ENCODING::CP852) textField.AppendText(EncodeToCodePage(text, codepage::table_CP852));
+    else textField.AppendText(text);
+}
+
+void TextBox::SetText(std::string text)
+{
+    SetText(toWide(text));
+}
+
+void TextBox::AddText(std::string text)
+{
+    AddText(toWide(text));
+}
+
+
+
+
+
+
+void TextBox::SetFocus()
+{
+    if (!bInit) return;
+    textField.SetFocus();
+}
+
+void TextBox::SetEditable(bool bEditable)
+{
+    if (!bInit) return;
+    textField.SetEditable(bEditable);
+}
+
+
+
+void TextBox::SetForeground(wxColour foreground)
+{
+    if (!bInit) return;
+    textField.SetForegroundColour(wxColour(foreground));
+}
+
+void TextBox::SetBackground(wxColour background)
+{
+    if (!bInit) return;
+    textField.SetBackgroundColour(wxColour(background));
+}
+
+void TextBox::SetFont(wxFont font)
+{
+    if (!bInit) return;
+    textField.SetFont(font);
+}
+
+void TextBox::SetEncoding(TEXT_ENCODING _fieldEncoding)
+{
+    fieldEncoding = _fieldEncoding;
+}
+
+
+
+
+bool TextBox::IsEmpty()
+{
+    if (!bInit) return true;
+    return textField.IsEmpty();
+}
+
 
 void TextBox::PopFirstLine()
 {
@@ -61,13 +134,8 @@ void TextBox::PopFirstLine()
     SetText(newdata);
 }
 
-void TextBox::AddText(std::wstring text)
-{
-    if (!bInit) return;
 
-    if (fieldEncoding == TEXT_ENCODING::CP852) textField.AppendText(EncodeToCodePage(text, codepage::table_CP852));
-    else textField.AppendText(text);
-}
+
 
 std::wstring TextBox::GetText()
 {

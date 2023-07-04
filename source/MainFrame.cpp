@@ -53,6 +53,8 @@ void MainFrame::InitValues()
     tag::SetConsole(&mainConsole);
     net::SetConsole(&mainConsole);
 
+    if (bLog) mainConsole.OpenLog();
+
     uMaxOutputLines = 150;
 
     defaultPos.x = 720;
@@ -126,8 +128,8 @@ void MainFrame::InitThemes()
 {
     unsigned long uForeground = 0xC0C0C0;
     unsigned long uBackground = 0xFF0000;
-    fOutput.textField.SetForegroundColour(wxColour(uForeground));
-    fOutput.textField.SetBackgroundColour(wxColour(uBackground));
+    fOutput.SetForeground(wxColour(uForeground));
+    fOutput.SetBackground(wxColour(uBackground));
 
     // July 3rd, 2023:
     // TO DO:
@@ -141,8 +143,8 @@ void MainFrame::InitThemes()
     // Console:     Terminal, 8x12  | 0xC0C0C0, 0x000000
     wxFont outputFont(wxFontInfo(wxSize(8, 12)).FaceName("Terminal"));
     //wxFont outputFont(wxFontInfo(wxSize(8, 16)).FaceName("Courier New").Bold());
-    fOutput.textField.SetFont(outputFont);
-    fOutput.fieldEncoding = CP852;
+    fOutput.SetFont(outputFont);
+    fOutput.SetEncoding(CP852);
 }
 
 void MainFrame::InitBindings()
@@ -185,12 +187,13 @@ void MainFrame::InitControls()
     CreateStatusBar();
     SetStatusText("");
 
-    //fOutput.textField.Disable();
-    fOutput.textField.SetEditable(false);
+    fOutput.SetEditable(false);
 }
 
 void MainFrame::InitOutput()
 {
+    if (outputThread.joinable()) outputThread.join();
+    outputThread = std::move(std::thread(&MainFrame::UpdateOutput, this));
 }
 
 void MainFrame::InitTestValues()
@@ -200,45 +203,49 @@ void MainFrame::InitTestValues()
 
     // SHORT PLAYLIST
     /*
-    fArtistField.textField.SetValue("Big Black");
-    fAlbumName.textField.SetValue("Lungs");
-    fAlbumYear.textField.SetValue("1982");
-    fURL.textField.SetValue("https://www.youtube.com/playlist?list=OLAK5uy_lSCRmY_Qw8RCNnMKHcp05O1K8fAIyqLjs");
+    fArtistField.SetText("Big Black");
+    fAlbumName.SetText("Lungs");
+    fAlbumYear.SetText("1982");
+    fURL.SetText("https://www.youtube.com/playlist?list=OLAK5uy_lSCRmY_Qw8RCNnMKHcp05O1K8fAIyqLjs");
     */
 
     // RARE UNICODE CHAR THAT SHOWS DIFFERENCE BETWEEN WINDOWS-1250 AND WINDOWS-1252
     /*
-    fArtistField.textField.SetValue("The Jesus Lizard");
-    fAlbumName.textField.SetValue("Down");
-    fAlbumYear.textField.SetValue("1994");
-    fURL.textField.SetValue("https://www.youtube.com/playlist?list=OLAK5uy_kULt5j2pKzT5PtLz1RGW7EO-IWDwqVtHw");
+    fArtistField.SetText("The Jesus Lizard");
+    fAlbumName.SetText("Down");
+    fAlbumYear.SetText("1994");
+    fURL.SetText("https://www.youtube.com/playlist?list=OLAK5uy_kULt5j2pKzT5PtLz1RGW7EO-IWDwqVtHw");
     */
 
     // TITLES WITH PROBABLY ACCIDENTAL MOJIBAKE, USEFUL DURING ENCODING TESTING
     ///*
-    fArtistField.textField.SetValue("Death in June");
-    fAlbumName.textField.SetValue("Discriminate: A Compilation of Personal Choice 1981-97");
-    fAlbumYear.textField.SetValue("1997");
-    fURL.textField.SetValue("https://www.youtube.com/playlist?list=OLAK5uy_ll7VmeyNV0J4d4HroMPrLrRfBcjiLIVLo");
+    fArtistField.SetText("Death in June");
+    fAlbumName.SetText("Discriminate: A Compilation of Personal Choice 1981-97");
+    fAlbumYear.SetText("1997");
+    fURL.SetText("https://www.youtube.com/playlist?list=OLAK5uy_ll7VmeyNV0J4d4HroMPrLrRfBcjiLIVLo");
     //*/
 
     // TYPICAL UNICODE TITLES
     /*
-    fArtistField.textField.SetValue("O.S.T.R.");
-    fAlbumName.textField.SetValue("Tylko Dla Doros³ych");
-    fAlbumYear.textField.SetValue("2010");
-    fURL.textField.SetValue("https://www.youtube.com/playlist?list=PLIKxxmyVA3HZ5vCNl3b0gQXDhuMWLz-mG");
-    fArtworkURL.textField.SetValue("https://www.youtube.com/playlist?list=OLAK5uy_l6DSlExq2EbVR7ILChbL9ZHn-1SbyKRO8");
+    fArtistField.SetText("O.S.T.R.");
+    fAlbumName.SetText("Tylko Dla Doros³ych");
+    fAlbumYear.SetText("2010");
+    fURL.SetText("https://www.youtube.com/playlist?list=PLIKxxmyVA3HZ5vCNl3b0gQXDhuMWLz-mG");
+    fArtworkURL.SetText("https://www.youtube.com/playlist?list=OLAK5uy_l6DSlExq2EbVR7ILChbL9ZHn-1SbyKRO8");
     */
 
     // TYPICAL UNICODE TITLES
     /*
-    fArtistField.textField.SetValue("Goat");
-    fAlbumName.textField.SetValue("World Music");
-    fAlbumYear.textField.SetValue("2012");
-    fURL.textField.SetValue("https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
-    //fArtworkURL.textField.SetValue("https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
+    fArtistField.SetText("Goat");
+    fAlbumName.SetText("World Music");
+    fAlbumYear.SetText("2012");
+    fURL.SetText("https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
+    //fArtworkURL.SetText("https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
     */
+
+
+
+
 
     std::wstring tableDiff = GetTableDiff(codepage::table_CP852, codepage::table_CP1250);
     std::wstring output = L"";
@@ -264,7 +271,7 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     InitOutput();
     InitTestValues();
 
-    fArtistField.textField.SetFocus();
+    fArtistField.SetFocus();
 
     SetPosition(wxPoint(defaultPos.x, defaultPos.y));   // SET WINDOW POS TO DEFAULT POS
     OpenSettings();                                     // LOAD SETTINGS (MAY REPOS WINDOW)
@@ -282,6 +289,7 @@ MainFrame::~MainFrame()
 void MainFrame::OnClose(wxCloseEvent& event)
 {
     //SaveSettings();
+    if (bLog) mainConsole.CloseLog();
 
     Destroy();
 }
@@ -314,9 +322,6 @@ void MainFrame::OnButtonPress(wxCommandEvent& event)
     bDone = false;
     if (workingThread.joinable()) workingThread.join();
     workingThread = std::move(std::thread(&MainFrame::GetAlbum, this));
-
-    if (outputThread.joinable()) outputThread.join();
-    outputThread = std::move(std::thread(&MainFrame::UpdateOutput, this));
 }
 
 
@@ -339,10 +344,12 @@ void MainFrame::UpdateOutput()
             consoleOutputBuf.clear();
         }
 
+        /*
         if (bLastIter) break;
 
         std::lock_guard<std::mutex> switchLock(doneSwitchMutex);
         if (bDone) bLastIter = true;
+        */
     }
 }
 
@@ -356,10 +363,11 @@ void MainFrame::ExecuteBatchSession(bool addPadding)
 
 void MainFrame::GetAlbum()
 {
-    if (bLog) mainConsole.OpenLog();
-    fOutput.SetText(L"");
-    
-    SetStatusText("Running the script...");
+    //if (bLog) mainConsole.OpenLog();
+    if (!fOutput.IsEmpty()) mainConsole.PrintLogAndConsoleNarrow("\n\n");
+
+    SetStatusText("Running the program...");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Program start.      ----------------------------\n");
 
 
     //mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
@@ -409,23 +417,23 @@ void MainFrame::GetAlbum()
         SetStatusText("Resetting");
 
         // Reset fields & set focus
-        fURL.textField.SetValue("");
-        fArtworkURL.textField.SetValue("");
-        fArtistField.textField.SetValue("");
-        fAlbumName.textField.SetValue("");
-        fAlbumYear.textField.SetValue("");
+        fURL.SetText("");
+        fArtworkURL.SetText("");
+        fArtistField.SetText("");
+        fAlbumName.SetText("");
+        fAlbumYear.SetText("");
 
-        fArtistField.textField.SetFocus();
+        fArtistField.SetFocus();
     }
     //*/
 
     
     
     SetStatusText("Done");
-    if (checkAlert.GetValue() == true) MessageBoxA(NULL, "Script has finished.", "Done", MB_OK);
+    if (checkAlert.GetValue() == true) MessageDialog("Script has finished.", "Done");
     mainConsole.PrintLogAndConsoleNarrow("\n----------------------------   Program finished.   ----------------------------\n");
 
-    if (bLog) mainConsole.CloseLog();
+    //if (bLog) mainConsole.CloseLog();
     std::lock_guard<std::mutex> switchLock(doneSwitchMutex);
     bDone = true;
 }
@@ -878,8 +886,8 @@ void MainFrame::LoadTrackTitles()
 bool MainFrame::ValidateFields()
 {
     // VALIDATING DIRECTORIES
-    albumsDirectory = fAlbumsDir.textField.GetValue().ToStdWstring();
-    workingDirectory = fWorkingDir.textField.GetValue().ToStdWstring();
+    albumsDirectory = fAlbumsDir.GetText();
+    workingDirectory = fWorkingDir.GetText();
 
     if (!validField(albumsDirectory))
     {
@@ -895,20 +903,20 @@ bool MainFrame::ValidateFields()
     if (albumsDirectory[albumsDirectory.size() - 1] != '/')
     {
         albumsDirectory += '/';
-        fAlbumsDir.textField.SetValue(albumsDirectory);
+        fAlbumsDir.SetText(albumsDirectory);
     }
 
     if (workingDirectory[workingDirectory.size() - 1] != '/')
     {
         workingDirectory += '/';
-        fWorkingDir.textField.SetValue(workingDirectory);
+        fWorkingDir.SetText(workingDirectory);
     }
 
 
     // VALIDATING ALBUM DATA
-    artist = fArtistField.textField.GetValue().ToStdWstring();
-    albumName = fAlbumName.textField.GetValue().ToStdWstring();
-    albumYear = fAlbumYear.textField.GetValue().ToStdWstring();
+    artist = fArtistField.GetText();
+    albumName = fAlbumName.GetText();
+    albumYear = fAlbumYear.GetText();
 
     ValidateFilesystemString(artist);
     ValidateFilesystemString(albumName);
@@ -917,8 +925,8 @@ bool MainFrame::ValidateFields()
 
 
     // VALIDATING URLs
-    URL = fURL.textField.GetValue().ToStdWstring();
-    artworkURL = fArtworkURL.textField.GetValue().ToStdWstring();
+    URL = fURL.GetText();
+    artworkURL = fArtworkURL.GetText();
 
     std::vector<std::wstring> validPlaylistURLs = {
         L"https://youtube.com/", L"https://www.youtube.com/", L"http://youtube.com/", L"http://www.youtube.com/"
@@ -952,7 +960,7 @@ bool MainFrame::ValidateFields()
         else
         {
             SetStatusText("Copying Playlist URL as Artwork Playlist URL");
-            fArtworkURL.textField.SetValue(URL);
+            fArtworkURL.SetText(URL);
             artworkURL = URL;
         }
     }
@@ -1005,8 +1013,8 @@ void MainFrame::OpenSettings()
             {
                 try
                 {
-                    if (currentId == albumsDir) fAlbumsDir.textField.SetValue(currentWord);
-                    if (currentId == workingDir) fWorkingDir.textField.SetValue(currentWord);
+                    if (currentId == albumsDir) fAlbumsDir.SetText(currentWord);
+                    if (currentId == workingDir) fWorkingDir.SetText(currentWord);
 
                     if (currentId == windowX && isStrNum(currentWord)) SetPosition(wxPoint(std::stoi(currentWord), GetPosition().y));
                     if (currentId == windowY && isStrNum(currentWord)) SetPosition(wxPoint(GetPosition().x, std::stoi(currentWord)));
@@ -1044,8 +1052,8 @@ void MainFrame::SaveSettings()
     std::string path = "settings";
 
     std::wstring decoded = L"";
-    decoded += fAlbumsDir.textField.GetValue().ToStdWstring() + L"\n";
-    decoded += fWorkingDir.textField.GetValue().ToStdWstring() + L"\n";
+    decoded += fAlbumsDir.GetText() + L"\n";
+    decoded += fWorkingDir.GetText() + L"\n";
     decoded += toWide(NumToStr(GetPosition().x)) + L"\n";
     decoded += toWide(NumToStr(GetPosition().y)) + L"\n";
 
