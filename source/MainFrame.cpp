@@ -23,8 +23,8 @@ enum
 
 void MainFrame::InitValues()
 {
-    // FROM GLOBAL VARS
     bDone = true;
+    bResetFields = true;
 
     mainOffset = wxSize(20, 40);
     fieldBetweenSpace = wxSize(10, 20);
@@ -114,6 +114,14 @@ void MainFrame::InitFields()
                                labelOffset, mainOffset, fieldBetweenSpace);
 }
 
+void MainFrame::InitDefaultSize()
+{
+    ClientWidth = mainOffset.x + TextBoxSize.x + mainOffset.x;
+    ClientHeight = mainOffset.y;
+
+    SetClientSize(ClientWidth, ClientHeight);
+}
+
 void MainFrame::InitThemes()
 {
     unsigned long uForeground = 0xC0C0C0;
@@ -131,10 +139,10 @@ void MainFrame::InitThemes()
 
     // Notepad++:   Courier New, 10 | 0xFFFFFF, 0x1E1E1E
     // Console:     Terminal, 8x12  | 0xC0C0C0, 0x000000
-    //wxFont outputFont(wxFontInfo(wxSize(8, 12)).FaceName("Terminal"));
+    wxFont outputFont(wxFontInfo(wxSize(8, 12)).FaceName("Terminal"));
     //wxFont outputFont(wxFontInfo(wxSize(8, 16)).FaceName("Courier New").Bold());
-    //output_Field->textField->SetFont(outputFont);
-    //output_Field->fieldEncoding = CP852;
+    output_Field->textField->SetFont(outputFont);
+    output_Field->fieldEncoding = CP852;
 }
 
 void MainFrame::InitBindings()
@@ -176,33 +184,17 @@ void MainFrame::InitControls()
 
     CreateStatusBar();
     SetStatusText("");
-}
-
-MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
-{
-    InitValues();
-    InitFields();
-    InitThemes();
-
-    ClientWidth = mainOffset.x + TextBoxSize.x + mainOffset.x;
-    ClientHeight = mainOffset.y;
-
-    InitBindings();
-    InitControls();
 
     //output_Field->textField->Disable();
     output_Field->textField->SetEditable(false);
+}
 
+void MainFrame::InitTestValues()
+{
+    bResetFields = false;
+    // SAMPLE TEST VALUES FOR CONVENIENCE:
 
-    // Sample test values for convenience
-    /*
-    artist_Field->textField->SetValue("Goat");
-    albumName_Field->textField->SetValue("World Music");
-    albumYear_Field->textField->SetValue("2012");
-    URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
-    //URL_Artwork_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
-    */
-
+    // SHORT PLAYLIST
     /*
     artist_Field->textField->SetValue("Big Black");
     albumName_Field->textField->SetValue("Lungs");
@@ -210,13 +202,23 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_lSCRmY_Qw8RCNnMKHcp05O1K8fAIyqLjs");
     */
 
+    // RARE UNICODE CHAR THAT SHOWS DIFFERENCE BETWEEN WINDOWS-1250 AND WINDOWS-1252
     ///*
-    artist_Field->textField->SetValue("Death in June");
-    albumName_Field->textField->SetValue("Discriminate: A Compilation of Personal Choice 1981-97");
-    albumYear_Field->textField->SetValue("2010");
-    URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_ll7VmeyNV0J4d4HroMPrLrRfBcjiLIVLo");
+    artist_Field->textField->SetValue("The Jesus Lizard");
+    albumName_Field->textField->SetValue("Down");
+    albumYear_Field->textField->SetValue("1994");
+    URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_kULt5j2pKzT5PtLz1RGW7EO-IWDwqVtHw");
     //*/
 
+    // TITLES WITH PROBABLY ACCIDENTAL MOJIBAKE, USEFUL DURING ENCODING TESTING
+    /*
+    artist_Field->textField->SetValue("Death in June");
+    albumName_Field->textField->SetValue("Discriminate: A Compilation of Personal Choice 1981-97");
+    albumYear_Field->textField->SetValue("1997");
+    URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_ll7VmeyNV0J4d4HroMPrLrRfBcjiLIVLo");
+    */
+
+    // TYPICAL UNICODE TITLES
     /*
     artist_Field->textField->SetValue("O.S.T.R.");
     albumName_Field->textField->SetValue("Tylko Dla Doros³ych");
@@ -225,11 +227,30 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     URL_Artwork_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_l6DSlExq2EbVR7ILChbL9ZHn-1SbyKRO8");
     */
 
+    // TYPICAL UNICODE TITLES
+    /*
+    artist_Field->textField->SetValue("Goat");
+    albumName_Field->textField->SetValue("World Music");
+    albumYear_Field->textField->SetValue("2012");
+    URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
+    //URL_Artwork_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
+    */
+}
+
+MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
+{
+    InitValues();
+    InitFields();
+
+    InitThemes();
+    InitBindings();
+    InitControls();
+
+    InitDefaultSize();
+    InitTestValues();
+
     artist_Field->textField->SetFocus();
 
-    
-    
-    SetClientSize(ClientWidth, ClientHeight);           // RESIZE WINDOW
     SetPosition(wxPoint(defaultPos.x, defaultPos.y));   // SET WINDOW POS TO DEFAULT POS
     OpenSettings();                                     // LOAD SETTINGS (MAY REPOS WINDOW)
     Show(true);                                         // SHOW WINDOW
@@ -332,13 +353,12 @@ void MainFrame::GetAlbum()
 
     
     //--------------------------------------------------
-    //ResetTracksFile();
+    ResetTracksFile();
+    mainConsole.AddCmd(GetTitlesStage(), WINDOWS1250);
+    ExecuteBatchSession();
 
-    //mainConsole.AddCmd(GetTitlesStage(), WINDOWS1250);
-    //ExecuteBatchSession();
-
-    LoadTrackTitles();
-    ValidateTrackTitles();
+    //LoadTrackTitles();
+    //ValidateTrackTitles();
     //ResetTracksFile();
     
     
@@ -369,18 +389,21 @@ void MainFrame::GetAlbum()
 
     
     // FIELDS VALUE RESET
-    /*
-    SetStatusText("Resetting");
-    
-    // Reset fields & set focus
-    URL_Field->textField->SetValue("");
-    URL_Artwork_Field->textField->SetValue("");
-    artist_Field->textField->SetValue("");
-    albumName_Field->textField->SetValue("");
-    albumYear_Field->textField->SetValue("");
+    ///*
+    if (bResetFields)
+    {
+        SetStatusText("Resetting");
 
-    artist_Field->textField->SetFocus();
-    */
+        // Reset fields & set focus
+        URL_Field->textField->SetValue("");
+        URL_Artwork_Field->textField->SetValue("");
+        artist_Field->textField->SetValue("");
+        albumName_Field->textField->SetValue("");
+        albumYear_Field->textField->SetValue("");
+
+        artist_Field->textField->SetFocus();
+    }
+    //*/
 
     
     

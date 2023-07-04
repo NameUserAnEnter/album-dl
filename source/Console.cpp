@@ -10,7 +10,7 @@ void Console::InitValues()
 {
 	bInit = false;
 	bLogOpen = false;
-	bDumpBytes = false;
+	bDumpBytes = true;
 	bWrap = false;
 
 	logFilepath = L"";

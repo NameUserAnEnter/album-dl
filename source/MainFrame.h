@@ -54,6 +54,7 @@ private:
     std::mutex doneSwitchMutex;
     std::mutex printMutex;
     bool bDone;
+    bool bResetFields;
     const bool bLog = true;
     unsigned int uMaxOutputLines;
 
@@ -79,6 +80,8 @@ private:
     void InitControls();
     void InitValues();
     void InitThemes();
+    void InitDefaultSize();
+    void InitTestValues();
 
     void SaveSettings();
     void OpenSettings();
