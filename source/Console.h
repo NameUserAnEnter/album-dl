@@ -1,6 +1,7 @@
 #ifndef CONSOLE_H
 #define CONSOLE_H
 
+#include "encoding.h"
 #include "utils.h"
 #include <mutex>
 

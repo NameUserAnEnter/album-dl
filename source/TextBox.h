@@ -7,6 +7,7 @@
 #endif
 
 #include <string>
+#include "encoding.h"
 #include "utils.h"
 
 enum TEXT_ENCODING
@@ -46,7 +47,7 @@ public:
 
     void SetText(std::wstring text)
     {
-        if (fieldEncoding == TEXT_ENCODING::CP852) textField->SetValue(EncodeToCP852(text));
+        if (fieldEncoding == TEXT_ENCODING::CP852) textField->SetValue(EncodeToCodePage(text, codepage::table_CP852));
         else textField->SetValue(text);
     }
 
@@ -70,7 +71,7 @@ public:
 
     void AddText(std::wstring text)
     {
-        if (fieldEncoding == TEXT_ENCODING::CP852) textField->AppendText(EncodeToCP852(text));
+        if (fieldEncoding == TEXT_ENCODING::CP852) textField->AppendText(EncodeToCodePage(text, codepage::table_CP852));
         else textField->AppendText(text);
     }
 

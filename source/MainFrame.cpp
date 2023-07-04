@@ -203,20 +203,20 @@ void MainFrame::InitTestValues()
     */
 
     // RARE UNICODE CHAR THAT SHOWS DIFFERENCE BETWEEN WINDOWS-1250 AND WINDOWS-1252
-    ///*
+    /*
     artist_Field->textField->SetValue("The Jesus Lizard");
     albumName_Field->textField->SetValue("Down");
     albumYear_Field->textField->SetValue("1994");
     URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_kULt5j2pKzT5PtLz1RGW7EO-IWDwqVtHw");
-    //*/
+    */
 
     // TITLES WITH PROBABLY ACCIDENTAL MOJIBAKE, USEFUL DURING ENCODING TESTING
-    /*
+    ///*
     artist_Field->textField->SetValue("Death in June");
     albumName_Field->textField->SetValue("Discriminate: A Compilation of Personal Choice 1981-97");
     albumYear_Field->textField->SetValue("1997");
     URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_ll7VmeyNV0J4d4HroMPrLrRfBcjiLIVLo");
-    */
+    //*/
 
     // TYPICAL UNICODE TITLES
     /*
@@ -235,6 +235,8 @@ void MainFrame::InitTestValues()
     URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
     //URL_Artwork_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
     */
+
+    //
 }
 
 MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
@@ -353,11 +355,11 @@ void MainFrame::GetAlbum()
 
     
     //--------------------------------------------------
-    ResetTracksFile();
-    mainConsole.AddCmd(GetTitlesStage(), WINDOWS1250);
-    ExecuteBatchSession();
+    //ResetTracksFile();
+    //mainConsole.AddCmd(GetTitlesStage(), WINDOWS1250);
+    //ExecuteBatchSession();
 
-    //LoadTrackTitles();
+    LoadTrackTitles();
     //ValidateTrackTitles();
     //ResetTracksFile();
     

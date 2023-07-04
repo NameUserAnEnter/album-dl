@@ -280,7 +280,7 @@ void Console::GetSubOutput()
 					PrintLogAndConsole(GetWideFromFixedUnicode16(buf.c_str()));
 					break;
 				case WINDOWS1250:
-					PrintLogAndConsole(GetWideFromWindows1250(buf.c_str()));
+					PrintLogAndConsole(GetWideFromCodePage(buf.c_str(), codepage::table_CP1250));
 					break;
 				
 				case UTF8:

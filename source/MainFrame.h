@@ -6,11 +6,12 @@
 #include <wx/wx.h>
 #endif
 
-#include "info.h"
 #include "TextBox.h"
 #include "validate.h"
+#include "encoding.h"
 #include "utils.h"
 #include "Console.h"
+#include "info.h"
 #include <thread>
 #include <mutex>
 
