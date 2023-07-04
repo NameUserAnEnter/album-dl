@@ -111,7 +111,7 @@ void MainFrame::InitFields()
 
 
     mainOffset.y += fieldBetweenSpace.y;
-    fOutput.Init("Output:", ID_output_Field,
+    fOutput.Init(&printMutex, "Output:", ID_output_Field,
                                wxPoint(mainOffset.x, mainOffset.y), LargeBoxSize, &mainPanel, true,
                                labelOffset, mainOffset, fieldBetweenSpace);
 }
@@ -242,19 +242,6 @@ void MainFrame::InitTestValues()
     fURL.SetText("https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
     //fArtworkURL.SetText("https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
     */
-
-
-
-
-
-    std::wstring tableDiff = GetTableDiff(codepage::table_CP852, codepage::table_CP1250);
-    std::wstring output = L"";
-    for (int i = 0; i < tableDiff.size(); i++)
-    {
-        output += toWide(NumToStr(i + 1)) + L": " + tableDiff[i] + L"\n";
-    }
-    output += L"\n\n";
-    mainConsole.PrintLogAndConsole(output);
 }
 
 MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
@@ -268,7 +255,6 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 
     InitDefaultSize();
 
-    InitOutput();
     InitTestValues();
 
     fArtistField.SetFocus();
@@ -276,6 +262,19 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     SetPosition(wxPoint(defaultPos.x, defaultPos.y));   // SET WINDOW POS TO DEFAULT POS
     OpenSettings();                                     // LOAD SETTINGS (MAY REPOS WINDOW)
     Show(true);                                         // SHOW WINDOW
+
+    
+
+    std::wstring tableDiff = GetTableDiff(codepage::table_CP852, codepage::table_CP852);
+    std::wstring output = L"";
+    for (int i = 0; i < tableDiff.size(); i++)
+    {
+        output += toWide(NumToStr(i + 1)) + L": " + tableDiff[i] + L"\n";
+    }
+    if (!output.empty()) output += L"\n\n";
+    mainConsole.PrintLogAndConsole(output);
+    
+    InitOutput();
 }
 
 MainFrame::~MainFrame()
@@ -330,26 +329,10 @@ void MainFrame::OnButtonPress(wxCommandEvent& event)
 
 void MainFrame::UpdateOutput()
 {
-    bool bLastIter = false;
-    for (;;)
+    while (true)
     {
-        {
-            if (fOutput.GetNumberOfLines() >= uMaxOutputLines)
-            {
-                fOutput.PopFirstLine();
-            }
-
-            std::lock_guard<std::mutex> bufLock(printMutex);
-            fOutput.AddText(consoleOutputBuf);
-            consoleOutputBuf.clear();
-        }
-
-        /*
-        if (bLastIter) break;
-
-        std::lock_guard<std::mutex> switchLock(doneSwitchMutex);
-        if (bDone) bLastIter = true;
-        */
+        if (fOutput.GetNumberOfLines() >= uMaxOutputLines) fOutput.PopFirstLine();
+        fOutput.AddTextClear(consoleOutputBuf);
     }
 }
 

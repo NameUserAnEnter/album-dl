@@ -56,6 +56,46 @@ public:
     int GetNumberOfLines();
 };
 
+
+
+class TextBoxLocked
+{
+private:
+    TextBox internal;
+    std::mutex* pTextMutex;
+public:
+    TextBoxLocked();
+
+    void Init(std::mutex*, std::string, wxWindowID, wxPoint, wxSize, wxPanel*, bool, RECT, wxSize&, wxSize);
+
+    void SetText(std::wstring);
+    void SetText(std::string);
+
+    void AddText(std::wstring);
+    void AddText(std::string);
+
+    void AddTextClear(std::wstring&);
+    void AddTextClear(std::string&);
+
+    void SetFocus();
+    void SetEditable(bool);
+
+    void SetForeground(wxColour);
+    void SetBackground(wxColour);
+
+    void SetFont(wxFont);
+    void SetEncoding(TEXT_ENCODING);
+
+
+    bool IsEmpty();
+
+    void PopFirstLine();
+
+    std::wstring GetText();
+
+    int GetNumberOfLines();
+};
+
 #endif
 
 

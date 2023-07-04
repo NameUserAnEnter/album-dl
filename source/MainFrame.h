@@ -27,7 +27,7 @@ private:
     TextBox fArtistField;
     TextBox fAlbumName;
     TextBox fAlbumYear;
-    TextBox fOutput;
+    TextBoxLocked fOutput;
 
     TextBox fURL;
     TextBox fArtworkURL;
