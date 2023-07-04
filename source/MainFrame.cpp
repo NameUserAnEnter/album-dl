@@ -132,8 +132,8 @@ void MainFrame::InitThemes()
     // Notepad++:   Courier New, 10 | 0xFFFFFF, 0x1E1E1E
     // Console:     Terminal, 8x12  | 0xC0C0C0, 0x000000
     //wxFont outputFont(wxFontInfo(wxSize(8, 12)).FaceName("Terminal"));
-    wxFont outputFont(wxFontInfo(wxSize(8, 16)).FaceName("Courier New").Bold());
-    output_Field->textField->SetFont(outputFont);
+    //wxFont outputFont(wxFontInfo(wxSize(8, 16)).FaceName("Courier New").Bold());
+    //output_Field->textField->SetFont(outputFont);
     //output_Field->fieldEncoding = CP852;
 }
 
@@ -332,13 +332,13 @@ void MainFrame::GetAlbum()
 
     
     //--------------------------------------------------
-    ResetTracksFile();
+    //ResetTracksFile();
 
-    mainConsole.AddCmd(GetTitlesStage(), WINDOWS1250);
-    ExecuteBatchSession();
+    //mainConsole.AddCmd(GetTitlesStage(), WINDOWS1250);
+    //ExecuteBatchSession();
 
-    //LoadTrackTitles();
-    //ValidateTrackTitles();
+    LoadTrackTitles();
+    ValidateTrackTitles();
     //ResetTracksFile();
     
     
@@ -804,7 +804,7 @@ void MainFrame::LoadTrackTitles()
             {
                 currentWord += currentChar;
             }
-            else
+            else if (currentChar == '\n')
             {
                 if (currentWord.size() > 0)
                 {
@@ -962,7 +962,7 @@ void MainFrame::OpenSettings()
     for (auto currentChar : decoded)
     {
         if (iswprint(currentChar)) currentWord += currentChar;
-        else
+        else if (currentChar == '\n')
         {
             if (currentWord.size() > 0)
             {
