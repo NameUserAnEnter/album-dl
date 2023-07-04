@@ -131,19 +131,10 @@ void MainFrame::InitThemes()
 
     // Notepad++:   Courier New, 10 | 0xFFFFFF, 0x1E1E1E
     // Console:     Terminal, 8x12  | 0xC0C0C0, 0x000000
-    //wxFont currentFont;
-    //currentFont = output_Field->textField->GetFont();
-    wxFontEncoding;
-    //MessageDialog("Before\nCurrent font encoding: " + std::to_string(currentFont.GetEncoding()));
-
-    wxFont outputFont(wxFontInfo(wxSize(8, 12)).FaceName("Terminal"));
-    //outputFont.SetEncoding(wxFONTENCODING_CP852);
-    //MessageDialog("\nNew font encoding: " + std::to_string(currentFont.GetEncoding()));
+    //wxFont outputFont(wxFontInfo(wxSize(8, 12)).FaceName("Terminal"));
+    wxFont outputFont(wxFontInfo(wxSize(8, 16)).FaceName("Courier New").Bold());
     output_Field->textField->SetFont(outputFont);
-    output_Field->fieldEncoding = CP852;
-    
-    //currentFont = output_Field->textField->GetFont();
-    //MessageDialog("After\nCurrent font encoding: " + std::to_string(currentFont.GetEncoding()));
+    //output_Field->fieldEncoding = CP852;
 }
 
 void MainFrame::InitBindings()
@@ -220,12 +211,19 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     */
 
     ///*
+    artist_Field->textField->SetValue("Death in June");
+    albumName_Field->textField->SetValue("Discriminate: A Compilation of Personal Choice 1981-97");
+    albumYear_Field->textField->SetValue("2010");
+    URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_ll7VmeyNV0J4d4HroMPrLrRfBcjiLIVLo");
+    //*/
+
+    /*
     artist_Field->textField->SetValue("O.S.T.R.");
     albumName_Field->textField->SetValue("Tylko Dla Doros³ych");
     albumYear_Field->textField->SetValue("2010");
     URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=PLIKxxmyVA3HZ5vCNl3b0gQXDhuMWLz-mG");
     URL_Artwork_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_l6DSlExq2EbVR7ILChbL9ZHn-1SbyKRO8");
-    //*/
+    */
 
     artist_Field->textField->SetFocus();
 
@@ -334,13 +332,13 @@ void MainFrame::GetAlbum()
 
     
     //--------------------------------------------------
-    //ResetTracksFile();
+    ResetTracksFile();
 
-    //mainConsole.AddCmd(GetTitlesStage(), WINDOWS1250);
-    //ExecuteBatchSession();
+    mainConsole.AddCmd(GetTitlesStage(), WINDOWS1250);
+    ExecuteBatchSession();
 
-    LoadTrackTitles();
-    ValidateTrackTitles();
+    //LoadTrackTitles();
+    //ValidateTrackTitles();
     //ResetTracksFile();
     
     
@@ -371,7 +369,7 @@ void MainFrame::GetAlbum()
 
     
     // FIELDS VALUE RESET
-    ///*
+    /*
     SetStatusText("Resetting");
     
     // Reset fields & set focus
@@ -382,7 +380,7 @@ void MainFrame::GetAlbum()
     albumYear_Field->textField->SetValue("");
 
     artist_Field->textField->SetFocus();
-    //*/
+    */
 
     
     
