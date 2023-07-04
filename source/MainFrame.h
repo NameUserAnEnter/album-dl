@@ -22,17 +22,19 @@ public:
     MainFrame();
     ~MainFrame();
 private:
-    TextBox* albumsDir_Field;
-    TextBox* workingDir_Field;
-    TextBox* artist_Field;
-    TextBox* albumName_Field;
-    TextBox* albumYear_Field;
-    TextBox* output_Field;
+    TextBox fAlbumsDir;
+    TextBox fWorkingDir;
+    TextBox fArtistField;
+    TextBox fAlbumName;
+    TextBox fAlbumYear;
+    TextBox fOutput;
 
-    TextBox* URL_Field;
-    TextBox* URL_Artwork_Field;
+    TextBox fURL;
+    TextBox fArtworkURL;
 
-    wxCheckBox* checkAlert;
+    wxCheckBox checkAlert;
+    wxButton bnRunScript;
+    wxPanel mainPanel;
 
 public:
     // FROM GLOBAL VARIABLES

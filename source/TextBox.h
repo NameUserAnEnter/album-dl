@@ -19,43 +19,60 @@ enum TEXT_ENCODING
 class TextBox
 {
 public:
-    wxStaticBox* labelBox;
-    wxTextCtrl* textField;
+    wxStaticBox labelBox;
+    wxTextCtrl textField;
 
-    TEXT_ENCODING fieldEncoding = UNICODE_NONE;
+    TEXT_ENCODING fieldEncoding;
+    long style;
+    bool bInit;
 
 
-    TextBox(std::string label, wxWindowID textFieldID, wxPoint position, wxSize size, wxPanel* panel,
+
+    TextBox()
+    {
+        bInit = false;
+        fieldEncoding = UNICODE_NONE;
+        long style = 0;
+    }
+
+    void Init(std::string label, wxWindowID textFieldID, wxPoint position, wxSize size, wxPanel* panel,
             bool multiline, RECT labelOffset, wxSize& mainOffset, wxSize fieldBetweenSpace)
     {
-        labelBox = new wxStaticBox(
+        labelBox.Create(
             panel, wxID_ANY, toWide(label),
             wxPoint(position.x - labelOffset.left, position.y - labelOffset.top),
             wxSize(labelOffset.left + size.x + labelOffset.right, labelOffset.top + size.y + labelOffset.bottom),
             0, wxString(label + " label"));
 
 
-        long style = 0;
+        
         if (multiline) style = wxTE_MULTILINE;
-        textField = new wxTextCtrl(
-            labelBox, textFieldID, "",
+
+        textField.Create(
+            &labelBox, textFieldID, "",
             wxPoint(labelOffset.left, labelOffset.top),
             size,
             style, wxDefaultValidator, wxString(label + " text field"));
 
         mainOffset.y += size.y + fieldBetweenSpace.y;
+
+        bInit = true;
     }
 
 
 
     void SetText(std::wstring text)
     {
-        if (fieldEncoding == TEXT_ENCODING::CP852) textField->SetValue(EncodeToCodePage(text, codepage::table_CP852));
-        else textField->SetValue(text);
+        if (!bInit) return;
+
+        if (fieldEncoding == TEXT_ENCODING::CP852) textField.SetValue(EncodeToCodePage(text, codepage::table_CP852));
+        else textField.SetValue(text);
     }
 
     void PopFirstLine()
     {
+        if (!bInit) return;
+
         std::wstring data = GetText();
         std::wstring newdata = L"";
         bool bAdd = false;
@@ -74,24 +91,24 @@ public:
 
     void AddText(std::wstring text)
     {
-        if (fieldEncoding == TEXT_ENCODING::CP852) textField->AppendText(EncodeToCodePage(text, codepage::table_CP852));
-        else textField->AppendText(text);
+        if (!bInit) return;
+
+        if (fieldEncoding == TEXT_ENCODING::CP852) textField.AppendText(EncodeToCodePage(text, codepage::table_CP852));
+        else textField.AppendText(text);
     }
 
     std::wstring GetText()
     {
-        return textField->GetValue().ToStdWstring();
+        if (!bInit) return L"";
+
+        return textField.GetValue().ToStdWstring();
     }
 
     int GetNumberOfLines()
     {
-        return textField->GetNumberOfLines();
-    }
+        if (!bInit) return -1;
 
-    ~TextBox()
-    {
-        delete labelBox;
-        delete textField;
+        return textField.GetNumberOfLines();
     }
 };
 

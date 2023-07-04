@@ -62,46 +62,46 @@ void MainFrame::InitValues()
 void MainFrame::InitFields()
 {
     // default sizes and pos because it's automatically stretched to the frame anyway
-    wxPanel* mainPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 2621440L, "Main Panel");
+    mainPanel.Create(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 2621440L, "Main Panel");
 
 
-    albumsDir_Field = new TextBox("Albums directory:", ID_albumsDir_Field,
-                                  wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel, false,
+    fAlbumsDir.Init("Albums directory:", ID_albumsDir_Field,
+                                  wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, false,
                                   labelOffset, mainOffset, fieldBetweenSpace);
-    workingDir_Field = new TextBox("Working directory:", ID_workingDir_Field,
-                                   wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel, false,
+    fWorkingDir.Init("Working directory:", ID_workingDir_Field,
+                                   wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, false,
                                    labelOffset, mainOffset, fieldBetweenSpace);
 
     mainOffset.y += fieldBetweenSpace.y;
-    artist_Field = new TextBox("Artist:", ID_artist_Field,
-                               wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel, false,
+    fArtistField.Init("Artist:", ID_artist_Field,
+                               wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, false,
                                labelOffset, mainOffset, fieldBetweenSpace);
 
-    albumName_Field = new TextBox("Album name:", ID_albumName_Field,
-                                  wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel, false,
+    fAlbumName.Init("Album name:", ID_albumName_Field,
+                                  wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, false,
                                   labelOffset, mainOffset, fieldBetweenSpace);
 
-    albumYear_Field = new TextBox("Album year:", ID_albumYear_Field,
-                                  wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel, false,
+    fAlbumYear.Init("Album year:", ID_albumYear_Field,
+                                  wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, false,
                                   labelOffset, mainOffset, fieldBetweenSpace);
 
-    URL_Field = new TextBox("Playlist URL:", ID_URL_Field,
-                            wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel, false,
+    fURL.Init("Playlist URL:", ID_URL_Field,
+                            wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, false,
                             labelOffset, mainOffset, fieldBetweenSpace);
 
 
-    URL_Artwork_Field = new TextBox("Playlist URL with proper artwork:", ID_URL_Artwork_Field,
-                                    wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, mainPanel, false,
+    fArtworkURL.Init("Playlist URL with proper artwork:", ID_URL_Artwork_Field,
+                                    wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, false,
                                     labelOffset, mainOffset, fieldBetweenSpace);
 
 
 
 
-    wxButton* button = new wxButton(mainPanel, ID_Button, "Run",
+    bnRunScript.Create(&mainPanel, ID_Button, "Run",
                                     wxPoint(mainOffset.x, mainOffset.y),
                                     ButtonSize, NULL, wxDefaultValidator, "Run button");
 
-    checkAlert = new wxCheckBox(mainPanel, ID_AlertOnDone, "Alert on done",
+    checkAlert.Create(&mainPanel, ID_AlertOnDone, "Alert on done",
                                 wxPoint(mainOffset.x + ButtonSize.x + fieldBetweenSpace.x, mainOffset.y),
                                 ButtonSize, 0, wxDefaultValidator, "Alert checkbox");
     mainOffset.y += ButtonSize.y + fieldBetweenSpace.y;
@@ -109,8 +109,8 @@ void MainFrame::InitFields()
 
 
     mainOffset.y += fieldBetweenSpace.y;
-    output_Field = new TextBox("Output:", ID_output_Field,
-                               wxPoint(mainOffset.x, mainOffset.y), LargeBoxSize, mainPanel, true,
+    fOutput.Init("Output:", ID_output_Field,
+                               wxPoint(mainOffset.x, mainOffset.y), LargeBoxSize, &mainPanel, true,
                                labelOffset, mainOffset, fieldBetweenSpace);
 }
 
@@ -126,8 +126,8 @@ void MainFrame::InitThemes()
 {
     unsigned long uForeground = 0xC0C0C0;
     unsigned long uBackground = 0xFF0000;
-    output_Field->textField->SetForegroundColour(wxColour(uForeground));
-    output_Field->textField->SetBackgroundColour(wxColour(uBackground));
+    fOutput.textField.SetForegroundColour(wxColour(uForeground));
+    fOutput.textField.SetBackgroundColour(wxColour(uBackground));
 
     // July 3rd, 2023:
     // TO DO:
@@ -141,8 +141,8 @@ void MainFrame::InitThemes()
     // Console:     Terminal, 8x12  | 0xC0C0C0, 0x000000
     wxFont outputFont(wxFontInfo(wxSize(8, 12)).FaceName("Terminal"));
     //wxFont outputFont(wxFontInfo(wxSize(8, 16)).FaceName("Courier New").Bold());
-    output_Field->textField->SetFont(outputFont);
-    output_Field->fieldEncoding = CP852;
+    fOutput.textField.SetFont(outputFont);
+    fOutput.fieldEncoding = CP852;
 }
 
 void MainFrame::InitBindings()
@@ -185,8 +185,8 @@ void MainFrame::InitControls()
     CreateStatusBar();
     SetStatusText("");
 
-    //output_Field->textField->Disable();
-    output_Field->textField->SetEditable(false);
+    //fOutput.textField.Disable();
+    fOutput.textField.SetEditable(false);
 }
 
 void MainFrame::InitOutput()
@@ -200,44 +200,44 @@ void MainFrame::InitTestValues()
 
     // SHORT PLAYLIST
     /*
-    artist_Field->textField->SetValue("Big Black");
-    albumName_Field->textField->SetValue("Lungs");
-    albumYear_Field->textField->SetValue("1982");
-    URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_lSCRmY_Qw8RCNnMKHcp05O1K8fAIyqLjs");
+    fArtistField.textField.SetValue("Big Black");
+    fAlbumName.textField.SetValue("Lungs");
+    fAlbumYear.textField.SetValue("1982");
+    fURL.textField.SetValue("https://www.youtube.com/playlist?list=OLAK5uy_lSCRmY_Qw8RCNnMKHcp05O1K8fAIyqLjs");
     */
 
     // RARE UNICODE CHAR THAT SHOWS DIFFERENCE BETWEEN WINDOWS-1250 AND WINDOWS-1252
     /*
-    artist_Field->textField->SetValue("The Jesus Lizard");
-    albumName_Field->textField->SetValue("Down");
-    albumYear_Field->textField->SetValue("1994");
-    URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_kULt5j2pKzT5PtLz1RGW7EO-IWDwqVtHw");
+    fArtistField.textField.SetValue("The Jesus Lizard");
+    fAlbumName.textField.SetValue("Down");
+    fAlbumYear.textField.SetValue("1994");
+    fURL.textField.SetValue("https://www.youtube.com/playlist?list=OLAK5uy_kULt5j2pKzT5PtLz1RGW7EO-IWDwqVtHw");
     */
 
     // TITLES WITH PROBABLY ACCIDENTAL MOJIBAKE, USEFUL DURING ENCODING TESTING
     ///*
-    artist_Field->textField->SetValue("Death in June");
-    albumName_Field->textField->SetValue("Discriminate: A Compilation of Personal Choice 1981-97");
-    albumYear_Field->textField->SetValue("1997");
-    URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_ll7VmeyNV0J4d4HroMPrLrRfBcjiLIVLo");
+    fArtistField.textField.SetValue("Death in June");
+    fAlbumName.textField.SetValue("Discriminate: A Compilation of Personal Choice 1981-97");
+    fAlbumYear.textField.SetValue("1997");
+    fURL.textField.SetValue("https://www.youtube.com/playlist?list=OLAK5uy_ll7VmeyNV0J4d4HroMPrLrRfBcjiLIVLo");
     //*/
 
     // TYPICAL UNICODE TITLES
     /*
-    artist_Field->textField->SetValue("O.S.T.R.");
-    albumName_Field->textField->SetValue("Tylko Dla Doros³ych");
-    albumYear_Field->textField->SetValue("2010");
-    URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=PLIKxxmyVA3HZ5vCNl3b0gQXDhuMWLz-mG");
-    URL_Artwork_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_l6DSlExq2EbVR7ILChbL9ZHn-1SbyKRO8");
+    fArtistField.textField.SetValue("O.S.T.R.");
+    fAlbumName.textField.SetValue("Tylko Dla Doros³ych");
+    fAlbumYear.textField.SetValue("2010");
+    fURL.textField.SetValue("https://www.youtube.com/playlist?list=PLIKxxmyVA3HZ5vCNl3b0gQXDhuMWLz-mG");
+    fArtworkURL.textField.SetValue("https://www.youtube.com/playlist?list=OLAK5uy_l6DSlExq2EbVR7ILChbL9ZHn-1SbyKRO8");
     */
 
     // TYPICAL UNICODE TITLES
     /*
-    artist_Field->textField->SetValue("Goat");
-    albumName_Field->textField->SetValue("World Music");
-    albumYear_Field->textField->SetValue("2012");
-    URL_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
-    //URL_Artwork_Field->textField->SetValue("https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
+    fArtistField.textField.SetValue("Goat");
+    fAlbumName.textField.SetValue("World Music");
+    fAlbumYear.textField.SetValue("2012");
+    fURL.textField.SetValue("https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
+    //fArtworkURL.textField.SetValue("https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
     */
 
     std::wstring tableDiff = GetTableDiff(codepage::table_CP852, codepage::table_CP1250);
@@ -264,7 +264,7 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     InitOutput();
     InitTestValues();
 
-    artist_Field->textField->SetFocus();
+    fArtistField.textField.SetFocus();
 
     SetPosition(wxPoint(defaultPos.x, defaultPos.y));   // SET WINDOW POS TO DEFAULT POS
     OpenSettings();                                     // LOAD SETTINGS (MAY REPOS WINDOW)
@@ -308,7 +308,6 @@ void MainFrame::OnSave(wxCommandEvent& event)
 void MainFrame::OnButtonPress(wxCommandEvent& event)
 {
     if (!bDone) return;
-
     if (!ValidateFields()) return;
 
 
@@ -330,13 +329,13 @@ void MainFrame::UpdateOutput()
     for (;;)
     {
         {
-            if (output_Field->GetNumberOfLines() >= uMaxOutputLines)
+            if (fOutput.GetNumberOfLines() >= uMaxOutputLines)
             {
-                output_Field->PopFirstLine();
+                fOutput.PopFirstLine();
             }
 
             std::lock_guard<std::mutex> bufLock(printMutex);
-            output_Field->AddText(consoleOutputBuf);
+            fOutput.AddText(consoleOutputBuf);
             consoleOutputBuf.clear();
         }
 
@@ -358,8 +357,8 @@ void MainFrame::ExecuteBatchSession(bool addPadding)
 void MainFrame::GetAlbum()
 {
     if (bLog) mainConsole.OpenLog();
-
-    output_Field->SetText(L"");
+    fOutput.SetText(L"");
+    
     SetStatusText("Running the script...");
 
 
@@ -410,20 +409,20 @@ void MainFrame::GetAlbum()
         SetStatusText("Resetting");
 
         // Reset fields & set focus
-        URL_Field->textField->SetValue("");
-        URL_Artwork_Field->textField->SetValue("");
-        artist_Field->textField->SetValue("");
-        albumName_Field->textField->SetValue("");
-        albumYear_Field->textField->SetValue("");
+        fURL.textField.SetValue("");
+        fArtworkURL.textField.SetValue("");
+        fArtistField.textField.SetValue("");
+        fAlbumName.textField.SetValue("");
+        fAlbumYear.textField.SetValue("");
 
-        artist_Field->textField->SetFocus();
+        fArtistField.textField.SetFocus();
     }
     //*/
 
     
     
     SetStatusText("Done");
-    if (checkAlert->GetValue() == true) MessageBoxA(NULL, "Script has finished.", "Done", MB_OK);
+    if (checkAlert.GetValue() == true) MessageBoxA(NULL, "Script has finished.", "Done", MB_OK);
     mainConsole.PrintLogAndConsoleNarrow("\n----------------------------   Program finished.   ----------------------------\n");
 
     if (bLog) mainConsole.CloseLog();
@@ -879,8 +878,8 @@ void MainFrame::LoadTrackTitles()
 bool MainFrame::ValidateFields()
 {
     // VALIDATING DIRECTORIES
-    albumsDirectory = albumsDir_Field->textField->GetValue().ToStdWstring();
-    workingDirectory = workingDir_Field->textField->GetValue().ToStdWstring();
+    albumsDirectory = fAlbumsDir.textField.GetValue().ToStdWstring();
+    workingDirectory = fWorkingDir.textField.GetValue().ToStdWstring();
 
     if (!validField(albumsDirectory))
     {
@@ -896,20 +895,20 @@ bool MainFrame::ValidateFields()
     if (albumsDirectory[albumsDirectory.size() - 1] != '/')
     {
         albumsDirectory += '/';
-        albumsDir_Field->textField->SetValue(albumsDirectory);
+        fAlbumsDir.textField.SetValue(albumsDirectory);
     }
 
     if (workingDirectory[workingDirectory.size() - 1] != '/')
     {
         workingDirectory += '/';
-        workingDir_Field->textField->SetValue(workingDirectory);
+        fWorkingDir.textField.SetValue(workingDirectory);
     }
 
 
     // VALIDATING ALBUM DATA
-    artist = artist_Field->textField->GetValue().ToStdWstring();
-    albumName = albumName_Field->textField->GetValue().ToStdWstring();
-    albumYear = albumYear_Field->textField->GetValue().ToStdWstring();
+    artist = fArtistField.textField.GetValue().ToStdWstring();
+    albumName = fAlbumName.textField.GetValue().ToStdWstring();
+    albumYear = fAlbumYear.textField.GetValue().ToStdWstring();
 
     ValidateFilesystemString(artist);
     ValidateFilesystemString(albumName);
@@ -918,8 +917,8 @@ bool MainFrame::ValidateFields()
 
 
     // VALIDATING URLs
-    URL = URL_Field->textField->GetValue().ToStdWstring();
-    artworkURL = URL_Artwork_Field->textField->GetValue().ToStdWstring();
+    URL = fURL.textField.GetValue().ToStdWstring();
+    artworkURL = fArtworkURL.textField.GetValue().ToStdWstring();
 
     std::vector<std::wstring> validPlaylistURLs = {
         L"https://youtube.com/", L"https://www.youtube.com/", L"http://youtube.com/", L"http://www.youtube.com/"
@@ -953,7 +952,7 @@ bool MainFrame::ValidateFields()
         else
         {
             SetStatusText("Copying Playlist URL as Artwork Playlist URL");
-            URL_Artwork_Field->textField->SetValue(URL);
+            fArtworkURL.textField.SetValue(URL);
             artworkURL = URL;
         }
     }
@@ -1006,16 +1005,16 @@ void MainFrame::OpenSettings()
             {
                 try
                 {
-                    if (currentId == albumsDir) albumsDir_Field->textField->SetValue(currentWord);
-                    if (currentId == workingDir) workingDir_Field->textField->SetValue(currentWord);
+                    if (currentId == albumsDir) fAlbumsDir.textField.SetValue(currentWord);
+                    if (currentId == workingDir) fWorkingDir.textField.SetValue(currentWord);
 
                     if (currentId == windowX && isStrNum(currentWord)) SetPosition(wxPoint(std::stoi(currentWord), GetPosition().y));
                     if (currentId == windowY && isStrNum(currentWord)) SetPosition(wxPoint(GetPosition().x, std::stoi(currentWord)));
 
                     if (currentId == alertDone)
                     {
-                        if (currentWord == "0") checkAlert->SetValue(false);
-                        if (currentWord == "1") checkAlert->SetValue(true);
+                        if (currentWord == "0") checkAlert.SetValue(false);
+                        if (currentWord == "1") checkAlert.SetValue(true);
                     }
                 }
                 catch (std::exception& e)
@@ -1045,12 +1044,12 @@ void MainFrame::SaveSettings()
     std::string path = "settings";
 
     std::wstring decoded = L"";
-    decoded += albumsDir_Field->textField->GetValue().ToStdWstring() + L"\n";
-    decoded += workingDir_Field->textField->GetValue().ToStdWstring() + L"\n";
+    decoded += fAlbumsDir.textField.GetValue().ToStdWstring() + L"\n";
+    decoded += fWorkingDir.textField.GetValue().ToStdWstring() + L"\n";
     decoded += toWide(NumToStr(GetPosition().x)) + L"\n";
     decoded += toWide(NumToStr(GetPosition().y)) + L"\n";
 
-    if (checkAlert->GetValue()) decoded += L'1';
+    if (checkAlert.GetValue()) decoded += L'1';
     else decoded += L'0';
 
     std::string encoded = EncodeToUTF8(decoded);
