@@ -68,6 +68,8 @@ private:
     std::string thumbnailURL;
     std::string resourceFilename;
 
+    std::string tracksFilename;
+
 
 private:
     void OnButtonPress(wxCommandEvent& event);

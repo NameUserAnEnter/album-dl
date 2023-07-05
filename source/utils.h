@@ -8,6 +8,8 @@
 #include <time.h>
 #include "Console.h"
 
+
+// MATH & SIMPLE NON-NEGATIVE NUMBERS-TO-STR
 inline double power(double base, unsigned int exponent)
 {
     double return_value = 0;
@@ -59,7 +61,7 @@ inline std::string HexToStr(unsigned long long hex, unsigned int digits = 2)
 
 
 
-
+// TRIM WIDE TO NARROW & CONVERT NARROW TO WIDE
 inline std::wstring toWide(std::string str)
 {
     std::wstring wide;
@@ -84,7 +86,7 @@ inline std::string fromWide(std::wstring wstr)
 
 
 
-
+// DIALOG-BOX UTILS
 inline void MessageDialog(std::wstring msg, std::wstring title = L"")
 {
     if (!msg.empty())
@@ -201,7 +203,7 @@ inline void ErrMsgExitCode(std::wstring msg, unsigned long external_code)
 
 
 
-
+// FILE UTILS
 inline int GetFileData(const wchar_t* filename, std::string* returnData = nullptr)
 {
     std::string data = "";
@@ -271,7 +273,82 @@ inline int ClearFileData(const wchar_t* filename)
 
 
 
-inline std::wstring GetBackslashPath(std::wstring forwardslashPath)
+
+//      NULL-TERMINATED NARROW OVERLOADS
+inline int GetFileData(const char* filename, std::string* returnData = nullptr)
+{
+    return GetFileData(toWide(std::string(filename)).c_str(), returnData);
+}
+
+inline int WriteDataToFile(std::string data, const char* filename)
+{
+    return WriteDataToFile(data, toWide(std::string(filename)).c_str());
+}
+
+inline int AppendDataToFile(std::string data, const char* filename)
+{
+    return AppendDataToFile(data, toWide(std::string(filename)).c_str());
+}
+
+inline int ClearFileData(const char* filename)
+{
+    return ClearFileData(toWide(std::string(filename)).c_str());
+}
+
+
+//      STRING NARROW OVERLOADS
+inline int GetFileData(std::string filename, std::string* returnData = nullptr)
+{
+    return GetFileData(toWide(filename).c_str(), returnData);
+}
+
+inline int WriteDataToFile(std::string data, std::string filename)
+{
+    return WriteDataToFile(data, toWide(filename).c_str());
+}
+
+inline int AppendDataToFile(std::string data, std::string filename)
+{
+    return AppendDataToFile(data, toWide(filename).c_str());
+}
+
+inline int ClearFileData(std::string filename)
+{
+    return ClearFileData(toWide(filename).c_str());
+}
+
+
+
+
+
+//      WIDE STRING OVERLOADS
+inline int GetFileData(std::wstring filename, std::string* returnData = nullptr)
+{
+    return GetFileData(filename.c_str(), returnData);
+}
+
+inline int WriteDataToFile(std::string data, std::wstring filename)
+{
+    return WriteDataToFile(data, filename.c_str());
+}
+
+inline int AppendDataToFile(std::string data, std::wstring filename)
+{
+    return AppendDataToFile(data, filename.c_str());
+}
+
+inline int ClearFileData(std::wstring filename)
+{
+    return ClearFileData(filename.c_str());
+}
+
+
+
+
+
+// STRING TRANSFORMATIONS UTILS
+template<typename T>
+inline std::basic_string<T> GetBackslashPath(std::basic_string<T> forwardslashPath)
 {
     std::wstring backslashPath = L"";
     for (int i = 0; i < forwardslashPath.size(); i++)
@@ -282,14 +359,19 @@ inline std::wstring GetBackslashPath(std::wstring forwardslashPath)
         }
         else if (forwardslashPath[i] == '/' && i != forwardslashPath.size() - 1)
         {
-            backslashPath += L"\\";
+            std::basic_string<T> sep;
+            sep.clear();
+            sep += (T)'\\';
+
+            backslashPath += sep;
         }
     }
     return backslashPath;
 }
 
 
-inline bool findCharInStr(std::wstring str, wchar_t query)
+template<typename T>
+inline bool findCharInStr(std::basic_string<T> str, T query)
 {
     for (int i = 0; i < str.size(); i++)
     {
@@ -299,7 +381,7 @@ inline bool findCharInStr(std::wstring str, wchar_t query)
 }
 
 
-inline bool isStrNum(std::wstring str)
+inline bool isStrNum(std::basic_string<wchar_t> str)
 {
     for (auto symbol : str)
     {
@@ -311,7 +393,20 @@ inline bool isStrNum(std::wstring str)
     return true;
 }
 
-inline bool findInStr(std::wstring str, std::wstring query)
+inline bool isStrNum(std::basic_string<char> str)
+{
+    for (auto symbol : str)
+    {
+        if (!isdigit(symbol))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+template<typename T>
+inline bool findInStr(std::basic_string<T> str, std::basic_string<T> query)
 {
     unsigned int index = 0;
     for (int i = 0; i < str.size(); i++)
@@ -332,7 +427,9 @@ inline bool findInStr(std::wstring str, std::wstring query)
     return false;
 }
 
-inline int whereSubStr(std::wstring str, std::wstring query)
+
+template<typename T>
+inline int whereSubStr(std::basic_string<T> str, std::basic_string<T> query)
 {
     unsigned int index = 0;
     for (int i = 0; i < str.size(); i++)
@@ -350,10 +447,19 @@ inline int whereSubStr(std::wstring str, std::wstring query)
     return -1;
 }
 
-inline void replaceSubStr(std::wstring& str, std::wstring query, std::wstring replacement)
+template<typename T>
+inline int whereSubStr(std::basic_string<T> str, const T* query)
+{
+    return whereSubStr(str, std::basic_string<T>(query));
+}
+
+template<typename T>
+inline void replaceSubStr(std::basic_string<T>& str, std::basic_string<T> query, std::basic_string<T> replacement)
 {
     int start = whereSubStr(str, query);
-    std::wstring copy = L"";
+    std::basic_string<T> copy;
+    copy.clear();
+
     for (int i = 0; i < start; i++)
     {
         copy += str[i];
@@ -370,7 +476,14 @@ inline void replaceSubStr(std::wstring& str, std::wstring query, std::wstring re
     str = copy;
 }
 
-inline void replaceAllSubStr(std::wstring& str, std::wstring query, std::wstring replacement)
+template<typename T>
+inline void replaceSubStr(std::basic_string<T>& str, const T* query, const T* replacement)
+{
+    replaceSubStr(str, std::basic_string<T>(query), std::basic_string<T>(replacement));
+}
+
+template<typename T>
+inline void replaceAllSubStr(std::basic_string<T>& str, std::basic_string<T> query, std::basic_string<T> replacement)
 {
     while (whereSubStr(str, query) != -1)
     {
@@ -378,10 +491,26 @@ inline void replaceAllSubStr(std::wstring& str, std::wstring query, std::wstring
     }
 }
 
-inline bool beginWith(std::wstring str, std::wstring query)
+template<typename T>
+inline void replaceAllSubStr(std::basic_string<T>& str, const T* query, const T* replacement)
+{
+    while (whereSubStr(str, query) != -1)
+    {
+        replaceSubStr(str, query, replacement);
+    }
+}
+
+template<typename T>
+inline bool beginWith(std::basic_string<T> str, std::basic_string<T> query)
 {
     if (whereSubStr(str, query) == 0) return true;
     else return false;
+}
+
+template<typename T>
+inline bool beginWith(std::basic_string<T> str, const T* query)
+{
+    return beginWith(str, std::basic_string<T>(query));
 }
 
 
@@ -393,6 +522,7 @@ inline bool beginWith(std::wstring str, std::wstring query)
 
 
 
+// TIME UTILS
 inline std::tm GetCurrentDateAndTime()
 {
     std::time_t seconds_since = time(nullptr);

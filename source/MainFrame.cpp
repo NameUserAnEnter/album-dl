@@ -39,14 +39,22 @@ void MainFrame::InitValues()
     labelOffset.bottom = 3;
 
 
+
+
     converterExec = L"ffmpeg.exe";
     downloaderExec = L"yt-dlp.exe";
+
     configName = L"config.txt";
-    resourceFilename = "index.html";
     consoleLogFilepath = L"log";
     artworkFilename = L"artwork.png";
 
+    resourceFilename = "index.html";
+    tracksFilename = "tracks";
+
     thumbnailURL = "";
+    
+    
+    
     consoleOutputBuf.clear();
 
     mainConsole.InitConsole(consoleLogFilepath, &consoleOutputBuf, &printMutex, false);
@@ -401,7 +409,6 @@ void MainFrame::GetAlbum()
 
     
     // FIELDS VALUE RESET
-    ///*
     if (bResetFields)
     {
         SetStatusText("Resetting");
@@ -415,7 +422,6 @@ void MainFrame::GetAlbum()
 
         fArtistField.SetFocus();
     }
-    //*/
 
     
     
@@ -605,9 +611,8 @@ void MainFrame::GetArtworkPost()
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "GetArtworkPost()" "\n");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
     // Erase the resource .html file data
-    FILE* resourceFile;
-    fopen_s(&resourceFile, resourceFilename.c_str(), "w");
-    if (resourceFile != nullptr) fclose(resourceFile);
+    ClearFileData(resourceFilename);
+
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
     mainConsole.PrintLogAndConsoleNarrow("\n\n");
@@ -752,10 +757,7 @@ void MainFrame::ResetTracksFile()
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "ResetTracksFile()" "\n");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
 
-    FILE* tracksFile = nullptr;
-    std::string path = "tracks";
-    fopen_s(&tracksFile, path.c_str(), "w");
-    if (tracksFile != nullptr) fclose(tracksFile);
+    ClearFileData(tracksFilename);
 
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
@@ -768,72 +770,21 @@ void MainFrame::LoadTrackTitles()
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "LoadTrackTitles()" "\n");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
 
-    FILE* tracksFile = nullptr;
-    std::string path = "tracks";
-    fopen_s(&tracksFile, path.c_str(), "r");
-    if (tracksFile != nullptr)
+
+
+    std::string data = "";
+    if (GetFileData(tracksFilename, &data))
     {
-        wchar_t currentChar;
+        SetStatusText("Failed to load track titles from file");
+    }
+    else
+    {
+        std::wstring wdata = DecodeFromUTF8(data);
         std::wstring currentWord = L"";
-        do
+
+        for (int i = 0; i < wdata.size(); i++)
         {
-            currentChar = getc(tracksFile);
-
-            // The file is UTF-8 encoded
-            // wchar_t is 16-bit on Windows, so it can represent only 3-byte UTF-8 encoded characters:
-            // 
-            // 1-Byte encoding: (7-bit values) up to 0x7F (126)
-            //  6543210
-            // 0xxxxxxx
-            // 
-            // 2-Byte encoding: (11-bit values) up to 0x7FF (2047)
-            //    09876   543210
-            // 110xxxxx 10xxxxxx
-            // 
-            // 3-Byte encoding: (16-bit values) up to 0xFFFF (65535)
-            //     5432   109876   543210
-            // 1110xxxx 10xxxxxx 10xxxxxx
-
-            // 4-Byte encoding (not supported)
-            // 11110xxx ...
-
-            if ((currentChar & 128) == 128 && (currentChar & 64) == 64)
-            {
-                if ((currentChar & 32) == 0)
-                {
-                    // 2-Byte encoded character
-                    // 110xxxxx ...
-                    unsigned char Byte[] ={ (unsigned char)currentChar & 31, getc(tracksFile) & 63 };
-
-                    // 16-bit decoded character:
-                    currentChar = (Byte[1]) + (((unsigned short)Byte[0] << 8) >> 2);
-                }
-                else if ((currentChar & 32) == 32)
-                {
-                    if ((currentChar & 16) == 0)
-                    {
-                        // 3-Byte encoded character
-                        // 1110xxxx ...
-                        unsigned char Byte[] ={ (unsigned char)currentChar & 15, getc(tracksFile) & 63, getc(tracksFile) & 63 };
-
-                        // 16-bit decoded character:
-                        currentChar = (Byte[2]) + (((unsigned short)Byte[1] << 8) >> 2) + (((unsigned int)Byte[0] << 16) >> 4);
-                    }
-                    else if ((currentChar & 16) == 16)
-                    {
-                        if ((currentChar & 8) == 0)
-                        {
-                            //4-Byte encoded character
-                            // 11110xxx ...
-                            for (int i = 0; i < 3; i++) getc(tracksFile);
-
-                            // 16-bit substitue character:
-                            currentChar = 'e';
-                        }
-                    }
-                }
-            }
-
+            wchar_t currentChar = wdata[i];
 
             if (iswprint(currentChar))
             {
@@ -844,22 +795,19 @@ void MainFrame::LoadTrackTitles()
                 if (currentWord.size() > 0)
                 {
                     trackTitles.push_back(currentWord);
-                    
-                    int i = trackTitles.size() - 1;
-                    std::wstring newTrack = toWide(NumToStr(i + 1)) + L". " + artist + L" - " + trackTitles[i] + (wchar_t)'\n';
-                    if (i == 0) mainConsole.PrintLogAndConsoleNarrow("Unvalidated tracknames:\n");
-                    mainConsole.PrintLogAndConsole(newTrack);
                 }
                 currentWord = L"";
             }
-        } while (currentChar != (wchar_t)EOF);
-
+        }
         SetStatusText("Track titles loaded");
-        fclose(tracksFile);
-    }
-    else
-    {
-        SetStatusText("Failed to load track titles from file");
+
+        
+        mainConsole.PrintLogAndConsoleNarrow("Unvalidated tracknames:\n");
+        for (int i = 0; i < trackTitles.size(); i++)
+        {
+            std::wstring newTrack = toWide(NumToStr(i + 1)) + L". " + artist + L" - " + trackTitles[i] + L'\n';
+            mainConsole.PrintLogAndConsole(newTrack);
+        }
     }
 
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
@@ -1053,7 +1001,7 @@ void MainFrame::SaveSettings()
     std::string encoded = EncodeToUTF8(decoded);
 
 
-    if (WriteDataToFile(encoded, toWide(path).c_str()))
+    if (WriteDataToFile(encoded, path))
     {
         SetStatusText("Cannot save settings");
         return;
