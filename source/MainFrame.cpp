@@ -131,12 +131,18 @@ void MainFrame::InitThemes()
     fOutput.SetForeground(wxColour(uForeground));
     fOutput.SetBackground(wxColour(uBackground));
 
-    // July 3rd, 2023:
     // TO DO:
+    // July 3rd, 2023:
     // -Investigate encoding-font compatibility
     // -Implement window auto-scaling relative to screen resolution
     // -Implement GUI auto-scaling relative to window size
     // -Disable License/ReadMe dumping in the release build
+    //
+
+    // July 4th, 2023:
+    // -Custom selection color
+    // -WINDOWS-1250 & IBM-852 difference testing
+    // -chcp code page extraction
     //
 
     // Notepad++:   Courier New, 10 | 0xFFFFFF, 0x1E1E1E
