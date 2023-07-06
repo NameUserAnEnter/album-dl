@@ -197,12 +197,18 @@ inline std::wstring GetTableDiff(wchar_t table1[], wchar_t table2[])
     std::wstring diffStr = L"";
     for (int i = 0; i < tableStr1.size(); i++)
     {
-        if (!findCharInStr(tableStr2, tableStr1[i])) diffStr += tableStr1[i];
+        if (!findCharInStr(tableStr2, tableStr1[i]))
+        {
+            diffStr += tableStr1[i];
+        }
     }
 
     for (int i = 0; i < tableStr2.size(); i++)
     {
-        if (!findCharInStr(tableStr1, tableStr2[i]) && !findCharInStr(diffStr, tableStr2[i]));
+        if (!findCharInStr(tableStr1, tableStr2[i]))
+        {
+            diffStr += tableStr2[i];
+        }
     }
     return diffStr;
 }
