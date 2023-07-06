@@ -23,21 +23,17 @@ bool MainApp::OnInit()
     DumpLicense();
     DumpReadMe();
 
-    static MainFrame* frame = new MainFrame();
+    MainFrame* frame = new MainFrame();
     frame->StartOutputUpdate();  // starts a new thread that updates the output box
     //std::this_thread::sleep_for(std::chrono::seconds(5));
 
 
 
-    std::wstring tableDiff = GetTableDiff(codepage::table_CP852, codepage::table_CP1250);
-    std::wstring output = L"";
-    for (int i = 0; i < tableDiff.size(); i++)
-    {
-        output += toWide(NumToStr(i + 1)) + L": " + tableDiff[i] + L"\n";
-    }
-    if (!output.empty()) output += L"\n\n";
-    //fOutput.SetText(output);
-    frame->mainConsole.PrintLogAndConsole(output);
+
+    frame->mainConsole.PrintLogAndConsole(printTable(codepage::table_CP1250));
+    frame->mainConsole.PrintLogAndConsole(printTable(codepage::table_CP852));
+    frame->mainConsole.PrintLogAndConsole(printTableDiff(codepage::table_CP852, codepage::table_CP1250));
+
 
 
 

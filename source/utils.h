@@ -9,6 +9,31 @@
 #include "Console.h"
 
 
+// TRIM WIDE TO NARROW & CONVERT NARROW TO WIDE
+inline std::wstring toWide(std::string str)
+{
+    std::wstring wide;
+    for (int i = 0; i < str.size(); i++)
+    {
+        wide += (wchar_t)str[i];
+    }
+    return wide;
+}
+
+inline std::string fromWide(std::wstring wstr)
+{
+    std::string str;
+    for (int i = 0; i < wstr.size(); i++)
+    {
+        str += (unsigned char)wstr[i];
+    }
+    return str;
+}
+
+
+
+
+
 // MATH & SIMPLE NON-NEGATIVE NUMBERS-TO-STR
 inline double power(double base, unsigned int exponent)
 {
@@ -55,32 +80,19 @@ inline std::string HexToStr(unsigned long long hex, unsigned int digits = 2)
     return "0x" + NumToStr(hex, 16, digits);
 }
 
-
-
-
-
-
-
-// TRIM WIDE TO NARROW & CONVERT NARROW TO WIDE
-inline std::wstring toWide(std::string str)
+inline std::wstring NumToWstr(unsigned long long num, unsigned long long base = 10, unsigned int min_digits = 1, char whitespace = '0')
 {
-    std::wstring wide;
-    for (int i = 0; i < str.size(); i++)
-    {
-        wide += (wchar_t)str[i];
-    }
-    return wide;
+    return toWide(NumToStr(num, base, min_digits, whitespace));
 }
 
-inline std::string fromWide(std::wstring wstr)
+inline std::wstring HexToWstr(unsigned long long hex, unsigned int digits = 2)
 {
-    std::string str;
-    for (int i = 0; i < wstr.size(); i++)
-    {
-        str += (unsigned char)wstr[i];
-    }
-    return str;
+    return toWide(HexToStr(hex, digits));
 }
+
+
+
+
 
 
 

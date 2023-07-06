@@ -141,25 +141,35 @@ void MainFrame::InitThemes()
     fOutput.SetBackground(wxColour(uBackground));
 
     // TO DO:
+    
     // July 3rd, 2023:
     // -Investigate encoding-font compatibility
     // -Implement window auto-scaling relative to screen resolution
     // -Implement GUI auto-scaling relative to window size
     // -Disable License/ReadMe dumping in the release build
     //
-
+    
     // July 4th, 2023:
     // -Custom selection color
     // -WINDOWS-1250 & IBM-852 difference testing
     // -chcp code page extraction
     //
 
+    
+    
+    
+    // Use either of these fonts:
     // Notepad++:   Courier New, 10 | 0xFFFFFF, 0x1E1E1E
     // Console:     Terminal, 8x12  | 0xC0C0C0, 0x000000
-    wxFont outputFont(wxFontInfo(wxSize(8, 12)).FaceName("Terminal"));
-    //wxFont outputFont(wxFontInfo(wxSize(8, 16)).FaceName("Courier New").Bold());
+    
+    
+    wxFont outputFont(wxFontInfo(wxSize(8, 16)).FaceName("Courier New").Bold());
+    
+    //wxFont outputFont(wxFontInfo(wxSize(8, 12)).FaceName("Terminal"));
+    //fOutput.SetEncoding(CP852);
+    
+    
     fOutput.SetFont(outputFont);
-    fOutput.SetEncoding(CP852);
 }
 
 void MainFrame::InitBindings()
@@ -226,22 +236,22 @@ void MainFrame::InitTestValues()
     fURL.SetText("https://www.youtube.com/playlist?list=OLAK5uy_kULt5j2pKzT5PtLz1RGW7EO-IWDwqVtHw");
     */
 
-    // TITLES WITH PROBABLY ACCIDENTAL MOJIBAKE, USEFUL DURING ENCODING TESTING
-    ///*
+    // RARE UNICODE CODE POINTS
+    /*
     fArtistField.SetText("Death in June");
     fAlbumName.SetText("Discriminate: A Compilation of Personal Choice 1981-97");
     fAlbumYear.SetText("1997");
     fURL.SetText("https://www.youtube.com/playlist?list=OLAK5uy_ll7VmeyNV0J4d4HroMPrLrRfBcjiLIVLo");
-    //*/
+    */
 
     // TYPICAL UNICODE TITLES
-    /*
+    ///*
     fArtistField.SetText("O.S.T.R.");
     fAlbumName.SetText("Tylko Dla Doros³ych");
     fAlbumYear.SetText("2010");
     fURL.SetText("https://www.youtube.com/playlist?list=PLIKxxmyVA3HZ5vCNl3b0gQXDhuMWLz-mG");
     fArtworkURL.SetText("https://www.youtube.com/playlist?list=OLAK5uy_l6DSlExq2EbVR7ILChbL9ZHn-1SbyKRO8");
-    */
+    //*/
 
     // TYPICAL UNICODE TITLES
     /*
@@ -367,7 +377,7 @@ void MainFrame::GetAlbum()
     //ExecuteBatchSession();
 
     LoadTrackTitles();
-    //ValidateTrackTitles();
+    ValidateTrackTitles();
     //ResetTracksFile();
     
     

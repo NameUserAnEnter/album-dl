@@ -215,4 +215,64 @@ inline std::wstring GetTableDiff(wchar_t table1[], wchar_t table2[])
 
 
 
+
+
+
+
+
+
+inline std::wstring printTableDiff(wchar_t table1[], wchar_t table2[])
+{
+    std::wstring tableDiff = GetTableDiff(table1, table2);
+    std::wstring output = L"";
+    for (int i = 0; i < tableDiff.size(); i++)
+    {
+        output += tableDiff[i];
+
+        if ((i + 1) % 16 == 0 && i != output.size() - 1) output += L"\n";
+        else output += ' ';
+    }
+    if (!output.empty()) output += L"\n\n";
+    return output;
+}
+
+inline std::wstring printTable(wchar_t table[])
+{
+    std::wstring output = L"";
+
+    //output += L' ' + L' ' + L':';
+    output += L"   ";
+    for (int i = 0; i < 16; i++)
+    {
+        output += L"   " + NumToWstr(i % 16, 16, 2);
+    }
+
+    for (int i = 0; i < 256; i++)
+    {
+        if (i % 16 == 0) output += L"\n" + NumToWstr(i, 16, 2) + L": ";
+        else output += L" ";
+
+        if (iswprint(table[i]))
+        {
+            output += L"   ";
+            output += table[i];
+        }
+        else
+        {
+            //output += NumToWstr(table[i], 16, 4);
+            output += L"    ";
+        }
+    }
+
+    output += L"----";
+    for (int i = 0; i < 16; i++)
+    {
+        output += L"-----";
+    }
+    output += L"\n\n";
+    return output;
+}
+
+
+
 #endif
