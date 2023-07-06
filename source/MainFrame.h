@@ -14,6 +14,7 @@
 #include "info.h"
 #include <thread>
 #include <mutex>
+#include <chrono>
 
 
 class MainFrame : public wxFrame
@@ -21,13 +22,16 @@ class MainFrame : public wxFrame
 public:
     MainFrame();
     ~MainFrame();
+
+    Console mainConsole;
+    void StartOutputUpdate();
 private:
     TextBox fAlbumsDir;
     TextBox fWorkingDir;
     TextBox fArtistField;
     TextBox fAlbumName;
     TextBox fAlbumYear;
-    TextBoxLocked fOutput;
+    TextBox fOutput;
 
     TextBox fURL;
     TextBox fArtworkURL;
@@ -36,10 +40,10 @@ private:
     wxButton bnRunScript;
     wxPanel mainPanel;
 
-public:
-    // FROM GLOBAL VARIABLES
-    unsigned int ClientWidth, ClientHeight;
+
 private:
+    unsigned int ClientWidth, ClientHeight;
+
     wxPoint defaultPos;
     wxSize mainOffset;
     wxSize fieldBetweenSpace;
@@ -54,16 +58,13 @@ private:
 private:
     std::thread workingThread;
     std::thread outputThread;
-    std::mutex doneSwitchMutex;
-    std::mutex printMutex;
     bool bDone;
     bool bResetFields;
     const bool bLog = true;
     unsigned int uMaxOutputLines;
 
     std::wstring consoleLogFilepath;
-    std::wstring consoleOutputBuf;
-    Console mainConsole;
+
 
     std::string thumbnailURL;
     std::string resourceFilename;
@@ -82,12 +83,13 @@ private:
 private:
     void InitBindings();
     void InitFields();
+    void InitConsole();
     void InitControls();
     void InitValues();
     void InitThemes();
     void InitDefaultSize();
     void InitTestValues();
-    void InitOutput();
+
 
     void SaveSettings();
     void OpenSettings();

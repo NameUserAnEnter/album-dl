@@ -26,6 +26,9 @@ void MainFrame::InitValues()
     bDone = true;
     bResetFields = true;
 
+    defaultPos.x = 720;
+    defaultPos.y = 0;
+
     mainOffset = wxSize(20, 40);
     fieldBetweenSpace = wxSize(10, 20);
 
@@ -37,6 +40,8 @@ void MainFrame::InitValues()
     labelOffset.right = 3;
     labelOffset.top = 15;
     labelOffset.bottom = 3;
+
+    uMaxOutputLines = 150;
 
 
 
@@ -52,21 +57,6 @@ void MainFrame::InitValues()
     tracksFilename = "tracks";
 
     thumbnailURL = "";
-    
-    
-    
-    consoleOutputBuf.clear();
-
-    mainConsole.InitConsole(consoleLogFilepath, &consoleOutputBuf, &printMutex, false);
-    tag::SetConsole(&mainConsole);
-    net::SetConsole(&mainConsole);
-
-    if (bLog) mainConsole.OpenLog();
-
-    uMaxOutputLines = 150;
-
-    defaultPos.x = 720;
-    defaultPos.y = 0;
 }
 
 void MainFrame::InitFields()
@@ -119,9 +109,20 @@ void MainFrame::InitFields()
 
 
     mainOffset.y += fieldBetweenSpace.y;
-    fOutput.Init(&printMutex, "Output:", ID_output_Field,
+    fOutput.Init("Output:", ID_output_Field,
                                wxPoint(mainOffset.x, mainOffset.y), LargeBoxSize, &mainPanel, wxTE_MULTILINE | wxTE_READONLY,
                                labelOffset, mainOffset, fieldBetweenSpace);
+}
+
+void MainFrame::InitConsole()
+{
+    fOutput.SetMutex(mainConsole.GetPrintMutex());
+
+    mainConsole.InitConsole(consoleLogFilepath, fOutput.GetBuf(), false);
+    tag::SetConsole(&mainConsole);
+    net::SetConsole(&mainConsole);
+
+    if (bLog) mainConsole.OpenLog();
 }
 
 void MainFrame::InitDefaultSize()
@@ -204,12 +205,6 @@ void MainFrame::InitControls()
     //fOutput.SetEditable(false);
 }
 
-void MainFrame::InitOutput()
-{
-    if (outputThread.joinable()) outputThread.join();
-    outputThread = std::move(std::thread(&MainFrame::UpdateOutput, this));
-}
-
 void MainFrame::InitTestValues()
 {
     bResetFields = false;
@@ -263,6 +258,8 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     InitValues();
     InitFields();
 
+    InitConsole();
+
     InitThemes();
     InitBindings();
     InitControls();
@@ -276,20 +273,6 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     SetPosition(wxPoint(defaultPos.x, defaultPos.y));   // SET WINDOW POS TO DEFAULT POS
     OpenSettings();                                     // LOAD SETTINGS (MAY REPOS WINDOW)
     Show(true);                                         // SHOW WINDOW
-
-    
-    
-    std::wstring tableDiff = GetTableDiff(codepage::table_CP852, codepage::table_CP1250);
-    std::wstring output = L"";
-    for (int i = 0; i < tableDiff.size(); i++)
-    {
-        output += toWide(NumToStr(i + 1)) + L": " + tableDiff[i] + L"\n";
-    }
-    if (!output.empty()) output += L"\n\n";
-    mainConsole.PrintLogAndConsole(output);
-    //fOutput.SetText(output);
-    
-    InitOutput();
 }
 
 MainFrame::~MainFrame()
@@ -342,12 +325,18 @@ void MainFrame::OnButtonPress(wxCommandEvent& event)
 
 
 
+void MainFrame::StartOutputUpdate()
+{
+    if (outputThread.joinable()) outputThread.join();
+    outputThread = std::move(std::thread(&MainFrame::UpdateOutput, this));
+}
+
 void MainFrame::UpdateOutput()
 {
     while (true)
     {
         if (fOutput.GetNumberOfLines() >= uMaxOutputLines) fOutput.PopFirstLine();
-        if (!consoleOutputBuf.empty()) fOutput.AddTextClear(consoleOutputBuf);
+        fOutput.FlushBuf();
     }
 }
 
@@ -430,7 +419,6 @@ void MainFrame::GetAlbum()
     mainConsole.PrintLogAndConsoleNarrow("\n----------------------------   Program finished.   ----------------------------\n");
 
     //if (bLog) mainConsole.CloseLog();
-    std::lock_guard<std::mutex> switchLock(doneSwitchMutex);
     bDone = true;
 }
 

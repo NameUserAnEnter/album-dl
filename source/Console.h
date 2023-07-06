@@ -34,14 +34,16 @@ class Console
 {
 public:
 	Console();
-	void InitConsole(std::wstring, std::wstring*, std::mutex*, bool = false, unsigned int = 80);
+	void InitConsole(std::wstring, std::wstring*, bool = false, unsigned int = 80);
 	~Console();
 
 	void AddCmd(std::wstring, OUTPUT_MODE = DEFAULT);
 	void AddCmd(std::vector<std::wstring>, OUTPUT_MODE = DEFAULT);
 	void TrashCmds();
+
+	std::mutex* GetPrintMutex();
 private:
-	std::mutex* pPrintMutex;
+	std::mutex printMutex;
 	bool bDumpBytes;
 	bool bInit;
 	bool bLogOpen;

@@ -1,10 +1,18 @@
 #include "Console.h"
 
 
-Console::Console()
+Console::~Console()
 {
-	InitValues();
+	for (int i = 0; i < ActiveHandles.size(); i++)
+	{
+		CloseProperHandle(ActiveHandles[ActiveHandles.size() - 1 - i]);
+	}
+
+	ActiveHandles.clear();
+	cmdLines.clear();
 }
+
+
 
 void Console::InitValues()
 {
@@ -15,7 +23,6 @@ void Console::InitValues()
 
 	logFilepath = L"";
 	pOutputBuffer = nullptr;
-	pPrintMutex = nullptr;
 
 	hLogWrite = NULL;
 
@@ -31,7 +38,12 @@ void Console::InitValues()
 	uBufferWidth = 80;
 }
 
-void Console::InitConsole(std::wstring _logFilepath, std::wstring* _pOutputBuffer, std::mutex* _pPrintMutex,
+Console::Console()
+{
+	InitValues();
+}
+
+void Console::InitConsole(std::wstring _logFilepath, std::wstring* _pOutputBuffer,
 						  bool _bWrap, unsigned int _uBufferWidth)
 {
 	if (bInit) ErrMsgExit("Tried to re-initialize a Console object.");
@@ -39,7 +51,6 @@ void Console::InitConsole(std::wstring _logFilepath, std::wstring* _pOutputBuffe
 
 	logFilepath = _logFilepath;
 	pOutputBuffer = _pOutputBuffer;
-	pPrintMutex = _pPrintMutex;
 
 	bWrap = _bWrap;
 	uBufferWidth = _uBufferWidth;
@@ -49,6 +60,14 @@ void Console::InitConsole(std::wstring _logFilepath, std::wstring* _pOutputBuffe
 	bLogOpen = false;
 	bInit = true;
 }
+
+
+std::mutex* Console::GetPrintMutex()
+{
+	return &printMutex;
+}
+
+
 
 void Console::AddCmd(std::wstring cmdLine, OUTPUT_MODE mode)
 {
@@ -79,16 +98,8 @@ void Console::TrashCmds()
 	cmdLines.clear();
 }
 
-Console::~Console()
-{
-	for (int i = 0; i < ActiveHandles.size(); i++)
-	{
-		CloseProperHandle(ActiveHandles[ActiveHandles.size() - 1 - i]);
-	}
 
-	ActiveHandles.clear();
-	cmdLines.clear();
-}
+
 
 void Console::RunSession()
 {
@@ -219,7 +230,8 @@ void Console::PrintConsole(std::wstring buf)
 {
 	if (!bInit) return;
 
-	std::lock_guard<std::mutex> bufLock(*pPrintMutex);
+	//MessageDialog("test");
+	std::lock_guard<std::mutex> bufLock(printMutex);
 	*pOutputBuffer += (buf);
 }
 
