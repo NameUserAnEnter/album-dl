@@ -222,44 +222,44 @@ void MainFrame::InitTestValues()
 
     // SHORT PLAYLIST
     /*
-    fArtistField.SetText("Big Black");
-    fAlbumName.SetText("Lungs");
-    fAlbumYear.SetText("1982");
-    fURL.SetText("https://www.youtube.com/playlist?list=OLAK5uy_lSCRmY_Qw8RCNnMKHcp05O1K8fAIyqLjs");
+    fArtistField.SetText(L"Big Black");
+    fAlbumName.SetText(L"Lungs");
+    fAlbumYear.SetText(L"1982");
+    fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_lSCRmY_Qw8RCNnMKHcp05O1K8fAIyqLjs");
     */
 
     // RARE UNICODE CHAR THAT SHOWS DIFFERENCE BETWEEN WINDOWS-1250 AND WINDOWS-1252
     /*
-    fArtistField.SetText("The Jesus Lizard");
-    fAlbumName.SetText("Down");
-    fAlbumYear.SetText("1994");
-    fURL.SetText("https://www.youtube.com/playlist?list=OLAK5uy_kULt5j2pKzT5PtLz1RGW7EO-IWDwqVtHw");
+    fArtistField.SetText(L"The Jesus Lizard");
+    fAlbumName.SetText(L"Down");
+    fAlbumYear.SetText(L"1994");
+    fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_kULt5j2pKzT5PtLz1RGW7EO-IWDwqVtHw");
     */
 
     // RARE UNICODE CODE POINTS
     /*
-    fArtistField.SetText("Death in June");
-    fAlbumName.SetText("Discriminate: A Compilation of Personal Choice 1981-97");
-    fAlbumYear.SetText("1997");
-    fURL.SetText("https://www.youtube.com/playlist?list=OLAK5uy_ll7VmeyNV0J4d4HroMPrLrRfBcjiLIVLo");
+    fArtistField.SetText(L"Death in June");
+    fAlbumName.SetText(L"Discriminate: A Compilation of Personal Choice 1981-97");
+    fAlbumYear.SetText(L"1997");
+    fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_ll7VmeyNV0J4d4HroMPrLrRfBcjiLIVLo");
     */
 
     // TYPICAL UNICODE TITLES
     ///*
-    fArtistField.SetText("O.S.T.R.");
-    fAlbumName.SetText("Tylko Dla Doros³ych");
-    fAlbumYear.SetText("2010");
-    fURL.SetText("https://www.youtube.com/playlist?list=PLIKxxmyVA3HZ5vCNl3b0gQXDhuMWLz-mG");
-    fArtworkURL.SetText("https://www.youtube.com/playlist?list=OLAK5uy_l6DSlExq2EbVR7ILChbL9ZHn-1SbyKRO8");
+    fArtistField.SetText(L"O.S.T.R.");
+    fAlbumName.SetText(L"Tylko Dla Doros³ych");
+    fAlbumYear.SetText(L"2010");
+    fURL.SetText(L"https://www.youtube.com/playlist?list=PLIKxxmyVA3HZ5vCNl3b0gQXDhuMWLz-mG");
+    fArtworkURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_l6DSlExq2EbVR7ILChbL9ZHn-1SbyKRO8");
     //*/
 
     // TYPICAL UNICODE TITLES
     /*
-    fArtistField.SetText("Goat");
-    fAlbumName.SetText("World Music");
-    fAlbumYear.SetText("2012");
-    fURL.SetText("https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
-    //fArtworkURL.SetText("https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
+    fArtistField.SetText(L"Goat");
+    fAlbumName.SetText(L"World Music");
+    fAlbumYear.SetText(L"2012");
+    fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
+    //fArtworkURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
     */
 }
 
@@ -413,11 +413,11 @@ void MainFrame::GetAlbum()
         SetStatusText("Resetting");
 
         // Reset fields & set focus
-        fURL.SetText("");
-        fArtworkURL.SetText("");
-        fArtistField.SetText("");
-        fAlbumName.SetText("");
-        fAlbumYear.SetText("");
+        fURL.SetText(L"");
+        fArtworkURL.SetText(L"");
+        fArtistField.SetText(L"");
+        fAlbumName.SetText(L"");
+        fAlbumYear.SetText(L"");
 
         fArtistField.SetFocus();
     }

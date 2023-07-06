@@ -38,10 +38,10 @@ public:
     void FlushBuf();
 
     void SetText(std::wstring);
-    void SetText(std::string);
+    void SetTextNarrow(std::string);
 
     void AddText(std::wstring);
-    void AddText(std::string);
+    void AddTextNarrow(std::string);
 
     void SetFocus();
     void SetEditable(bool);

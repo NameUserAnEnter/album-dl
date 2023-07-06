@@ -53,12 +53,12 @@ void TextBox::AddText(std::wstring text)
     else textField.AppendText(text);
 }
 
-void TextBox::SetText(std::string text)
+void TextBox::SetTextNarrow(std::string text)
 {
     SetText(toWide(text));
 }
 
-void TextBox::AddText(std::string text)
+void TextBox::AddTextNarrow(std::string text)
 {
     AddText(toWide(text));
 }
