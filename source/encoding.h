@@ -283,7 +283,7 @@ inline std::wstring printTable(wchar_t table[])
         }
     }
 
-    output += L"----";
+    output += L"\n----";
     for (int i = 0; i < 16; i++)
     {
         output += L"-----";
