@@ -30,9 +30,9 @@ bool MainApp::OnInit()
 
 
 
-    frame->mainConsole.PrintLogAndConsole(printTable(codepage::table_CP1250));
     frame->mainConsole.PrintLogAndConsole(printTable(codepage::table_CP852));
-    frame->mainConsole.PrintLogAndConsole(printTableDiff(codepage::table_CP852, codepage::table_CP1250));
+    frame->mainConsole.PrintLogAndConsole(printTable(codepage::table_CP437));
+    frame->mainConsole.PrintLogAndConsole(printTableDiff(codepage::table_CP852, codepage::table_CP437));
 
 
 

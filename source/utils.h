@@ -393,30 +393,6 @@ inline bool findCharInStr(std::basic_string<T> str, T query)
 }
 
 
-inline bool isStrNum(std::basic_string<wchar_t> str)
-{
-    for (auto symbol : str)
-    {
-        if (!iswdigit(symbol))
-        {
-            return false;
-        }
-    }
-    return true;
-}
-
-inline bool isStrNum(std::basic_string<char> str)
-{
-    for (auto symbol : str)
-    {
-        if (!isdigit(symbol))
-        {
-            return false;
-        }
-    }
-    return true;
-}
-
 template<typename T>
 inline bool findInStr(std::basic_string<T> str, std::basic_string<T> query)
 {
@@ -527,6 +503,36 @@ inline bool beginWith(std::basic_string<T> str, const T* query)
 
 
 
+// STRING & CHAR EXAMINATION
+inline bool isStrNum(std::basic_string<wchar_t> str)
+{
+    for (auto symbol : str)
+    {
+        if (!iswdigit(symbol))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+inline bool isStrNum(std::basic_string<char> str)
+{
+    for (auto symbol : str)
+    {
+        if (!isdigit(symbol))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+inline bool isPrintable(wchar_t ch)
+{
+    if (ch >= 0x20) return true;
+    else return false;
+}
 
 
 
