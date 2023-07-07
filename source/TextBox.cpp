@@ -122,6 +122,11 @@ void TextBox::SetFont(wxFont font)
     textField.SetFont(font);
 }
 
+wxFont TextBox::GetFont()
+{
+    return textField.GetFont();
+}
+
 void TextBox::SetEncoding(TEXT_ENCODING _fieldEncoding)
 {
     fieldEncoding = _fieldEncoding;

@@ -25,13 +25,13 @@ public:
 
     Console mainConsole;
     void StartOutputUpdate();
+    TextBox fOutput;
 private:
     TextBox fAlbumsDir;
     TextBox fWorkingDir;
     TextBox fArtistField;
     TextBox fAlbumName;
     TextBox fAlbumYear;
-    TextBox fOutput;
 
     TextBox fURL;
     TextBox fArtworkURL;
@@ -87,6 +87,7 @@ private:
     void InitControls();
     void InitValues();
     void InitThemes();
+    void InitFonts();
     void InitDefaultSize();
     void InitTestValues();
 

@@ -154,22 +154,27 @@ void MainFrame::InitThemes()
     // -WINDOWS-1250 & IBM-852 difference testing
     // -chcp code page extraction
     //
+}
 
-    
-    
-    
+void MainFrame::InitFonts()
+{
     // Use either of these fonts:
     // Notepad++:   Courier New, 10 | 0xFFFFFF, 0x1E1E1E
     // Console:     Terminal, 8x12  | 0xC0C0C0, 0x000000
-    
-    
-    wxFont outputFont(wxFontInfo(wxSize(8, 16)).FaceName("Courier New").Bold());
-    
+
+
+    //wxFont outputFont(wxFontInfo(wxSize(8, 16)).FaceName("Courier New").Bold());
+
+    //wxFont outputFont(wxFontInfo(wxSize(8, 12)).FaceName("Fixedsys"));
+
+    //wxFont outputFont(wxFontInfo(wxSize(8, 12)).FaceName("The One True Font (System 8x12)"));
+
     //wxFont outputFont(wxFontInfo(wxSize(8, 12)).FaceName("Terminal"));
     //fOutput.SetEncoding(CP852);
-    
-    
-    fOutput.SetFont(outputFont);
+
+    //wxFont outputFont(wxFontInfo(wxSize(8, 12)).FaceName("Consolas").Bold());
+
+    //fOutput.SetFont(outputFont);
 }
 
 void MainFrame::InitBindings()
@@ -271,6 +276,8 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     InitConsole();
 
     InitThemes();
+    InitFonts();
+
     InitBindings();
     InitControls();
 

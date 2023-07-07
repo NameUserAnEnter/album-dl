@@ -50,6 +50,7 @@ public:
     void SetBackground(wxColour);
 
     void SetFont(wxFont);
+    wxFont GetFont();
     void SetEncoding(TEXT_ENCODING);
 
 
