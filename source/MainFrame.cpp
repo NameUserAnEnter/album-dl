@@ -145,7 +145,6 @@ void MainFrame::InitThemes()
     // -Custom selection color
     // -Implement window auto-scaling relative to screen resolution
     // -Implement GUI auto-scaling relative to window size
-    // -Choose right font for output
     // 
 }
 
@@ -180,10 +179,13 @@ void MainFrame::InitFonts()
 
     
     fOutput.SetFont(outputFont);
+    
+    
+
     std::wstring outputFaceName = fOutput.GetFontFaceName();
 
-    mainConsole.PrintLogAndConsole(testUnicode(outputFaceName));
-    mainConsole.PrintLogAndConsole(testNoLigature());
+    //mainConsole.PrintLogAndConsole(testUnicode(outputFaceName));
+    //mainConsole.PrintLogAndConsole(testNoLigature());
 }
 
 void MainFrame::InitBindings()
@@ -251,12 +253,12 @@ void MainFrame::InitTestValues()
     */
 
     // RARE UNICODE CODE POINTS
-    ///*
+    /*
     fArtistField.SetText(L"Death in June");
     fAlbumName.SetText(L"Discriminate: A Compilation of Personal Choice 1981-97");
     fAlbumYear.SetText(L"1997");
     fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_ll7VmeyNV0J4d4HroMPrLrRfBcjiLIVLo");
-    //*/
+    */
 
     // TYPICAL UNICODE TITLES
     /*
@@ -268,13 +270,13 @@ void MainFrame::InitTestValues()
     */
 
     // TYPICAL UNICODE TITLES
-    /*
+    ///*
     fArtistField.SetText(L"Goat");
     fAlbumName.SetText(L"World Music");
     fAlbumYear.SetText(L"2012");
     fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
     //fArtworkURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
-    */
+    //*/
 }
 
 MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
@@ -384,14 +386,14 @@ void MainFrame::GetAlbum()
 
 
     //--------------------------------------------------
-    //mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
-    //ExecuteBatchSession();
+    mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
+    ExecuteBatchSession();
 
     
     //--------------------------------------------------
-    ResetTracksFile();
-    mainConsole.AddCmd(GetTitlesStage(), WINDOWS1250);
-    ExecuteBatchSession();
+    //ResetTracksFile();
+    //mainConsole.AddCmd(GetTitlesStage(), WINDOWS1250);
+    //ExecuteBatchSession();
 
     //LoadTrackTitles();
     //ValidateTrackTitles();
