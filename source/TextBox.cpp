@@ -41,17 +41,35 @@ void TextBox::SetText(std::wstring text)
 {
     if (!bInit) return;
 
-    if (fieldEncoding == TEXT_ENCODING::CP852) textField.SetValue(EncodeToCodePage(text, codepage::table_CP852));
-    else textField.SetValue(text);
+    std::wstring output = FormatText(text);
+
+
+    textField.SetValue(output);
+    //textField.SetInsertionPointEnd();
 }
 
 void TextBox::AddText(std::wstring text)
 {
     if (!bInit) return;
 
-    if (fieldEncoding == TEXT_ENCODING::CP852) textField.AppendText(EncodeToCodePage(text, codepage::table_CP852));
-    else textField.AppendText(text);
+    std::wstring output = FormatText(text);
+
+
+    textField.AppendText(output);
+    //textField.SetInsertionPointEnd();
 }
+
+
+std::wstring TextBox::FormatText(std::wstring text)
+{
+    std::wstring output;
+
+    if (fieldEncoding == TEXT_ENCODING::CP852) output = toWide(EncodeToCodePage(text, codepage::table_CP852));
+    else output = text;
+
+    return output;
+}
+
 
 void TextBox::SetTextNarrow(std::string text)
 {
@@ -145,24 +163,35 @@ void TextBox::SetEncoding(TEXT_ENCODING _fieldEncoding)
 
 
 
-void TextBox::PopFirstLine()
+void TextBox::RemoveExceeding(unsigned int uMaxLines)
 {
     if (!bInit) return;
 
     std::wstring data = GetText();
     std::wstring newdata = L"";
+    
     bool bAdd = false;
+    unsigned int uCurrentLine = 1;
+    int uLastToRemove = GetNumberOfLines() - uMaxLines;
+
+    //MessageDialog(std::to_string(uLastToRemove));
+    if (uLastToRemove <= 0) return;
+
     for (int i = 0; i < data.size(); i++)
     {
+        if (uCurrentLine > uLastToRemove) bAdd = true;
+
         if (bAdd)
         {
             newdata += data[i];
             continue;
         }
 
-        if (data[i] == '\n' && !bAdd) bAdd = true;
+        if (data[i] == '\n') uCurrentLine++;
     }
-    SetText(newdata);
+
+
+    //SetText(newdata);
 }
 
 

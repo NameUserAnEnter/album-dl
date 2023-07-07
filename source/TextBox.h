@@ -28,6 +28,8 @@ private:
 
     std::mutex* bufMutex;
     std::wstring outputBuf;
+
+    std::wstring FormatText(std::wstring);
 public:
     TextBox();
 
@@ -58,7 +60,7 @@ public:
 
     bool IsEmpty();
 
-    void PopFirstLine();
+    void RemoveExceeding(unsigned int uMaxLines);
 
     std::wstring GetText();
 

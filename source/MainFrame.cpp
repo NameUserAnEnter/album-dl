@@ -141,18 +141,12 @@ void MainFrame::InitThemes()
 
     // TO DO:
     
-    // July 3rd, 2023:
-    // -Investigate encoding-font compatibility
+    // -Add a blinking cursor at last pos (e.g. char: _)
+    // -Custom selection color
     // -Implement window auto-scaling relative to screen resolution
     // -Implement GUI auto-scaling relative to window size
-    // -Disable License/ReadMe dumping in the release build
-    //
-    
-    // July 4th, 2023:
-    // -Custom selection color
-    // -WINDOWS-1250 & IBM-852 difference testing
-    // -chcp code page extraction
-    //
+    // -Choose right font for output
+    // 
 }
 
 void MainFrame::InitFonts()
@@ -166,20 +160,33 @@ void MainFrame::InitFonts()
     wxFont outputFont;
     //outputFont = wxFont(wxFontInfo(wxSize(8, 16)).FaceName("Courier New").Bold());
     //outputFont = wxFont(wxFontInfo(wxSize(8, 12)).FaceName("Consolas").Bold());
-    //outputFont = wxFont(wxFontInfo(wxSize(8, 12)).FaceName("Fixedsys"));
     //outputFont = wxFont(wxFontInfo(wxSize(8, 12)).FaceName("The One True Font (System 8x12)"));
 
     //outputFont = wxFont(wxFontInfo(wxSize(8, 12)).FaceName("Terminal"));
     //fOutput.SetEncoding(CP852);
 
-    outputFont.AddPrivateFont("FSEX300.ttf");
-    outputFont = wxFont(wxFontInfo(wxSize(8, 12)).FaceName("Fixedsys Excelsior 3.01"));
+    // FIXEDSYS VARIANTS:
+    // no ligatures
+    outputFont = wxFont(wxFontInfo(12).FaceName("Fixedsys"));
+
+    // few ligatures
+    //outputFont.AddPrivateFont("FSEX300.ttf");
+    //outputFont = wxFont(wxFontInfo(12).FaceName("Fixedsys Excelsior 3.01"));
+
+    // most ligatures
+    //outputFont.AddPrivateFont("FSEX302.ttf");
+    //outputFont.AddPrivateFont("FSEX302-alt.ttf");
+    //outputFont = wxFont(wxFontInfo(12).FaceName("Fixedsys Excelsior"));
 
     
     fOutput.SetFont(outputFont);
     std::wstring outputFaceName = fOutput.GetFontFaceName();
 
     mainConsole.PrintLogAndConsole(testUnicode(outputFaceName));
+    mainConsole.PrintLogAndConsole(testNoLigature());
+    mainConsole.PrintLogAndConsole(testNoLigature());
+    mainConsole.PrintLogAndConsole(testNoLigature());
+    mainConsole.PrintLogAndConsole(testNoLigature());
 }
 
 void MainFrame::InitBindings()
@@ -357,7 +364,7 @@ void MainFrame::UpdateOutput()
 {
     while (true)
     {
-        if (fOutput.GetNumberOfLines() >= uMaxOutputLines) fOutput.PopFirstLine();
+        fOutput.RemoveExceeding(uMaxOutputLines);
         fOutput.FlushBuf();
     }
 }
@@ -379,14 +386,15 @@ void MainFrame::GetAlbum()
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Program start.      ----------------------------\n");
 
 
+    //--------------------------------------------------
     //mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
     //ExecuteBatchSession();
 
     
     //--------------------------------------------------
-    //ResetTracksFile();
-    //mainConsole.AddCmd(GetTitlesStage(), WINDOWS1250);
-    //ExecuteBatchSession();
+    ResetTracksFile();
+    mainConsole.AddCmd(GetTitlesStage(), WINDOWS1250);
+    ExecuteBatchSession();
 
     LoadTrackTitles();
     ValidateTrackTitles();
