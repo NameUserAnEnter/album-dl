@@ -36,6 +36,28 @@ void MainFrame::InitValues()
     OutputBoxSize = wxSize(800, 700);
     ButtonSize = wxSize(100, 25);
 
+
+
+    initialOutput = L"";
+    
+    float screenResX = GetSystemMetrics(SM_CXSCREEN);
+    float screenResY = GetSystemMetrics(SM_CYSCREEN);
+
+    OutputBoxSize = wxSize(screenResX / (screenResX / OutputBoxSize.x), screenResY / (screenResY / OutputBoxSize.y));
+    TextBoxSize = wxSize(screenResX / (screenResX / TextBoxSize.x), screenResY / (screenResY / TextBoxSize.y));
+    ButtonSize = wxSize(screenResX / (screenResX / ButtonSize.x), screenResY / (screenResY / ButtonSize.y));
+
+    if (defaultPos.x != 0)
+    {
+        defaultPos = wxPoint(screenResX / (screenResX / defaultPos.x), defaultPos.y);
+    }
+
+    initialOutput += L"defaultPos: " + NumToWstr(defaultPos.x) + 'x' + NumToWstr(defaultPos.y) + '\n';
+    initialOutput += L"OutputBoxSize: " + NumToWstr(OutputBoxSize.x) + 'x' + NumToWstr(OutputBoxSize.y) + '\n';
+    initialOutput += L"TextBoxSize: " + NumToWstr(TextBoxSize.x) + 'x' + NumToWstr(TextBoxSize.y) + '\n';
+    initialOutput += L"ButtonSize: " + NumToWstr(ButtonSize.x) + 'x' + NumToWstr(ButtonSize.y) + L"\n\n";
+    //--
+
     labelOffset.left = 3;
     labelOffset.right = 3;
     labelOffset.top = 15;
@@ -130,6 +152,17 @@ void MainFrame::InitDefaultSize()
     ClientHeight = mainOffset.y;
 
     SetClientSize(ClientWidth, ClientHeight);
+
+    float screenResX = GetSystemMetrics(SM_CXSCREEN);
+    float screenResY = GetSystemMetrics(SM_CYSCREEN);
+
+    if (ClientHeight + 150 >= screenResY)
+    {
+        mainPanel.AlwaysShowScrollbars(false, true);
+
+        initialOutput += L"mainPanel.IsScrollbarAlwaysShown: " + NumToWstr(mainPanel.IsScrollbarAlwaysShown(wxVERTICAL)) + '\n';
+        initialOutput += L"mainPanel.HasScrollbar: " + NumToWstr(mainPanel.HasScrollbar(wxVERTICAL)) + '\n';
+    }
 }
 
 void MainFrame::InitThemes()
@@ -301,6 +334,9 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     SetPosition(wxPoint(defaultPos.x, defaultPos.y));   // SET WINDOW POS TO DEFAULT POS
     OpenSettings();                                     // LOAD SETTINGS (MAY REPOS WINDOW)
     Show(true);                                         // SHOW WINDOW
+
+    mainConsole.PrintLogAndConsole(initialOutput);
+    initialOutput.clear();
 }
 
 MainFrame::~MainFrame()

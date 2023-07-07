@@ -132,6 +132,8 @@ private:
     std::wstring albumsDirBackslashes;
     std::wstring albumPathBackslashes;
     std::wstring workingDirBackslashes;
+
+    std::wstring initialOutput;
 private:
     std::wstring DownloadStage();
     std::vector<std::wstring> ConvertStage();
