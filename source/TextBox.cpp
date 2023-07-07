@@ -116,6 +116,8 @@ void TextBox::SetBackground(wxColour background)
     textField.SetBackgroundColour(wxColour(background));
 }
 
+
+
 void TextBox::SetFont(wxFont font)
 {
     if (!bInit) return;
@@ -126,6 +128,13 @@ wxFont TextBox::GetFont()
 {
     return textField.GetFont();
 }
+
+std::wstring TextBox::GetFontFaceName()
+{
+    return GetFont().GetFaceName().ToStdWstring();
+}
+
+
 
 void TextBox::SetEncoding(TEXT_ENCODING _fieldEncoding)
 {

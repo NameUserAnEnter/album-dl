@@ -33,7 +33,7 @@ void MainFrame::InitValues()
     fieldBetweenSpace = wxSize(10, 20);
 
     TextBoxSize = wxSize(800, 20);
-    LargeBoxSize = wxSize(800, 500);
+    OutputBoxSize = wxSize(800, 530);
     ButtonSize = wxSize(100, 25);
 
     labelOffset.left = 3;
@@ -42,7 +42,6 @@ void MainFrame::InitValues()
     labelOffset.bottom = 3;
 
     uMaxOutputLines = 150;
-
 
 
 
@@ -110,7 +109,7 @@ void MainFrame::InitFields()
 
     mainOffset.y += fieldBetweenSpace.y;
     fOutput.Init("Output:", ID_output_Field,
-                               wxPoint(mainOffset.x, mainOffset.y), LargeBoxSize, &mainPanel, wxTE_MULTILINE | wxTE_READONLY,
+                               wxPoint(mainOffset.x, mainOffset.y), OutputBoxSize, &mainPanel, wxTE_MULTILINE | wxTE_READONLY,
                                labelOffset, mainOffset, fieldBetweenSpace);
 }
 
@@ -158,23 +157,29 @@ void MainFrame::InitThemes()
 
 void MainFrame::InitFonts()
 {
-    // Use either of these fonts:
+    // Considered fonts:
     // Notepad++:   Courier New, 10 | 0xFFFFFF, 0x1E1E1E
     // Console:     Terminal, 8x12  | 0xC0C0C0, 0x000000
 
+    
 
-    //wxFont outputFont(wxFontInfo(wxSize(8, 16)).FaceName("Courier New").Bold());
+    wxFont outputFont;
+    //outputFont = wxFont(wxFontInfo(wxSize(8, 16)).FaceName("Courier New").Bold());
+    //outputFont = wxFont(wxFontInfo(wxSize(8, 12)).FaceName("Consolas").Bold());
+    //outputFont = wxFont(wxFontInfo(wxSize(8, 12)).FaceName("Fixedsys"));
+    //outputFont = wxFont(wxFontInfo(wxSize(8, 12)).FaceName("The One True Font (System 8x12)"));
 
-    //wxFont outputFont(wxFontInfo(wxSize(8, 12)).FaceName("Fixedsys"));
-
-    //wxFont outputFont(wxFontInfo(wxSize(8, 12)).FaceName("The One True Font (System 8x12)"));
-
-    //wxFont outputFont(wxFontInfo(wxSize(8, 12)).FaceName("Terminal"));
+    //outputFont = wxFont(wxFontInfo(wxSize(8, 12)).FaceName("Terminal"));
     //fOutput.SetEncoding(CP852);
 
-    //wxFont outputFont(wxFontInfo(wxSize(8, 12)).FaceName("Consolas").Bold());
+    outputFont.AddPrivateFont("FSEX300.ttf");
+    outputFont = wxFont(wxFontInfo(wxSize(8, 12)).FaceName("Fixedsys Excelsior 3.01"));
 
-    //fOutput.SetFont(outputFont);
+    
+    fOutput.SetFont(outputFont);
+    std::wstring outputFaceName = fOutput.GetFontFaceName();
+
+    mainConsole.PrintLogAndConsole(testUnicode(outputFaceName));
 }
 
 void MainFrame::InitBindings()

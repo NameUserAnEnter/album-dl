@@ -25,13 +25,13 @@ public:
 
     Console mainConsole;
     void StartOutputUpdate();
-    TextBox fOutput;
 private:
     TextBox fAlbumsDir;
     TextBox fWorkingDir;
     TextBox fArtistField;
     TextBox fAlbumName;
     TextBox fAlbumYear;
+    TextBox fOutput;
 
     TextBox fURL;
     TextBox fArtworkURL;
@@ -49,7 +49,7 @@ private:
     wxSize fieldBetweenSpace;
 
     wxSize TextBoxSize;
-    wxSize LargeBoxSize;
+    wxSize OutputBoxSize;
     wxSize ButtonSize;
 
     RECT labelOffset;

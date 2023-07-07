@@ -51,6 +51,8 @@ public:
 
     void SetFont(wxFont);
     wxFont GetFont();
+    std::wstring GetFontFaceName();
+
     void SetEncoding(TEXT_ENCODING);
 
 

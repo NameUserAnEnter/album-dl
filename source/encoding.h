@@ -240,6 +240,51 @@ inline std::wstring GetTableDiff(wchar_t table1[], wchar_t table2[])
 
 
 
+inline std::wstring testUnicode(std::wstring faceName)
+{
+    std::wstring testStr = L":\n";
+
+    testStr += L"ABCDEFGHIJKLMNOPQRSTUVWXYZ\n";
+    testStr += L"abcdefghijklmnopqrstuvwxyz\n\n";
+
+    testStr += L"¥ÊÓŒ¯ÆÑ£\n";
+    testStr += L"¹êóœŸ¿æñ³\n\n";
+
+    testStr += L"[0x0080 - 0x017F] CODE POINTS:\n";
+
+
+
+    testStr += L"    ";
+    testStr += L" |";
+    for (int i = 0; i < 16; i++) testStr += L" x" + NumToWstr(i, 16, 1);
+    testStr += '\n';
+
+    testStr += L"----";
+    testStr += L"-|";
+    for (int i = 0; i < 16; i++) testStr += L"---";
+    testStr += '\n';
+
+    for (wchar_t codePoint = 0x0080; codePoint <= 0x024F; codePoint++)
+    {
+        if (codePoint % 16 == 0) testStr += NumToWstr(codePoint / 16, 16, 3, ' ') + L"x | ";
+
+        if ((codePoint >= 0x80 && codePoint <= 0xA0) || codePoint == 0xAD) testStr += ' ';
+        else testStr += codePoint;
+
+        if ((codePoint + 1) % 16 == 0) testStr += '\n';
+        else testStr += L"  ";
+    }
+    if (testStr.back() != '\n') testStr += '\n';
+
+    testStr += L"----";
+    testStr += L"-|";
+    for (int i = 0; i < 16; i++) testStr += L"---";
+    testStr += '\n';
+
+    std::wstring output = faceName + testStr;
+    return output;
+};
+
 
 
 inline std::wstring printTableDiff(wchar_t table1[], wchar_t table2[])
