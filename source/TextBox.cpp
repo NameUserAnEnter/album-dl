@@ -45,7 +45,7 @@ void TextBox::SetText(std::wstring text)
 
 
     textField.SetValue(output);
-    //textField.SetInsertionPointEnd();
+    textField.SetInsertionPointEnd();
 }
 
 void TextBox::AddText(std::wstring text)
@@ -56,7 +56,7 @@ void TextBox::AddText(std::wstring text)
 
 
     textField.AppendText(output);
-    //textField.SetInsertionPointEnd();
+    textField.SetInsertionPointEnd();
 }
 
 
@@ -191,7 +191,7 @@ void TextBox::RemoveExceeding(unsigned int uMaxLines)
     }
 
 
-    //SetText(newdata);
+    SetText(newdata);
 }
 
 

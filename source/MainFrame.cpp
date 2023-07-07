@@ -184,9 +184,6 @@ void MainFrame::InitFonts()
 
     mainConsole.PrintLogAndConsole(testUnicode(outputFaceName));
     mainConsole.PrintLogAndConsole(testNoLigature());
-    mainConsole.PrintLogAndConsole(testNoLigature());
-    mainConsole.PrintLogAndConsole(testNoLigature());
-    mainConsole.PrintLogAndConsole(testNoLigature());
 }
 
 void MainFrame::InitBindings()
@@ -254,21 +251,21 @@ void MainFrame::InitTestValues()
     */
 
     // RARE UNICODE CODE POINTS
-    /*
+    ///*
     fArtistField.SetText(L"Death in June");
     fAlbumName.SetText(L"Discriminate: A Compilation of Personal Choice 1981-97");
     fAlbumYear.SetText(L"1997");
     fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_ll7VmeyNV0J4d4HroMPrLrRfBcjiLIVLo");
-    */
+    //*/
 
     // TYPICAL UNICODE TITLES
-    ///*
+    /*
     fArtistField.SetText(L"O.S.T.R.");
     fAlbumName.SetText(L"Tylko Dla Doros³ych");
     fAlbumYear.SetText(L"2010");
     fURL.SetText(L"https://www.youtube.com/playlist?list=PLIKxxmyVA3HZ5vCNl3b0gQXDhuMWLz-mG");
     fArtworkURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_l6DSlExq2EbVR7ILChbL9ZHn-1SbyKRO8");
-    //*/
+    */
 
     // TYPICAL UNICODE TITLES
     /*
@@ -396,8 +393,8 @@ void MainFrame::GetAlbum()
     mainConsole.AddCmd(GetTitlesStage(), WINDOWS1250);
     ExecuteBatchSession();
 
-    LoadTrackTitles();
-    ValidateTrackTitles();
+    //LoadTrackTitles();
+    //ValidateTrackTitles();
     //ResetTracksFile();
     
     
