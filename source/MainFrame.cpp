@@ -33,7 +33,7 @@ void MainFrame::InitValues()
     fieldBetweenSpace = wxSize(10, 20);
 
     TextBoxSize = wxSize(800, 20);
-    OutputBoxSize = wxSize(800, 530);
+    OutputBoxSize = wxSize(800, 700);
     ButtonSize = wxSize(100, 25);
 
     labelOffset.left = 3;
