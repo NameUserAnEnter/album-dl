@@ -288,8 +288,9 @@ inline std::wstring testUnicode(std::wstring faceName)
 inline std::wstring testNoLigature()
 {
     std::string output =    "a<->b\na->b\na<-b\na=>b\na<=b\na++b\na!=b\na!==b\na===b\na>>=b\na=<<b\na<=>b\na==b\na<*>b\na<$>b\na<<<b\n"
-                            "a>>>b\na<>b\na/=b\na::b\na:=b\n{-ab-}\na<|b\na|>b\na~>b\na<~b\na<~>b\nb<^>b\na/\b\na<=<b\na>=>b\na<|>b\n"
+                            "a>>>b\na<>b\na/=b\na::b\na:=b\n{-ab-}\na<|b\na|>b\na~>b\na<~b\na<~>b\nb<^>b\na/\\b\na<=<b\na>=>b\na<|>b\n"
                             "a-->b\na>=b\na=<b\na<==b\n";
+
     return toWide(output);
 }
 
