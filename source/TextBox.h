@@ -21,6 +21,8 @@ class TextBox
 private:
     bool bInit;
 
+    RECT labelOffset;
+
     wxStaticBox labelBox;
     wxTextCtrl textField;
 
@@ -33,7 +35,7 @@ private:
 public:
     TextBox();
 
-    void Init(std::string, wxWindowID, wxPoint, wxSize, wxPanel*, long, RECT, wxSize&, wxSize);
+    void Init(std::string, wxWindowID, wxPoint, wxSize, wxPanel*, long, wxPoint&, wxSize);
 
     std::wstring* GetBuf();
     void SetMutex(std::mutex*);

@@ -26,14 +26,14 @@ void MainFrame::InitValues()
     bDone = true;
     bResetFields = true;
 
-    defaultPos.x = 720;
+    defaultPos.x = 350;
     defaultPos.y = 0;
 
-    mainOffset = wxSize(20, 40);
-    fieldBetweenSpace = wxSize(10, 20);
+    mainOffset = wxPoint(20, 40);
+    inbetweenDistance = wxSize(10, 20);
 
     TextBoxSize = wxSize(800, 20);
-    OutputBoxSize = wxSize(800, 700);
+    OutputBoxSize = wxSize(800, 530);
     ButtonSize = wxSize(100, 25);
 
 
@@ -42,26 +42,31 @@ void MainFrame::InitValues()
     
     float screenResX = GetSystemMetrics(SM_CXSCREEN);
     float screenResY = GetSystemMetrics(SM_CYSCREEN);
+    //float screenResX = 1366;
+    //float screenResY = 768;
 
-    OutputBoxSize = wxSize(screenResX / (screenResX / OutputBoxSize.x), screenResY / (screenResY / OutputBoxSize.y));
-    TextBoxSize = wxSize(screenResX / (screenResX / TextBoxSize.x), screenResY / (screenResY / TextBoxSize.y));
-    ButtonSize = wxSize(screenResX / (screenResX / ButtonSize.x), screenResY / (screenResY / ButtonSize.y));
 
-    if (defaultPos.x != 0)
+    // calculating relative dimensions for various screen resolutions
+    // assure no division by zero
+    if (defaultPos.x != 0 &&
+        OutputBoxSize.x != 0 && OutputBoxSize.y != 0 &&
+        TextBoxSize.x != 0 && TextBoxSize.y != 0 &&
+        ButtonSize.x != 0 && ButtonSize.y != 0 &&
+        screenResX != 0 && screenResY != 0)
     {
-        defaultPos = wxPoint(screenResX / (screenResX / defaultPos.x), defaultPos.y);
+        OutputBoxSize = wxSize(OutputBoxSize.x, screenResY / (1080.f / OutputBoxSize.y));
+
+        //
+        defaultPos = wxPoint(screenResX / (1920.f / defaultPos.x), defaultPos.y);
     }
 
     initialOutput += L"defaultPos: " + NumToWstr(defaultPos.x) + 'x' + NumToWstr(defaultPos.y) + '\n';
     initialOutput += L"OutputBoxSize: " + NumToWstr(OutputBoxSize.x) + 'x' + NumToWstr(OutputBoxSize.y) + '\n';
     initialOutput += L"TextBoxSize: " + NumToWstr(TextBoxSize.x) + 'x' + NumToWstr(TextBoxSize.y) + '\n';
-    initialOutput += L"ButtonSize: " + NumToWstr(ButtonSize.x) + 'x' + NumToWstr(ButtonSize.y) + L"\n\n";
+    initialOutput += L"ButtonSize: " + NumToWstr(ButtonSize.x) + 'x' + NumToWstr(ButtonSize.y) + '\n';
+    initialOutput += '\n';
     //--
 
-    labelOffset.left = 3;
-    labelOffset.right = 3;
-    labelOffset.top = 15;
-    labelOffset.bottom = 3;
 
     uMaxOutputLines = 150;
 
@@ -86,53 +91,36 @@ void MainFrame::InitFields()
     mainPanel.Create(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 2621440L, "Main Panel");
 
 
-    fAlbumsDir.Init("Albums directory:", ID_albumsDir_Field,
-                                  wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, NULL,
-                                  labelOffset, mainOffset, fieldBetweenSpace);
-    fWorkingDir.Init("Working directory:", ID_workingDir_Field,
-                                   wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, NULL,
-                                   labelOffset, mainOffset, fieldBetweenSpace);
-
-    mainOffset.y += fieldBetweenSpace.y;
-    fArtistField.Init("Artist:", ID_artist_Field,
-                               wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, NULL,
-                               labelOffset, mainOffset, fieldBetweenSpace);
-
-    fAlbumName.Init("Album name:", ID_albumName_Field,
-                                  wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, NULL,
-                                  labelOffset, mainOffset, fieldBetweenSpace);
-
-    fAlbumYear.Init("Album year:", ID_albumYear_Field,
-                                  wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, NULL,
-                                  labelOffset, mainOffset, fieldBetweenSpace);
-
-    fURL.Init("Playlist URL:", ID_URL_Field,
-                            wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, NULL,
-                            labelOffset, mainOffset, fieldBetweenSpace);
+    fAlbumsDir.Init("Albums directory:", ID_albumsDir_Field, mainOffset, TextBoxSize, &mainPanel, NULL, mainOffset, inbetweenDistance);
+    fWorkingDir.Init("Working directory:", ID_workingDir_Field, mainOffset, TextBoxSize, &mainPanel, NULL, mainOffset, inbetweenDistance);
 
 
-    fArtworkURL.Init("Playlist URL with proper artwork:", ID_URL_Artwork_Field,
-                                    wxPoint(mainOffset.x, mainOffset.y), TextBoxSize, &mainPanel, NULL,
-                                    labelOffset, mainOffset, fieldBetweenSpace);
+    // extra separation
+    mainOffset.y += inbetweenDistance.y;
+
+
+    fArtist.Init("Artist:", ID_artist_Field, mainOffset, TextBoxSize, &mainPanel, NULL, mainOffset, inbetweenDistance);
+    fAlbumName.Init("Album name:", ID_albumName_Field, mainOffset, TextBoxSize, &mainPanel, NULL, mainOffset, inbetweenDistance);
+    fAlbumYear.Init("Album year:", ID_albumYear_Field, mainOffset, TextBoxSize, &mainPanel, NULL, mainOffset, inbetweenDistance);
+
+    fURL.Init("Playlist URL:", ID_URL_Field, mainOffset, TextBoxSize, &mainPanel, NULL, mainOffset, inbetweenDistance);
+    fArtworkURL.Init("Playlist URL with proper artwork:", ID_URL_Artwork_Field, mainOffset, TextBoxSize, &mainPanel, NULL, mainOffset, inbetweenDistance);
 
 
 
 
-    bnRunScript.Create(&mainPanel, ID_Button, "Run",
-                                    wxPoint(mainOffset.x, mainOffset.y),
-                                    ButtonSize, NULL, wxDefaultValidator, "Run button");
+    bnRunScript.Create(&mainPanel, ID_Button, "Run", mainOffset, ButtonSize, NULL, wxDefaultValidator, "Run button");
 
-    checkAlert.Create(&mainPanel, ID_AlertOnDone, "Alert on done",
-                                wxPoint(mainOffset.x + ButtonSize.x + fieldBetweenSpace.x, mainOffset.y),
-                                ButtonSize, 0, wxDefaultValidator, "Alert checkbox");
-    mainOffset.y += ButtonSize.y + fieldBetweenSpace.y;
-
+    wxPoint checkPos = wxPoint(mainOffset.x + ButtonSize.x + inbetweenDistance.x, mainOffset.y);
+    checkAlert.Create(&mainPanel, ID_AlertOnDone, "Alert on done", checkPos, ButtonSize, NULL, wxDefaultValidator, "Alert checkbox");
+    
+    // extra separation
+    mainOffset.y += ButtonSize.y + inbetweenDistance.y;
 
 
-    mainOffset.y += fieldBetweenSpace.y;
-    fOutput.Init("Output:", ID_output_Field,
-                               wxPoint(mainOffset.x, mainOffset.y), OutputBoxSize, &mainPanel, wxTE_MULTILINE | wxTE_READONLY,
-                               labelOffset, mainOffset, fieldBetweenSpace);
+
+    mainOffset.y += inbetweenDistance.y;
+    fOutput.Init("Output:", ID_output_Field, mainOffset, OutputBoxSize, &mainPanel, wxTE_MULTILINE | wxTE_READONLY, mainOffset, inbetweenDistance);
 }
 
 void MainFrame::InitConsole()
@@ -156,13 +144,24 @@ void MainFrame::InitDefaultSize()
     float screenResX = GetSystemMetrics(SM_CXSCREEN);
     float screenResY = GetSystemMetrics(SM_CYSCREEN);
 
-    if (ClientHeight + 150 >= screenResY)
-    {
-        mainPanel.AlwaysShowScrollbars(false, true);
+    //if (ClientHeight + 150 >= screenResY)
+    //{
+        //mainPanel.AlwaysShowScrollbars(false, true);
+        // according to doc: range should be ClientHeight instead of ClientHeight - 530
+        //mainPanel.SetScrollbar(wxVERTICAL, 0, 530, ClientHeight - 530);
+    //}
 
-        initialOutput += L"mainPanel.IsScrollbarAlwaysShown: " + NumToWstr(mainPanel.IsScrollbarAlwaysShown(wxVERTICAL)) + '\n';
-        initialOutput += L"mainPanel.HasScrollbar: " + NumToWstr(mainPanel.HasScrollbar(wxVERTICAL)) + '\n';
-    }
+    initialOutput += L"ClientWidth: " + NumToStr(ClientWidth) + '\n';
+    initialOutput += L"ClientHeight: " + NumToStr(ClientHeight) + '\n';
+    initialOutput += '\n';
+
+    initialOutput += L"screenResX: " + NumToStr(screenResX) + '\n';
+    initialOutput += L"screenResY: " + NumToStr(screenResY) + '\n';
+    initialOutput += '\n';
+
+    initialOutput += L"IsScrollbarAlwaysShown: " + NumToWstr(IsScrollbarAlwaysShown(wxVERTICAL)) + '\n';
+    initialOutput += L"HasScrollbar: " + NumToWstr(HasScrollbar(wxVERTICAL)) + '\n';
+    initialOutput += L"CanScroll: " + NumToWstr(CanScroll(wxVERTICAL)) + '\n';
 }
 
 void MainFrame::InitThemes()
@@ -178,6 +177,8 @@ void MainFrame::InitThemes()
     // -Custom selection color
     // -Implement window auto-scaling relative to screen resolution
     // -Implement GUI auto-scaling relative to window size
+    // -Format & bitrate drop-down lists
+    // -Directory selection boxes instead of fields for both dir fields
     // 
 }
 
@@ -271,7 +272,7 @@ void MainFrame::InitTestValues()
 
     // SHORT PLAYLIST
     /*
-    fArtistField.SetText(L"Big Black");
+    fArtist.SetText(L"Big Black");
     fAlbumName.SetText(L"Lungs");
     fAlbumYear.SetText(L"1982");
     fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_lSCRmY_Qw8RCNnMKHcp05O1K8fAIyqLjs");
@@ -279,7 +280,7 @@ void MainFrame::InitTestValues()
 
     // RARE UNICODE CHAR THAT SHOWS DIFFERENCE BETWEEN WINDOWS-1250 AND WINDOWS-1252
     /*
-    fArtistField.SetText(L"The Jesus Lizard");
+    fArtist.SetText(L"The Jesus Lizard");
     fAlbumName.SetText(L"Down");
     fAlbumYear.SetText(L"1994");
     fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_kULt5j2pKzT5PtLz1RGW7EO-IWDwqVtHw");
@@ -287,7 +288,7 @@ void MainFrame::InitTestValues()
 
     // RARE UNICODE CODE POINTS
     /*
-    fArtistField.SetText(L"Death in June");
+    fArtist.SetText(L"Death in June");
     fAlbumName.SetText(L"Discriminate: A Compilation of Personal Choice 1981-97");
     fAlbumYear.SetText(L"1997");
     fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_ll7VmeyNV0J4d4HroMPrLrRfBcjiLIVLo");
@@ -295,7 +296,7 @@ void MainFrame::InitTestValues()
 
     // TYPICAL UNICODE TITLES
     /*
-    fArtistField.SetText(L"O.S.T.R.");
+    fArtist.SetText(L"O.S.T.R.");
     fAlbumName.SetText(L"Tylko Dla Doros³ych");
     fAlbumYear.SetText(L"2010");
     fURL.SetText(L"https://www.youtube.com/playlist?list=PLIKxxmyVA3HZ5vCNl3b0gQXDhuMWLz-mG");
@@ -304,7 +305,7 @@ void MainFrame::InitTestValues()
 
     // TYPICAL UNICODE TITLES
     ///*
-    fArtistField.SetText(L"Goat");
+    fArtist.SetText(L"Goat");
     fAlbumName.SetText(L"World Music");
     fAlbumYear.SetText(L"2012");
     fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
@@ -329,10 +330,11 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 
     InitTestValues();
 
-    fArtistField.SetFocus();
+    fWorkingDir.SetText(L"workfolder/");
+    fArtist.SetFocus();
 
     SetPosition(wxPoint(defaultPos.x, defaultPos.y));   // SET WINDOW POS TO DEFAULT POS
-    OpenSettings();                                     // LOAD SETTINGS (MAY REPOS WINDOW)
+    //OpenSettings();                                     // LOAD SETTINGS (MAY REPOS WINDOW)
     Show(true);                                         // SHOW WINDOW
 
     mainConsole.PrintLogAndConsole(initialOutput);
@@ -470,11 +472,11 @@ void MainFrame::GetAlbum()
         // Reset fields & set focus
         fURL.SetText(L"");
         fArtworkURL.SetText(L"");
-        fArtistField.SetText(L"");
+        fArtist.SetText(L"");
         fAlbumName.SetText(L"");
         fAlbumYear.SetText(L"");
 
-        fArtistField.SetFocus();
+        fArtist.SetFocus();
     }
 
     
@@ -905,7 +907,7 @@ bool MainFrame::ValidateFields()
 
 
     // VALIDATING ALBUM DATA
-    artist = fArtistField.GetText();
+    artist = fArtist.GetText();
     albumName = fAlbumName.GetText();
     albumYear = fAlbumYear.GetText();
 

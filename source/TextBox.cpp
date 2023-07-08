@@ -8,10 +8,15 @@ TextBox::TextBox()
 
     bufMutex = nullptr;
     outputBuf.clear();
+
+    labelOffset.left = 3;
+    labelOffset.right = 3;
+    labelOffset.top = 15;
+    labelOffset.bottom = 3;
 }
 
 void TextBox::Init(std::string label, wxWindowID textFieldID, wxPoint position, wxSize size, wxPanel* panel,
-          long style, RECT labelOffset, wxSize& mainOffset, wxSize fieldBetweenSpace)
+          long style, wxPoint& mainOffset, wxSize inbetweenDistance)
 {
     labelBox.Create(
         panel, wxID_ANY, toWide(label),
@@ -27,7 +32,7 @@ void TextBox::Init(std::string label, wxWindowID textFieldID, wxPoint position, 
         size,
         style, wxDefaultValidator, wxString(label + " text field"));
 
-    mainOffset.y += size.y + fieldBetweenSpace.y;
+    mainOffset.y += size.y + inbetweenDistance.y;
 
     bInit = true;
 }

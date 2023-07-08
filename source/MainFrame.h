@@ -28,7 +28,7 @@ public:
 private:
     TextBox fAlbumsDir;
     TextBox fWorkingDir;
-    TextBox fArtistField;
+    TextBox fArtist;
     TextBox fAlbumName;
     TextBox fAlbumYear;
     TextBox fOutput;
@@ -45,14 +45,12 @@ private:
     unsigned int ClientWidth, ClientHeight;
 
     wxPoint defaultPos;
-    wxSize mainOffset;
-    wxSize fieldBetweenSpace;
+    wxPoint mainOffset;
+    wxSize inbetweenDistance;
 
     wxSize TextBoxSize;
     wxSize OutputBoxSize;
     wxSize ButtonSize;
-
-    RECT labelOffset;
 
 
 private:
