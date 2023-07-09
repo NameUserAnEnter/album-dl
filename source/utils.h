@@ -381,6 +381,22 @@ inline std::basic_string<T> GetBackslashPath(std::basic_string<T> forwardslashPa
     return backslashPath;
 }
 
+template<typename T>
+inline unsigned int GetNumFromFirstWord(std::basic_string<T> str)
+{
+    std::string num = "";
+    for (int i = 0; i < str.size(); i++)
+    {
+        if (str[i] >= '0' && str[i] <= '9')
+        {
+            num += str[i];
+        }
+        else break;
+    }
+
+    return std::stoi(num);
+}
+
 
 template<typename T>
 inline bool findCharInStr(std::basic_string<T> str, T query)

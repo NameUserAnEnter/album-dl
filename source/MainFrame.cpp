@@ -69,6 +69,8 @@ void MainFrame::InitValues()
 
     thumbnailURL = "";
 
+    bitrate = 0;
+
 
 
     // VARIABLE SIZE & POS RANGE:
@@ -165,8 +167,8 @@ void MainFrame::InitFields()
 
     bnRunScript.Create( &mainPanel, ID_Button,      "Run",              fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Run button");     index++;
     checkAlert.Create(  &mainPanel, ID_AlertOnDone, "Alert on done",    fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Alert checkbox"); index++;
-    //selectBitrate.Create(&mainPanel, ID_Bitrate, "Bitrate", fields[index].pos, fields[index].size, 0, NULL, NULL, wxDefaultValidator, "Bitrate dropdown");  index++;
-    selectBitrate.Init( "Bitrate:", L"----", ID_Bitrate, fields[index].pos, fields[index].size, &mainPanel);    index++;
+    //fBitrate.Create(&mainPanel, ID_Bitrate, "Bitrate", fields[index].pos, fields[index].size, 0, NULL, NULL, wxDefaultValidator, "Bitrate dropdown");  index++;
+    fBitrate.Init( "Bitrate:", L"----", ID_Bitrate, fields[index].pos, fields[index].size, &mainPanel);    index++;
     // extra separation
     fOutput.Init("Output:", ID_output_Field, fields[index].pos, fields[index].size, &mainPanel, wxTE_MULTILINE | wxTE_READONLY);    index++;
 }
@@ -282,17 +284,17 @@ void MainFrame::InitControls()
     //fOutput.SetEditable(false);
 
     ///*
-    selectBitrate.AppendItem("128 kbit/s");
-    selectBitrate.AppendItem("144 kbit/s");
-    selectBitrate.AppendItem("160 kbit/s");
-    selectBitrate.AppendItem("192 kbit/s");
-    selectBitrate.AppendItem("224 kbit/s");
-    selectBitrate.AppendItem("256 kbit/s");
-    selectBitrate.AppendItem("320 kbit/s");
+    fBitrate.AppendItem("128 kbit/s");
+    fBitrate.AppendItem("144 kbit/s");
+    fBitrate.AppendItem("160 kbit/s");
+    fBitrate.AppendItem("192 kbit/s");
+    fBitrate.AppendItem("224 kbit/s");
+    fBitrate.AppendItem("256 kbit/s");
+    fBitrate.AppendItem("320 kbit/s");
     //*/
 
-    selectBitrate.SetSelected(3);
-    initialOutput += L"selected: " + toWide(selectBitrate.GetSelected()) + '\n';
+    fBitrate.SetSelected(3);
+    initialOutput += L"selected: " + toWide(fBitrate.GetSelected()) + '\n';
 
 
     fWorkingDir.SetText(L"workfolder/");
@@ -462,8 +464,8 @@ void MainFrame::GetAlbum()
 
 
     //--------------------------------------------------
-    mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
-    ExecuteBatchSession();
+    //mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
+    //ExecuteBatchSession();
 
     
     //--------------------------------------------------
@@ -928,7 +930,7 @@ void MainFrame::DisableFields()
     fURL.Disable();
     fArtworkURL.Disable();
 
-    selectBitrate.Disable();
+    fBitrate.Disable();
 }
 
 void MainFrame::EnableFields()
@@ -943,7 +945,7 @@ void MainFrame::EnableFields()
     fURL.Enable();
     fArtworkURL.Enable();
 
-    selectBitrate.Enable();
+    fBitrate.Enable();
 }
 
 
@@ -1029,6 +1031,16 @@ bool MainFrame::ValidateFields()
             artworkURL = URL;
         }
     }
+
+
+
+
+    // GET BITRATE
+    for (int i = 0; i < fBitrate.GetItems().size(); i++)
+    {
+        MessageDialog(fBitrate.GetItem(i) + ": " + NumToStr(GetNumFromFirstWord(fBitrate.GetItem(i))));
+    }
+
 
 
 

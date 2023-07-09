@@ -56,7 +56,7 @@ private:
     
     wxButton bnRunScript;
     wxCheckBox checkAlert;
-    DropDown selectBitrate;
+    DropDown fBitrate;
 
     TextBox fOutput;
 
@@ -139,6 +139,8 @@ private:
     std::wstring converterExec;
     std::wstring downloaderExec;
     std::wstring configName;
+
+    unsigned int bitrate;
 
     std::wstring artist;
     std::wstring albumName;
