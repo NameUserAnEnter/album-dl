@@ -1114,12 +1114,12 @@ void MainFrame::OpenSettings()
                     MessageDialog("OpenSettings():\nCaught an unknown exception.", "Error");
                     ExitProcess(1);
                 }
-
-                // useful for testing:
-                MessageDialog(decoded + L"\n\n\n" + currentWord);
-                currentWord = L"";
-                currentId++;
             }
+
+            // useful for testing:
+            MessageDialog(decoded + L"\n\n\n" + currentWord);
+            currentWord = L"";
+            currentId++;
         }
     }
 
@@ -1140,7 +1140,7 @@ void MainFrame::SaveSettings()
     else decoded += L'0';
 
     // ?
-    decoded += '\n';
+    decoded += L'\n';
 
     //decoded += toWide(fBitrate.GetSelected());
     //decoded += '\n';
