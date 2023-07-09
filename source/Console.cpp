@@ -36,6 +36,8 @@ void Console::InitValues()
 
 	uCurrentColumn = 0;
 	uBufferWidth = 80;
+
+	dumpName = "dump_console";
 }
 
 Console::Console()
@@ -116,7 +118,7 @@ void Console::RunBatch()
 {
 	if (bDumpBytes)
 	{
-		ClearBytesDump("console");
+		ClearBytesDump(dumpName);
 	}
 
 
@@ -285,7 +287,7 @@ void Console::GetSubOutput()
 			if (bDumpBytes)
 			{
 				static unsigned int pos = 0;
-				AppendBytesDump(buf, "console", pos);
+				AppendBytesDump(buf, dumpName, pos);
 			}
 
 

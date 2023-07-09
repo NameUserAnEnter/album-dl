@@ -58,6 +58,7 @@ private:
 	HANDLE hSubOutWr;
 	HANDLE hSubOutRd;
 private:
+	std::string dumpName;
 	std::wstring logFilepath;
 	std::wstring* pOutputBuffer;
 

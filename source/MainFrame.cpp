@@ -293,8 +293,6 @@ void MainFrame::InitControls()
     fBitrate.AppendItem("320 kbit/s");
     //*/
 
-    //fBitrate.SetSelected(3);
-    initialOutput += L"selected: " + toWide(fBitrate.GetSelected()) + '\n';
 
 
     fWorkingDir.SetText(L"workfolder/");
@@ -311,13 +309,23 @@ void MainFrame::InitTestValues()
     bResetFields = false;
     // SAMPLE TEST VALUES FOR CONVENIENCE:
 
-    // SHORT PLAYLIST
+    // SHORT PLAYLISTS
+    ///*
+    fArtist.SetText(L"Big Black");
+    fAlbumName.SetText(L"Racer-X");
+    fAlbumYear.SetText(L"1985");
+    fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nrAFOfF6ITDAEJ-BuHYWpHYOwsKNTZ994");
+    //*/
+    
     /*
     fArtist.SetText(L"Big Black");
     fAlbumName.SetText(L"Lungs");
     fAlbumYear.SetText(L"1982");
     fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_lSCRmY_Qw8RCNnMKHcp05O1K8fAIyqLjs");
     */
+
+
+
 
     // RARE UNICODE CHAR THAT SHOWS DIFFERENCE BETWEEN WINDOWS-1250 AND WINDOWS-1252
     /*
@@ -345,13 +353,13 @@ void MainFrame::InitTestValues()
     */
 
     // TYPICAL UNICODE TITLES
-    ///*
+    /*
     fArtist.SetText(L"Goat");
     fAlbumName.SetText(L"World Music");
     fAlbumYear.SetText(L"2012");
     fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
     //fArtworkURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
-    //*/
+    */
 }
 
 MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
@@ -464,8 +472,8 @@ void MainFrame::GetAlbum()
 
 
     //--------------------------------------------------
-    mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
-    ExecuteBatchSession();
+    //mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
+    //ExecuteBatchSession();
 
     
     //--------------------------------------------------
@@ -473,17 +481,17 @@ void MainFrame::GetAlbum()
     //mainConsole.AddCmd(GetTitlesStage(), WINDOWS1250);
     //ExecuteBatchSession();
 
-    //LoadTrackTitles();
-    //ValidateTrackTitles();
+    LoadTrackTitles();
+    ValidateTrackTitles();
     //ResetTracksFile();
     
     
     //--------------------------------------------------
-    //mainConsole.AddCmd(ConvertStage(), UTF8);
+    mainConsole.AddCmd(ConvertStage(), UTF8);
     //mainConsole.AddCmd(CreateTrashDirStage());
     //mainConsole.AddCmd(RemoveLeftoverStage());
     //mainConsole.AddCmd(RenameFilesStage());
-    //ExecuteBatchSession();
+    ExecuteBatchSession();
 
 
     //--------------------------------------------------
@@ -571,7 +579,11 @@ std::vector<std::wstring> MainFrame::ConvertStage()
 
         std::wstring cmd = L"";
         cmd += L"\"" + workingDirectory + converterExec + L"\"";
-        cmd += " -i \"" + workingDirectory + L"/" + file + L"\" -c:a mp3 -b:a 192k -ar 44100 \"" + workingDirectory + L"/" + fname + L".mp3\"";
+        cmd += " -i \"" + workingDirectory + file + L"\" ";
+        cmd += L"-c:a mp3 ";
+        cmd += L"-b:a " + NumToStr(bitrate) + L"k ";
+        cmd += L"-ar 44100 ";
+        cmd += L"\"" + workingDirectory + fname + L".mp3\"";
 
         cmds.push_back(cmd);
     }
@@ -991,6 +1003,28 @@ bool MainFrame::ValidateFields()
 
 
 
+
+    // GET BITRATE
+    unsigned int unvalidatedBitrate = GetNumFromFirstWord(fBitrate.GetSelected());
+    if (!fBitrate.GetItems().empty())
+    {
+        unsigned int lowestBitrate = GetNumFromFirstWord(fBitrate.GetItems()[0]);
+        unsigned int highestBitrate = GetNumFromFirstWord(fBitrate.GetItems().back());
+
+        if (unvalidatedBitrate >= lowestBitrate && unvalidatedBitrate <= highestBitrate)
+        {
+            bitrate = unvalidatedBitrate;
+        }
+        else
+        {
+            MessageDialog("Invalid bitrate.\nPlease choose a bitrate from the drop-down list.", "Error");
+            return false;
+        }
+    }
+    else bitrate = 192;
+
+
+
     // VALIDATING URLs
     URL = fURL.GetText();
     artworkURL = fArtworkURL.GetText();
@@ -1034,14 +1068,6 @@ bool MainFrame::ValidateFields()
 
 
 
-
-    // GET BITRATE
-    /*
-    for (int i = 0; i < fBitrate.GetItems().size(); i++)
-    {
-        MessageDialog(fBitrate.GetItem(i) + ": " + NumToStr(GetNumFromFirstWord(fBitrate.GetItem(i))));
-    }
-    */
 
 
 

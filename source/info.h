@@ -87,7 +87,6 @@ inline std::string GetReadMe()
         std::string("\n\nWORKING DIRECTORY:\n") +
         std::string("Full or relative path to a working directory with the following files:\n") +
         std::string("            -yt-dlp.exe\n") +
-        std::string("            -ffmpeg.exe\n") +
         std::string("            -config.txt\n") +
         std::string("            -cookies.txt (optional)\n") +
         std::string("By default working directory is set to (relative path): workfolder/ and all necessary files are provided there.\n") +
