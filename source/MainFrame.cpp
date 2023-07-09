@@ -293,7 +293,7 @@ void MainFrame::InitControls()
     fBitrate.AppendItem("320 kbit/s");
     //*/
 
-    fBitrate.SetSelected(3);
+    //fBitrate.SetSelected(3);
     initialOutput += L"selected: " + toWide(fBitrate.GetSelected()) + '\n';
 
 
@@ -1036,10 +1036,12 @@ bool MainFrame::ValidateFields()
 
 
     // GET BITRATE
+    /*
     for (int i = 0; i < fBitrate.GetItems().size(); i++)
     {
         MessageDialog(fBitrate.GetItem(i) + ": " + NumToStr(GetNumFromFirstWord(fBitrate.GetItem(i))));
     }
+    */
 
 
 
@@ -1079,7 +1081,7 @@ void MainFrame::OpenSettings()
         alertDone,
         none
     };
-    unsigned int currentId = albumsDir;
+    unsigned int currentId = 1;
 
     for (auto currentChar : decoded)
     {
@@ -1114,7 +1116,7 @@ void MainFrame::OpenSettings()
                 }
 
                 // useful for testing:
-                //MessageDialog(decoded + L"\n\n\n" + currentWord);
+                MessageDialog(decoded + L"\n\n\n" + currentWord);
                 currentWord = L"";
                 currentId++;
             }
@@ -1136,6 +1138,14 @@ void MainFrame::SaveSettings()
 
     if (checkAlert.GetValue()) decoded += L'1';
     else decoded += L'0';
+
+    // ?
+    decoded += '\n';
+
+    //decoded += toWide(fBitrate.GetSelected());
+    //decoded += '\n';
+
+
 
     std::string encoded = EncodeToUTF8(decoded);
 

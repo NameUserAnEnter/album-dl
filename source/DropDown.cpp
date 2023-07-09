@@ -59,11 +59,14 @@ void DropDown::SetItems(std::vector<std::string> newItems)
 }
 
 
-std::string DropDown::GetItem(unsigned int index)
+std::string DropDown::GetItem(int index)
 {
     if (!bInit) return "";
 
-    if (index >= items.size()) return "";
+    if (index >= items.size() || index < 0)
+    {
+        return "";
+    }
 
     return items[index];
 }
@@ -101,6 +104,8 @@ std::string DropDown::GetSelected()
 
     return GetItem(listBox.GetCurrentSelection());
 }
+
+
 
 
 

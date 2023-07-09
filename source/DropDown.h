@@ -28,7 +28,7 @@ public:
 	void AppendItem(std::string);
 	void SetItems(std::vector<std::string>);
 
-	std::string GetItem(unsigned int);
+	std::string GetItem(int);
 	std::vector<std::string> GetItems();
 
 	void SetSelected(unsigned int);

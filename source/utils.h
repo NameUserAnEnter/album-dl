@@ -224,7 +224,8 @@ inline int GetFileData(const wchar_t* filename, std::string* returnData = nullpt
     _wfopen_s(&file, filename, L"rb");
     if (file == nullptr)
     {
-        ErrMsgExit(L"Cannot open: " + std::wstring(filename) + L'\n');
+        //ErrMsgExit(L"Cannot open: " + std::wstring(filename) + L'\n');
+        MessageDialog(L"Cannot open: " + std::wstring(filename) + L'\n');
         return 1;
     }
 
@@ -246,7 +247,8 @@ inline int WriteDataToFile(std::string data, const wchar_t* filename)
     _wfopen_s(&file, filename, L"wb");
     if (file == nullptr)
     {
-        ErrMsgExit(L"Cannot open: " + std::wstring(filename) + L'\n');
+        //ErrMsgExit(L"Cannot open: " + std::wstring(filename) + L'\n');
+        MessageDialog(L"Cannot open: " + std::wstring(filename) + L'\n');
         return 1;
     }
 
@@ -394,6 +396,7 @@ inline unsigned int GetNumFromFirstWord(std::basic_string<T> str)
         else break;
     }
 
+    if (num.empty()) return 0;
     return std::stoi(num);
 }
 
