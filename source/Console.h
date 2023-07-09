@@ -68,7 +68,6 @@ public:
 	void CloseLog();
 	void RunSession();
 private:
-	void AppendBytesDump(std::string);
 	std::string GetModeStr();
 	
 	void InitValues();

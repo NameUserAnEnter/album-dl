@@ -213,8 +213,6 @@ inline void ErrMsgExitCode(std::wstring msg, unsigned long external_code)
 
 
 
-
-
 // FILE UTILS
 inline int GetFileData(const wchar_t* filename, std::string* returnData = nullptr)
 {
@@ -354,6 +352,32 @@ inline int AppendDataToFile(std::string data, std::wstring filename)
 inline int ClearFileData(std::wstring filename)
 {
     return ClearFileData(filename.c_str());
+}
+
+
+
+
+
+// BYTES DUMPING
+inline void AppendBytesDump(std::string buf, std::string filepath, unsigned int& point)
+{
+    std::string output = "";
+    for (int i = 0; i < buf.size(); i++)
+    {
+        output += NumToStr((unsigned char)buf[i], 16, 2);
+
+        point++;
+        if (point % 16 == 0) output += "\n";
+        else output += " ";
+    }
+    AppendDataToFile(output, filepath + "_bytes");
+    AppendDataToFile(buf, filepath);
+}
+
+inline void ClearBytesDump(std::string filepath)
+{
+    ClearFileData(filepath + "_bytes");
+    ClearFileData(filepath);
 }
 
 

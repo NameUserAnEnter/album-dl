@@ -116,8 +116,7 @@ void Console::RunBatch()
 {
 	if (bDumpBytes)
 	{
-		ClearFileData(L"bytes");
-		ClearFileData(L"bytes_buf");
+		ClearBytesDump("console");
 	}
 
 
@@ -283,7 +282,11 @@ void Console::GetSubOutput()
 		if (!buf.empty())
 		{
 			Read(hSubOutRd, buf);
-			if (bDumpBytes) AppendBytesDump(buf);
+			if (bDumpBytes)
+			{
+				unsigned int pos = 0;
+				AppendBytesDump(buf, "console", pos);
+			}
 
 
 			switch (cmdLines[currentCmdIndex].mode)
@@ -308,21 +311,7 @@ void Console::GetSubOutput()
 }
 
 
-void Console::AppendBytesDump(std::string buf)
-{
-	std::string output = "";
-	static int si = 0;
-	for (int i = 0; i < buf.size(); i++)
-	{
-		output += NumToStr((unsigned char)buf[i], 16, 2);
 
-		si++;
-		if (si % 16 == 0) output += "\n";
-		else output += " ";
-	}
-	AppendDataToFile(output, L"bytes");
-	AppendDataToFile(buf, L"bytes_buf");
-}
 
 std::string Console::GetModeStr()
 {

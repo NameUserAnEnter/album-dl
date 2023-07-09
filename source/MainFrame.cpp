@@ -464,8 +464,8 @@ void MainFrame::GetAlbum()
 
 
     //--------------------------------------------------
-    //mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
-    //ExecuteBatchSession();
+    mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
+    ExecuteBatchSession();
 
     
     //--------------------------------------------------
@@ -1066,9 +1066,9 @@ void MainFrame::OpenSettings()
         SetStatusText("Settings file not found");
         return;
     }
-    encoded += EOF;
 
     std::wstring decoded = DecodeFromUTF8(encoded);
+    MessageDialog(decoded);
 
 
 
@@ -1079,6 +1079,7 @@ void MainFrame::OpenSettings()
         windowX,
         windowY,
         alertDone,
+        bitrateValue,
         none
     };
     unsigned int currentId = 1;
@@ -1103,6 +1104,18 @@ void MainFrame::OpenSettings()
                         if (currentWord == "0") checkAlert.SetValue(false);
                         if (currentWord == "1") checkAlert.SetValue(true);
                     }
+
+                    if (currentId == bitrateValue)
+                    {
+                        for (int i = 0; i < fBitrate.GetItems().size(); i++)
+                        {
+                            std::string bitrateOption = fBitrate.GetItem(i);
+                            if (currentWord == bitrateOption)
+                            {
+                                fBitrate.SetSelected(i);
+                            }
+                        }
+                    }
                 }
                 catch (std::exception& e)
                 {
@@ -1117,7 +1130,7 @@ void MainFrame::OpenSettings()
             }
 
             // useful for testing:
-            MessageDialog(decoded + L"\n\n\n" + currentWord);
+            //MessageDialog(decoded + L"\n\n\n" + currentWord);
             currentWord = L"";
             currentId++;
         }
@@ -1136,14 +1149,9 @@ void MainFrame::SaveSettings()
     decoded += toWide(NumToStr(GetPosition().x)) + L"\n";
     decoded += toWide(NumToStr(GetPosition().y)) + L"\n";
 
-    if (checkAlert.GetValue()) decoded += L'1';
-    else decoded += L'0';
+    decoded += NumToWstr(checkAlert.GetValue()) + L"\n";
 
-    // ?
-    decoded += L'\n';
-
-    //decoded += toWide(fBitrate.GetSelected());
-    //decoded += '\n';
+    decoded += toWide(fBitrate.GetSelected()) + L"\n";
 
 
 
