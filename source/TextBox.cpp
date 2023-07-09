@@ -4,7 +4,6 @@ TextBox::TextBox()
 {
     bInit = false;
     fieldEncoding = UNICODE_NONE;
-    long style = 0;
 
     bufMutex = nullptr;
     outputBuf.clear();

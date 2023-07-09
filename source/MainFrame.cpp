@@ -43,7 +43,7 @@ void MainFrame::SizeFields(wxSize TextBoxSize, wxSize ButtonSize, wxSize OutputB
 
     fields.push_back(Field(20, 340, ButtonSize));
     fields.push_back(Field(20 + ButtonSize.x + 10, 340, ButtonSize));
-    fields.push_back(Field(20 + ButtonSize.x + 10 + ButtonSize.x + 10, 340, ButtonSize));
+    fields.push_back(Field(20 + ButtonSize.x + 10 + ButtonSize.x + 10, 342, ButtonSize));
 
     fields.push_back(Field(20, 405, OutputBoxSize));
 }
@@ -69,9 +69,6 @@ void MainFrame::InitValues()
 
     thumbnailURL = "";
 
-    bitrates.clear();
-    bitrates.push_back(128);
-    bitrates.push_back(192);
 
 
     // VARIABLE SIZE & POS RANGE:
@@ -157,24 +154,26 @@ void MainFrame::InitFields()
     unsigned int index = 0;
 
     // FIELDS:
-    fAlbumsDir.Init(    "Albums directory:",    ID_albumsDir_Field,     fields[index].pos, fields[index].size, &mainPanel, NULL);   index++;
-    fWorkingDir.Init(   "Working directory:",   ID_workingDir_Field,    fields[index].pos, fields[index].size, &mainPanel, NULL);   index++;
+    fAlbumsDir.Init(    "Albums directory:",    ID_albumsDir_Field,     fields[index].pos, fields[index].size, &mainPanel);   index++;
+    fWorkingDir.Init(   "Working directory:",   ID_workingDir_Field,    fields[index].pos, fields[index].size, &mainPanel);   index++;
     // extra separation
-    fArtist.Init(   "Artist:",      ID_artist_Field,    fields[index].pos, fields[index].size, &mainPanel, NULL);   index++;
-    fAlbumName.Init("Album name:",  ID_albumName_Field, fields[index].pos, fields[index].size, &mainPanel, NULL);   index++;
-    fAlbumYear.Init("Album year:",  ID_albumYear_Field, fields[index].pos, fields[index].size, &mainPanel, NULL);   index++;
-    fURL.Init(          "Playlist URL:",                        ID_URL_Field,           fields[index].pos, fields[index].size, &mainPanel, NULL);   index++;
-    fArtworkURL.Init(   "Playlist URL with proper artwork:",    ID_URL_Artwork_Field,   fields[index].pos, fields[index].size, &mainPanel, NULL);   index++;
+    fArtist.Init(   "Artist:",      ID_artist_Field,    fields[index].pos, fields[index].size, &mainPanel);   index++;
+    fAlbumName.Init("Album name:",  ID_albumName_Field, fields[index].pos, fields[index].size, &mainPanel);   index++;
+    fAlbumYear.Init("Album year:",  ID_albumYear_Field, fields[index].pos, fields[index].size, &mainPanel);   index++;
+    fURL.Init(          "Playlist URL:",                        ID_URL_Field,           fields[index].pos, fields[index].size, &mainPanel);   index++;
+    fArtworkURL.Init(   "Playlist URL with proper artwork:",    ID_URL_Artwork_Field,   fields[index].pos, fields[index].size, &mainPanel);   index++;
 
     bnRunScript.Create( &mainPanel, ID_Button,      "Run",              fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Run button");     index++;
     checkAlert.Create(  &mainPanel, ID_AlertOnDone, "Alert on done",    fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Alert checkbox"); index++;
-    selectBitrate.Create(&mainPanel, ID_Bitrate, "Bitrate", fields[index].pos, fields[index].size, bitrates, NULL, wxDefaultValidator, "Bitrate dropdown"); index++;
+    //selectBitrate.Create(&mainPanel, ID_Bitrate, "Bitrate", fields[index].pos, fields[index].size, 0, NULL, NULL, wxDefaultValidator, "Bitrate dropdown");  index++;
+    selectBitrate.Init( "Bitrate:", L"----", ID_Bitrate, fields[index].pos, fields[index].size, &mainPanel);    index++;
     // extra separation
     fOutput.Init("Output:", ID_output_Field, fields[index].pos, fields[index].size, &mainPanel, wxTE_MULTILINE | wxTE_READONLY);    index++;
 }
 
 void MainFrame::InitConsole()
 {
+    // pass the output mutex address
     fOutput.SetMutex(mainConsole.GetPrintMutex());
 
     mainConsole.InitConsole(consoleLogFilepath, fOutput.GetBuf(), false);
@@ -281,6 +280,20 @@ void MainFrame::InitControls()
     SetStatusText("");
 
     //fOutput.SetEditable(false);
+
+    ///*
+    selectBitrate.AppendItem("128 kbit/s");
+    selectBitrate.AppendItem("144 kbit/s");
+    selectBitrate.AppendItem("160 kbit/s");
+    selectBitrate.AppendItem("192 kbit/s");
+    selectBitrate.AppendItem("224 kbit/s");
+    selectBitrate.AppendItem("256 kbit/s");
+    selectBitrate.AppendItem("320 kbit/s");
+    //*/
+
+
+    fWorkingDir.SetText(L"workfolder/");
+    fArtist.SetFocus();
 }
 
 void MainFrame::InitClientSize()
@@ -352,9 +365,6 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     InitClientSize();
 
     InitTestValues();
-
-    fWorkingDir.SetText(L"workfolder/");
-    fArtist.SetFocus();
 
     SetPosition(wxPoint(defaultPos.x, defaultPos.y));   // SET WINDOW POS TO DEFAULT POS
     OpenSettings();                                     // LOAD SETTINGS (MAY REPOS WINDOW)

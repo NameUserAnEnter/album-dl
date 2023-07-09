@@ -12,6 +12,7 @@
 #include "utils.h"
 #include "Console.h"
 #include "info.h"
+#include "DropDown.h"
 #include <thread>
 #include <mutex>
 #include <chrono>
@@ -55,7 +56,7 @@ private:
     
     wxButton bnRunScript;
     wxCheckBox checkAlert;
-    wxComboBox selectBitrate;
+    DropDown selectBitrate;
 
     TextBox fOutput;
 
@@ -82,8 +83,6 @@ private:
     std::string resourceFilename;
 
     std::string tracksFilename;
-
-    std::vector<unsigned int> bitrates;
 
 
 private:
