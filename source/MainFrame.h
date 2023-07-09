@@ -65,10 +65,6 @@ private:
 
     std::vector<Field> fields;
 
-    wxSize TextBoxSize;
-    wxSize OutputBoxSize;
-    wxSize ButtonSize;
-
 
 private:
     std::thread workingThread;
@@ -106,7 +102,7 @@ private:
     void InitClientSize();
     void InitTestValues();
 
-    void SizeFields();
+    void SizeFields(wxSize, wxSize, wxSize);
 
 
     void SaveSettings();

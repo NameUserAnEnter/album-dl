@@ -21,7 +21,7 @@ enum
 };
 
 
-void MainFrame::SizeFields()
+void MainFrame::SizeFields(wxSize TextBoxSize, wxSize ButtonSize, wxSize OutputBoxSize)
 {
     fields.clear();
     fields.resize(10);
@@ -64,23 +64,39 @@ void MainFrame::InitValues()
     thumbnailURL = "";
 
 
+    // VARIABLE SIZE & POS RANGE:
+    // defaultPos.x: 0 - 350
+    // ClientHeight: 640 - 955
+    // OutputBoxSize.y: 215 - 530
+
     //float screenResX = GetSystemMetrics(SM_CXSCREEN);
     //float screenResY = GetSystemMetrics(SM_CYSCREEN);
     //float screenResX = 1366;
     //float screenResY = 768;
-    float screenResX = 800;
-    float screenResY = 600;
+    //float screenResX = 1024;
+    //float screenResY = 768;
+    //float screenResX = 800;
+    //float screenResY = 600;
+    //float screenResX = 640;
+    //float screenResY = 480;
+    float screenResX = 2540;
+    float screenResY = 1560;
     
     defaultPos.x = 350;
     defaultPos.y = 0;
 
+    wxSize TextBoxSize;
+    wxSize OutputBoxSize;
+    wxSize ButtonSize;
+
     TextBoxSize = wxSize(800, 20);
     OutputBoxSize = wxSize(800, 530);
     ButtonSize = wxSize(100, 25);
+    
+    SizeFields(TextBoxSize, ButtonSize, OutputBoxSize);
 
 
-    SizeFields();
-
+    // ADJUST FIELDS WIDTH IF TOO LARGE
     for (int i = 0; i < fields.size(); i++)
     {
         if (defaultPos.x + fields[i].pos.x * 2 + fields[i].size.x > screenResX)
@@ -104,6 +120,7 @@ void MainFrame::InitValues()
         }
     }
 
+    // ADJUST LAST FIELD (OUTPUT-BOX) HEIGHT IF TOO LARGE
     if (fields.back().pos.y + fields.back().size.y + 20 > screenResY)
     {
         if (screenResY - fields.back().pos.y - 20 < 215)
@@ -117,6 +134,7 @@ void MainFrame::InitValues()
     }
 
 
+    // GET WIDEST FIELD TO BASE CLIENT WIDTH ON
     int index = 0;
     for (int i = 0; i < fields.size(); i++)
     {
@@ -126,15 +144,12 @@ void MainFrame::InitValues()
         if (currentWidth > maxWidth) index = i;
     }
 
-
     ClientWidth = fields[index].pos.x + fields[index].size.x + fields[index].pos.x;
-    ClientHeight = fields.back().pos.y + fields.back().size.y + 20;
+    ClientHeight = fields.back().pos.y + fields.back().size.y + 20; // BASE CLIENT HEIGHT ON THE LAST FIELD (OUTPUT-BOX)
 
 
-    // defaultPos.x: 0 - 350
-    // ClientHeight: 640 - 955
-    // OutputBoxSize.y: 215 - 530
 
+    // TEST OUTPUT:
     initialOutput += L"fields[9] = (" + NumToStr(fields[9].pos.x) + L", " + NumToStr(fields[9].pos.y) + L")";
     initialOutput += L", (" + NumToStr(fields[9].size.x) + L", " + NumToStr(fields[9].size.y) + L")\n\n";
     initialOutput += L"------------------------------------------------\n";
@@ -195,10 +210,8 @@ void MainFrame::InitThemes()
     
     // -Add a blinking cursor at last pos (e.g. char: _)
     // -Custom selection color
-    // -Implement window auto-scaling relative to screen resolution
-    // -Implement GUI auto-scaling relative to window size
-    // -Format & bitrate drop-down lists
     // -Directory selection boxes instead of fields for both dir fields
+    // -Format & bitrate drop-down lists
     // 
 }
 
@@ -289,7 +302,7 @@ void MainFrame::InitClientSize()
 {
     SetClientSize(ClientWidth, ClientHeight);
 
-
+    // TEST OUTPUT:
     initialOutput += L"ClientWidth: " + NumToStr(ClientWidth) + '\n';
     initialOutput += L"ClientHeight: " + NumToStr(ClientHeight) + '\n';
     initialOutput += '\n';
