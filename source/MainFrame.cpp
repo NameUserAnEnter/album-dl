@@ -21,55 +21,34 @@ enum
 };
 
 
+void MainFrame::SizeFields()
+{
+    fields.clear();
+    fields.resize(10);
+
+    fields[0] = Field(20, 40, TextBoxSize);
+    fields[1] = Field(20, 80, TextBoxSize);
+
+    fields[2] = Field(20, 140, TextBoxSize);
+    fields[3] = Field(20, 180, TextBoxSize);
+    fields[4] = Field(20, 220, TextBoxSize);
+
+    fields[5] = Field(20, 260, TextBoxSize);
+    fields[6] = Field(20, 300, TextBoxSize);
+
+    fields[7] = Field(20, 340, ButtonSize);
+    fields[8] = Field(20 + ButtonSize.x + 10, 340, ButtonSize);
+
+    fields[9] = Field(20, 405, OutputBoxSize);
+}
+
 void MainFrame::InitValues()
 {
     bDone = true;
     bResetFields = true;
 
-    defaultPos.x = 350;
-    defaultPos.y = 0;
-
-    mainOffset = wxPoint(20, 40);
-    inbetweenDistance = wxSize(10, 20);
-
-    TextBoxSize = wxSize(800, 20);
-    OutputBoxSize = wxSize(800, 530);
-    ButtonSize = wxSize(100, 25);
-
-
-
     initialOutput = L"";
-    
-    float screenResX = GetSystemMetrics(SM_CXSCREEN);
-    float screenResY = GetSystemMetrics(SM_CYSCREEN);
-    //float screenResX = 1366;
-    //float screenResY = 768;
-
-
-    // calculating relative dimensions for various screen resolutions
-    // assure no division by zero
-    if (defaultPos.x != 0 &&
-        OutputBoxSize.x != 0 && OutputBoxSize.y != 0 &&
-        TextBoxSize.x != 0 && TextBoxSize.y != 0 &&
-        ButtonSize.x != 0 && ButtonSize.y != 0 &&
-        screenResX != 0 && screenResY != 0)
-    {
-        OutputBoxSize = wxSize(OutputBoxSize.x, screenResY / (1080.f / OutputBoxSize.y));
-
-        //
-        defaultPos = wxPoint(screenResX / (1920.f / defaultPos.x), defaultPos.y);
-    }
-
-    initialOutput += L"defaultPos: " + NumToWstr(defaultPos.x) + 'x' + NumToWstr(defaultPos.y) + '\n';
-    initialOutput += L"OutputBoxSize: " + NumToWstr(OutputBoxSize.x) + 'x' + NumToWstr(OutputBoxSize.y) + '\n';
-    initialOutput += L"TextBoxSize: " + NumToWstr(TextBoxSize.x) + 'x' + NumToWstr(TextBoxSize.y) + '\n';
-    initialOutput += L"ButtonSize: " + NumToWstr(ButtonSize.x) + 'x' + NumToWstr(ButtonSize.y) + '\n';
-    initialOutput += '\n';
-    //--
-
-
     uMaxOutputLines = 150;
-
 
 
     converterExec = L"ffmpeg.exe";
@@ -83,44 +62,115 @@ void MainFrame::InitValues()
     tracksFilename = "tracks";
 
     thumbnailURL = "";
+
+
+    //float screenResX = GetSystemMetrics(SM_CXSCREEN);
+    //float screenResY = GetSystemMetrics(SM_CYSCREEN);
+    //float screenResX = 1366;
+    //float screenResY = 768;
+    float screenResX = 800;
+    float screenResY = 600;
+    
+    defaultPos.x = 350;
+    defaultPos.y = 0;
+
+    TextBoxSize = wxSize(800, 20);
+    OutputBoxSize = wxSize(800, 530);
+    ButtonSize = wxSize(100, 25);
+
+
+    SizeFields();
+
+    for (int i = 0; i < fields.size(); i++)
+    {
+        if (defaultPos.x + fields[i].pos.x * 2 + fields[i].size.x > screenResX)
+        {
+            if (screenResX - fields[i].pos.x * 2 - fields[i].size.x >= 0)
+            {
+                defaultPos.x = screenResX - fields[i].pos.x * 2 - fields[i].size.x;
+            }
+            else
+            {
+                defaultPos.x = 0;
+                if (fields[i].pos.x * 2 + fields[i].size.x > screenResX)
+                {
+                    if (screenResX - fields[i].pos.x * 2 > 250)
+                    {
+                        fields[i].size.x = screenResX - fields[i].pos.x * 2;
+                    }
+                    else fields[i].size.x = 250;
+                }
+            }
+        }
+    }
+
+    if (fields.back().pos.y + fields.back().size.y + 20 > screenResY)
+    {
+        if (screenResY - fields.back().pos.y - 20 < 215)
+        {
+            fields.back().size.y = 215;
+        }
+        else
+        {
+            fields.back().size.y = screenResY - fields.back().pos.y - 20;
+        }
+    }
+
+
+    int index = 0;
+    for (int i = 0; i < fields.size(); i++)
+    {
+        int currentWidth = fields[i].pos.x * 2 + fields[i].size.x;
+        int maxWidth = fields[index].pos.x * 2 + fields[index].size.x;
+
+        if (currentWidth > maxWidth) index = i;
+    }
+
+
+    ClientWidth = fields[index].pos.x + fields[index].size.x + fields[index].pos.x;
+    ClientHeight = fields.back().pos.y + fields.back().size.y + 20;
+
+
+    // defaultPos.x: 0 - 350
+    // ClientHeight: 640 - 955
+    // OutputBoxSize.y: 215 - 530
+
+    initialOutput += L"fields[9] = (" + NumToStr(fields[9].pos.x) + L", " + NumToStr(fields[9].pos.y) + L")";
+    initialOutput += L", (" + NumToStr(fields[9].size.x) + L", " + NumToStr(fields[9].size.y) + L")\n\n";
+    initialOutput += L"------------------------------------------------\n";
+
+
+
+
+    initialOutput += L"screenResX: " + NumToStr(screenResX) + '\n';
+    initialOutput += L"screenResY: " + NumToStr(screenResY) + '\n';
+    initialOutput += '\n';
+
+    initialOutput += L"defaultPos: " + NumToWstr(defaultPos.x) + 'x' + NumToWstr(defaultPos.y) + '\n';
+    initialOutput += '\n';
 }
 
 void MainFrame::InitFields()
 {
+    // PANEL:
     // default sizes and pos because it's automatically stretched to the frame anyway
     mainPanel.Create(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 2621440L, "Main Panel");
 
 
-    fAlbumsDir.Init("Albums directory:", ID_albumsDir_Field, mainOffset, TextBoxSize, &mainPanel, NULL, mainOffset, inbetweenDistance);
-    fWorkingDir.Init("Working directory:", ID_workingDir_Field, mainOffset, TextBoxSize, &mainPanel, NULL, mainOffset, inbetweenDistance);
-
-
+    // FIELDS:
+    fAlbumsDir.Init(    "Albums directory:",    ID_albumsDir_Field,     fields[0].pos, fields[0].size, &mainPanel, NULL);
+    fWorkingDir.Init(   "Working directory:",   ID_workingDir_Field,    fields[1].pos, fields[1].size, &mainPanel, NULL);
     // extra separation
-    mainOffset.y += inbetweenDistance.y;
+    fArtist.Init(   "Artist:",      ID_artist_Field,    fields[2].pos, fields[2].size, &mainPanel, NULL);
+    fAlbumName.Init("Album name:",  ID_albumName_Field, fields[3].pos, fields[3].size, &mainPanel, NULL);
+    fAlbumYear.Init("Album year:",  ID_albumYear_Field, fields[4].pos, fields[4].size, &mainPanel, NULL);
+    fURL.Init(          "Playlist URL:",                        ID_URL_Field,           fields[5].pos, fields[5].size, &mainPanel, NULL);
+    fArtworkURL.Init(   "Playlist URL with proper artwork:",    ID_URL_Artwork_Field,   fields[6].pos, fields[6].size, &mainPanel, NULL);
 
-
-    fArtist.Init("Artist:", ID_artist_Field, mainOffset, TextBoxSize, &mainPanel, NULL, mainOffset, inbetweenDistance);
-    fAlbumName.Init("Album name:", ID_albumName_Field, mainOffset, TextBoxSize, &mainPanel, NULL, mainOffset, inbetweenDistance);
-    fAlbumYear.Init("Album year:", ID_albumYear_Field, mainOffset, TextBoxSize, &mainPanel, NULL, mainOffset, inbetweenDistance);
-
-    fURL.Init("Playlist URL:", ID_URL_Field, mainOffset, TextBoxSize, &mainPanel, NULL, mainOffset, inbetweenDistance);
-    fArtworkURL.Init("Playlist URL with proper artwork:", ID_URL_Artwork_Field, mainOffset, TextBoxSize, &mainPanel, NULL, mainOffset, inbetweenDistance);
-
-
-
-
-    bnRunScript.Create(&mainPanel, ID_Button, "Run", mainOffset, ButtonSize, NULL, wxDefaultValidator, "Run button");
-
-    wxPoint checkPos = wxPoint(mainOffset.x + ButtonSize.x + inbetweenDistance.x, mainOffset.y);
-    checkAlert.Create(&mainPanel, ID_AlertOnDone, "Alert on done", checkPos, ButtonSize, NULL, wxDefaultValidator, "Alert checkbox");
-    
+    bnRunScript.Create( &mainPanel, ID_Button,      "Run",              fields[7].pos, fields[7].size, NULL, wxDefaultValidator, "Run button");
+    checkAlert.Create(  &mainPanel, ID_AlertOnDone, "Alert on done",    fields[8].pos, fields[8].size, NULL, wxDefaultValidator, "Alert checkbox");
     // extra separation
-    mainOffset.y += ButtonSize.y + inbetweenDistance.y;
-
-
-
-    mainOffset.y += inbetweenDistance.y;
-    fOutput.Init("Output:", ID_output_Field, mainOffset, OutputBoxSize, &mainPanel, wxTE_MULTILINE | wxTE_READONLY, mainOffset, inbetweenDistance);
+    fOutput.Init("Output:", ID_output_Field, fields[9].pos, fields[9].size, &mainPanel, wxTE_MULTILINE | wxTE_READONLY);
 }
 
 void MainFrame::InitConsole()
@@ -132,36 +182,6 @@ void MainFrame::InitConsole()
     net::SetConsole(&mainConsole);
 
     if (bLog) mainConsole.OpenLog();
-}
-
-void MainFrame::InitDefaultSize()
-{
-    ClientWidth = mainOffset.x + TextBoxSize.x + mainOffset.x;
-    ClientHeight = mainOffset.y;
-
-    SetClientSize(ClientWidth, ClientHeight);
-
-    float screenResX = GetSystemMetrics(SM_CXSCREEN);
-    float screenResY = GetSystemMetrics(SM_CYSCREEN);
-
-    //if (ClientHeight + 150 >= screenResY)
-    //{
-        //mainPanel.AlwaysShowScrollbars(false, true);
-        // according to doc: range should be ClientHeight instead of ClientHeight - 530
-        //mainPanel.SetScrollbar(wxVERTICAL, 0, 530, ClientHeight - 530);
-    //}
-
-    initialOutput += L"ClientWidth: " + NumToStr(ClientWidth) + '\n';
-    initialOutput += L"ClientHeight: " + NumToStr(ClientHeight) + '\n';
-    initialOutput += '\n';
-
-    initialOutput += L"screenResX: " + NumToStr(screenResX) + '\n';
-    initialOutput += L"screenResY: " + NumToStr(screenResY) + '\n';
-    initialOutput += '\n';
-
-    initialOutput += L"IsScrollbarAlwaysShown: " + NumToWstr(IsScrollbarAlwaysShown(wxVERTICAL)) + '\n';
-    initialOutput += L"HasScrollbar: " + NumToWstr(HasScrollbar(wxVERTICAL)) + '\n';
-    initialOutput += L"CanScroll: " + NumToWstr(CanScroll(wxVERTICAL)) + '\n';
 }
 
 void MainFrame::InitThemes()
@@ -265,6 +285,16 @@ void MainFrame::InitControls()
     //fOutput.SetEditable(false);
 }
 
+void MainFrame::InitClientSize()
+{
+    SetClientSize(ClientWidth, ClientHeight);
+
+
+    initialOutput += L"ClientWidth: " + NumToStr(ClientWidth) + '\n';
+    initialOutput += L"ClientHeight: " + NumToStr(ClientHeight) + '\n';
+    initialOutput += '\n';
+}
+
 void MainFrame::InitTestValues()
 {
     bResetFields = false;
@@ -326,7 +356,7 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     InitBindings();
     InitControls();
 
-    InitDefaultSize();
+    InitClientSize();
 
     InitTestValues();
 

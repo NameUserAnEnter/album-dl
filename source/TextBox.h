@@ -35,7 +35,7 @@ private:
 public:
     TextBox();
 
-    void Init(std::string, wxWindowID, wxPoint, wxSize, wxPanel*, long, wxPoint&, wxSize);
+    void Init(std::string, wxWindowID, wxPoint, wxSize, wxPanel*, long);
 
     std::wstring* GetBuf();
     void SetMutex(std::mutex*);

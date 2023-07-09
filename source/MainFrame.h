@@ -16,6 +16,23 @@
 #include <mutex>
 #include <chrono>
 
+struct Field
+{
+    wxPoint pos;
+    wxSize size;
+
+    Field(int x, int y, wxSize _size)
+    {
+        pos = wxPoint(x, y);
+        size = _size;
+    }
+
+    Field()
+    {
+        pos = wxPoint(0, 0);
+        size = wxSize(0, 0);
+    }
+};
 
 class MainFrame : public wxFrame
 {
@@ -45,8 +62,8 @@ private:
     unsigned int ClientWidth, ClientHeight;
 
     wxPoint defaultPos;
-    wxPoint mainOffset;
-    wxSize inbetweenDistance;
+
+    std::vector<Field> fields;
 
     wxSize TextBoxSize;
     wxSize OutputBoxSize;
@@ -79,15 +96,17 @@ private:
 
     void OnClose(wxCloseEvent& event);
 private:
-    void InitBindings();
+    void InitValues();
     void InitFields();
     void InitConsole();
-    void InitControls();
-    void InitValues();
     void InitThemes();
     void InitFonts();
-    void InitDefaultSize();
+    void InitBindings();
+    void InitControls();
+    void InitClientSize();
     void InitTestValues();
+
+    void SizeFields();
 
 
     void SaveSettings();
