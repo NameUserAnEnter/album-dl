@@ -1068,7 +1068,6 @@ void MainFrame::OpenSettings()
     }
 
     std::wstring decoded = DecodeFromUTF8(encoded);
-    MessageDialog(decoded);
 
 
 

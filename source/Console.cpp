@@ -284,7 +284,7 @@ void Console::GetSubOutput()
 			Read(hSubOutRd, buf);
 			if (bDumpBytes)
 			{
-				unsigned int pos = 0;
+				static unsigned int pos = 0;
 				AppendBytesDump(buf, "console", pos);
 			}
 
