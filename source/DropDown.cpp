@@ -78,3 +78,39 @@ std::vector<std::string> DropDown::GetItems()
     rv = items;
     return items;
 }
+
+
+
+
+void DropDown::SetSelected(unsigned int index)
+{
+    if (!bInit) return;
+
+    if (!items.empty())
+    {
+        if (index < items.size())
+        {
+            listBox.SetSelection(index);
+        }
+    }
+}
+
+std::string DropDown::GetSelected()
+{
+    if (!bInit) return "";
+
+    return GetItem(listBox.GetCurrentSelection());
+}
+
+
+
+
+void DropDown::Disable()
+{
+    listBox.Disable();
+}
+
+void DropDown::Enable()
+{
+    listBox.Enable();
+}

@@ -67,6 +67,9 @@ public:
     std::wstring GetText();
 
     int GetNumberOfLines();
+
+    void Disable();
+    void Enable();
 };
 
 

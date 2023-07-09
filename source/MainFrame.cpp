@@ -291,6 +291,9 @@ void MainFrame::InitControls()
     selectBitrate.AppendItem("320 kbit/s");
     //*/
 
+    selectBitrate.SetSelected(3);
+    initialOutput += L"selected: " + toWide(selectBitrate.GetSelected()) + '\n';
+
 
     fWorkingDir.SetText(L"workfolder/");
     fArtist.SetFocus();
@@ -415,7 +418,9 @@ void MainFrame::OnButtonPress(wxCommandEvent& event)
     if (!ValidateFields()) return;
 
 
+    DisableFields();
     bDone = false;
+
     if (workingThread.joinable()) workingThread.join();
     workingThread = std::move(std::thread(&MainFrame::GetAlbum, this));
 }
@@ -519,7 +524,9 @@ void MainFrame::GetAlbum()
     mainConsole.PrintLogAndConsoleNarrow("\n----------------------------   Program finished.   ----------------------------\n");
 
     //if (bLog) mainConsole.CloseLog();
+
     bDone = true;
+    EnableFields();
 }
 
 
@@ -906,6 +913,38 @@ void MainFrame::LoadTrackTitles()
 
 
 
+
+
+
+void MainFrame::DisableFields()
+{
+    fAlbumsDir.Disable();
+    fWorkingDir.Disable();
+
+    fArtist.Disable();
+    fAlbumName.Disable();
+    fAlbumYear.Disable();
+
+    fURL.Disable();
+    fArtworkURL.Disable();
+
+    selectBitrate.Disable();
+}
+
+void MainFrame::EnableFields()
+{
+    fAlbumsDir.Enable();
+    fWorkingDir.Enable();
+
+    fArtist.Enable();
+    fAlbumName.Enable();
+    fAlbumYear.Enable();
+
+    fURL.Enable();
+    fArtworkURL.Enable();
+
+    selectBitrate.Enable();
+}
 
 
 

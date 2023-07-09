@@ -226,6 +226,20 @@ int TextBox::GetNumberOfLines()
 
 
 
+void TextBox::Disable()
+{
+    textField.Disable();
+}
+
+void TextBox::Enable()
+{
+    textField.Enable();
+}
+
+
+
+
+
 
 
 

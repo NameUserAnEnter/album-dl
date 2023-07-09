@@ -30,6 +30,12 @@ public:
 
 	std::string GetItem(unsigned int);
 	std::vector<std::string> GetItems();
+
+	void SetSelected(unsigned int);
+	std::string GetSelected();
+
+	void Disable();
+	void Enable();
 };
 
 #endif

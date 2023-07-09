@@ -125,6 +125,9 @@ private:
 
     bool ValidateFields();
 
+    void DisableFields();
+    void EnableFields();
+
     void PrintTracks();
 private:
     std::wstring URL;
