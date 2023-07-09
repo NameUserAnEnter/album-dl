@@ -43,20 +43,21 @@ public:
     Console mainConsole;
     void StartOutputUpdate();
 private:
+    wxPanel mainPanel;
+
     TextBox fAlbumsDir;
     TextBox fWorkingDir;
     TextBox fArtist;
     TextBox fAlbumName;
     TextBox fAlbumYear;
-    TextBox fOutput;
-
     TextBox fURL;
     TextBox fArtworkURL;
-
-    wxCheckBox checkAlert;
+    
     wxButton bnRunScript;
-    wxPanel mainPanel;
+    wxCheckBox checkAlert;
+    wxComboBox selectBitrate;
 
+    TextBox fOutput;
 
 private:
     unsigned int ClientWidth, ClientHeight;
@@ -81,6 +82,8 @@ private:
     std::string resourceFilename;
 
     std::string tracksFilename;
+
+    std::vector<unsigned int> bitrates;
 
 
 private:

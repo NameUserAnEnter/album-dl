@@ -5,6 +5,8 @@
 
 inline bool validField(std::wstring data)
 {
+    if (data.empty()) return false;
+
     for (auto currentChar : data)
     {
         if (!iswprint(currentChar))

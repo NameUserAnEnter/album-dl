@@ -6,40 +6,46 @@
 // ID's for GUI-elements
 enum
 {
-    ID_Save = 1,
+    ID_Frame = 1,
+    ID_Save,
+
     ID_albumsDir_Field,
     ID_workingDir_Field,
+   
     ID_artist_Field,
     ID_albumName_Field,
     ID_albumYear_Field,
-    ID_output_Field,
+    
     ID_URL_Field,
+    ID_URL_Artwork_Field,
+
     ID_Button,
-    ID_Frame,
     ID_AlertOnDone,
-    ID_URL_Artwork_Field
+    ID_Bitrate,
+
+    ID_output_Field
 };
 
 
 void MainFrame::SizeFields(wxSize TextBoxSize, wxSize ButtonSize, wxSize OutputBoxSize)
 {
     fields.clear();
-    fields.resize(10);
 
-    fields[0] = Field(20, 40, TextBoxSize);
-    fields[1] = Field(20, 80, TextBoxSize);
+    fields.push_back(Field(20, 40, TextBoxSize));
+    fields.push_back(Field(20, 80, TextBoxSize));
 
-    fields[2] = Field(20, 140, TextBoxSize);
-    fields[3] = Field(20, 180, TextBoxSize);
-    fields[4] = Field(20, 220, TextBoxSize);
+    fields.push_back(Field(20, 140, TextBoxSize));
+    fields.push_back(Field(20, 180, TextBoxSize));
+    fields.push_back(Field(20, 220, TextBoxSize));
 
-    fields[5] = Field(20, 260, TextBoxSize);
-    fields[6] = Field(20, 300, TextBoxSize);
+    fields.push_back(Field(20, 260, TextBoxSize));
+    fields.push_back(Field(20, 300, TextBoxSize));
 
-    fields[7] = Field(20, 340, ButtonSize);
-    fields[8] = Field(20 + ButtonSize.x + 10, 340, ButtonSize);
+    fields.push_back(Field(20, 340, ButtonSize));
+    fields.push_back(Field(20 + ButtonSize.x + 10, 340, ButtonSize));
+    fields.push_back(Field(20 + ButtonSize.x + 10 + ButtonSize.x + 10, 340, ButtonSize));
 
-    fields[9] = Field(20, 405, OutputBoxSize);
+    fields.push_back(Field(20, 405, OutputBoxSize));
 }
 
 void MainFrame::InitValues()
@@ -63,24 +69,18 @@ void MainFrame::InitValues()
 
     thumbnailURL = "";
 
+    bitrates.clear();
+    bitrates.push_back(128);
+    bitrates.push_back(192);
+
 
     // VARIABLE SIZE & POS RANGE:
     // defaultPos.x: 0 - 350
     // ClientHeight: 640 - 955
     // OutputBoxSize.y: 215 - 530
 
-    //float screenResX = GetSystemMetrics(SM_CXSCREEN);
-    //float screenResY = GetSystemMetrics(SM_CYSCREEN);
-    //float screenResX = 1366;
-    //float screenResY = 768;
-    //float screenResX = 1024;
-    //float screenResY = 768;
-    //float screenResX = 800;
-    //float screenResY = 600;
-    //float screenResX = 640;
-    //float screenResY = 480;
-    float screenResX = 2540;
-    float screenResY = 1560;
+    float screenResX = GetSystemMetrics(SM_CXSCREEN);
+    float screenResY = GetSystemMetrics(SM_CYSCREEN);
     
     defaultPos.x = 350;
     defaultPos.y = 0;
@@ -146,23 +146,6 @@ void MainFrame::InitValues()
 
     ClientWidth = fields[index].pos.x + fields[index].size.x + fields[index].pos.x;
     ClientHeight = fields.back().pos.y + fields.back().size.y + 20; // BASE CLIENT HEIGHT ON THE LAST FIELD (OUTPUT-BOX)
-
-
-
-    // TEST OUTPUT:
-    initialOutput += L"fields[9] = (" + NumToStr(fields[9].pos.x) + L", " + NumToStr(fields[9].pos.y) + L")";
-    initialOutput += L", (" + NumToStr(fields[9].size.x) + L", " + NumToStr(fields[9].size.y) + L")\n\n";
-    initialOutput += L"------------------------------------------------\n";
-
-
-
-
-    initialOutput += L"screenResX: " + NumToStr(screenResX) + '\n';
-    initialOutput += L"screenResY: " + NumToStr(screenResY) + '\n';
-    initialOutput += '\n';
-
-    initialOutput += L"defaultPos: " + NumToWstr(defaultPos.x) + 'x' + NumToWstr(defaultPos.y) + '\n';
-    initialOutput += '\n';
 }
 
 void MainFrame::InitFields()
@@ -171,21 +154,23 @@ void MainFrame::InitFields()
     // default sizes and pos because it's automatically stretched to the frame anyway
     mainPanel.Create(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 2621440L, "Main Panel");
 
+    unsigned int index = 0;
 
     // FIELDS:
-    fAlbumsDir.Init(    "Albums directory:",    ID_albumsDir_Field,     fields[0].pos, fields[0].size, &mainPanel, NULL);
-    fWorkingDir.Init(   "Working directory:",   ID_workingDir_Field,    fields[1].pos, fields[1].size, &mainPanel, NULL);
+    fAlbumsDir.Init(    "Albums directory:",    ID_albumsDir_Field,     fields[index].pos, fields[index].size, &mainPanel, NULL);   index++;
+    fWorkingDir.Init(   "Working directory:",   ID_workingDir_Field,    fields[index].pos, fields[index].size, &mainPanel, NULL);   index++;
     // extra separation
-    fArtist.Init(   "Artist:",      ID_artist_Field,    fields[2].pos, fields[2].size, &mainPanel, NULL);
-    fAlbumName.Init("Album name:",  ID_albumName_Field, fields[3].pos, fields[3].size, &mainPanel, NULL);
-    fAlbumYear.Init("Album year:",  ID_albumYear_Field, fields[4].pos, fields[4].size, &mainPanel, NULL);
-    fURL.Init(          "Playlist URL:",                        ID_URL_Field,           fields[5].pos, fields[5].size, &mainPanel, NULL);
-    fArtworkURL.Init(   "Playlist URL with proper artwork:",    ID_URL_Artwork_Field,   fields[6].pos, fields[6].size, &mainPanel, NULL);
+    fArtist.Init(   "Artist:",      ID_artist_Field,    fields[index].pos, fields[index].size, &mainPanel, NULL);   index++;
+    fAlbumName.Init("Album name:",  ID_albumName_Field, fields[index].pos, fields[index].size, &mainPanel, NULL);   index++;
+    fAlbumYear.Init("Album year:",  ID_albumYear_Field, fields[index].pos, fields[index].size, &mainPanel, NULL);   index++;
+    fURL.Init(          "Playlist URL:",                        ID_URL_Field,           fields[index].pos, fields[index].size, &mainPanel, NULL);   index++;
+    fArtworkURL.Init(   "Playlist URL with proper artwork:",    ID_URL_Artwork_Field,   fields[index].pos, fields[index].size, &mainPanel, NULL);   index++;
 
-    bnRunScript.Create( &mainPanel, ID_Button,      "Run",              fields[7].pos, fields[7].size, NULL, wxDefaultValidator, "Run button");
-    checkAlert.Create(  &mainPanel, ID_AlertOnDone, "Alert on done",    fields[8].pos, fields[8].size, NULL, wxDefaultValidator, "Alert checkbox");
+    bnRunScript.Create( &mainPanel, ID_Button,      "Run",              fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Run button");     index++;
+    checkAlert.Create(  &mainPanel, ID_AlertOnDone, "Alert on done",    fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Alert checkbox"); index++;
+    selectBitrate.Create(&mainPanel, ID_Bitrate, "Bitrate", fields[index].pos, fields[index].size, bitrates, NULL, wxDefaultValidator, "Bitrate dropdown"); index++;
     // extra separation
-    fOutput.Init("Output:", ID_output_Field, fields[9].pos, fields[9].size, &mainPanel, wxTE_MULTILINE | wxTE_READONLY);
+    fOutput.Init("Output:", ID_output_Field, fields[index].pos, fields[index].size, &mainPanel, wxTE_MULTILINE | wxTE_READONLY);    index++;
 }
 
 void MainFrame::InitConsole()
@@ -208,7 +193,7 @@ void MainFrame::InitThemes()
 
     // TO DO:
     
-    // -Add a blinking cursor at last pos (e.g. char: _)
+    // -Add a blinking cursor at insertion point (e.g. char: _)
     // -Custom selection color
     // -Directory selection boxes instead of fields for both dir fields
     // -Format & bitrate drop-down lists
@@ -301,11 +286,6 @@ void MainFrame::InitControls()
 void MainFrame::InitClientSize()
 {
     SetClientSize(ClientWidth, ClientHeight);
-
-    // TEST OUTPUT:
-    initialOutput += L"ClientWidth: " + NumToStr(ClientWidth) + '\n';
-    initialOutput += L"ClientHeight: " + NumToStr(ClientHeight) + '\n';
-    initialOutput += '\n';
 }
 
 void MainFrame::InitTestValues()
@@ -377,7 +357,7 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     fArtist.SetFocus();
 
     SetPosition(wxPoint(defaultPos.x, defaultPos.y));   // SET WINDOW POS TO DEFAULT POS
-    //OpenSettings();                                     // LOAD SETTINGS (MAY REPOS WINDOW)
+    OpenSettings();                                     // LOAD SETTINGS (MAY REPOS WINDOW)
     Show(true);                                         // SHOW WINDOW
 
     mainConsole.PrintLogAndConsole(initialOutput);
