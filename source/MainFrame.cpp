@@ -58,14 +58,26 @@ void MainFrame::VerifyExecutables()
 
     if (!VerifyFile(workingDirectory, downloaderExec))
     {
-        initialOutput +=    L"Failed to locate " + downloaderExec + L" in:\n" + workingDirectory + L"\n";
+        initialOutput +=    L"Failed to locate " + downloaderExec + L" in:\n";
+        
+        if (workingDirectory.empty()) initialOutput += L"<no directory provided>";
+        else initialOutput += workingDirectory;
+        
+        initialOutput += L"\n";
     }
 
     if (!VerifyFile(converterDirectory, converterExec))
     {
-        initialOutput +=    L"Failed to locate " + converterExec + L" in:\n" + converterDirectory + L"\n";
-        initialOutput +=    L"Album-dl requires FFmpeg to work, if you don't have FFmpeg installed, visit:\n"
-                            L"https://ffmpeg.org/download.html\n";
+        initialOutput +=    L"Failed to locate " + converterExec + L" in:\n";
+
+        if (converterDirectory.empty()) initialOutput += L"<no directory provided>";
+        else initialOutput += converterDirectory;
+
+        initialOutput += L"\n";
+
+
+        initialOutput +=    L"\nAlbum-dl requires FFmpeg to work, if you don't have FFmpeg installed, visit:\n"
+                            L"https://ffmpeg.org/download.html\n\n";
     }
 }
 
@@ -216,10 +228,9 @@ void MainFrame::InitThemes()
 
     // TO DO:
     
-    // -Add a blinking cursor at insertion point (e.g. char: _)
-    // -Custom selection color
-    // -Directory selection boxes instead of fields for both dir fields
-    // -Format & bitrate drop-down lists
+    // -Add blinking cursor at insertion point (e.g. char: _)
+    // -Custom foreground, background and selection colors
+    // -Directory boxes instead of text boxes for dir fields
     // 
 }
 
@@ -258,6 +269,12 @@ void MainFrame::InitFonts()
     
 
     std::wstring outputFaceName = fOutput.GetFontFaceName();
+    if (outputFaceName != "Fixedsys")
+    {
+        outputFont = wxFont(wxFontInfo(wxSize(8, 16)).FaceName("Courier New").Bold());
+        fOutput.SetFont(outputFont);
+    }
+    
 
     //mainConsole.PrintLogAndConsole(testUnicode(outputFaceName));
     //mainConsole.PrintLogAndConsole(testNoLigature());
@@ -328,7 +345,7 @@ void MainFrame::InitClientSize()
 
 void MainFrame::InitTestValues()
 {
-    bResetFields = true;
+    //bResetFields = false;
     // SAMPLE TEST VALUES FOR CONVENIENCE:
 
     // SHORT PLAYLISTS
@@ -639,7 +656,6 @@ std::wstring MainFrame::GetTitlesStage()
 
 std::vector<std::wstring> MainFrame::RenameFilesStage(std::wstring ext)
 {
-    ext = L".mp4";  // stage testing: use whatever format is available
     std::vector<std::wstring> cmds;
     
     unsigned int maxNumDigits = std::to_string(trackTitles.size()).size();
@@ -663,7 +679,7 @@ std::vector<std::wstring> MainFrame::RenameFilesStage(std::wstring ext)
     }
 
     // stage testing: reverse the renaming, so it can be performed again instantly
-    ///*
+    /*
     for (int i = 0; i < trackTitles.size(); i++)
     {
         std::wstring num = L"";
@@ -681,7 +697,7 @@ std::vector<std::wstring> MainFrame::RenameFilesStage(std::wstring ext)
 
         cmds.push_back(cmd);
     }
-    //*/
+    */
 
     return cmds;
 }
@@ -961,6 +977,7 @@ void MainFrame::DisableFields()
 {
     fAlbumsDir.Disable();
     fWorkingDir.Disable();
+    fConverterDir.Disable();
 
     fArtist.Disable();
     fAlbumName.Disable();
@@ -976,6 +993,7 @@ void MainFrame::EnableFields()
 {
     fAlbumsDir.Enable();
     fWorkingDir.Enable();
+    fConverterDir.Enable();
 
     fArtist.Enable();
     fAlbumName.Enable();

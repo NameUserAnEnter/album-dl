@@ -119,8 +119,9 @@ inline std::string GetReadMe()
         "\n\n------------------------------------------------------------------------------------------\n"
 
         "SAVING SETTINGS:\n" +
-        "Press Ctrl+S or go to \"File/Save settings\" to save album directory, working directory, alert-checkbox state & window position."
-        " These settings are automatically loaded each time album-dl is opened.\n"
+        "Press Ctrl+S or go to \"File/Save settings\" to save:\n"
+        "albums directory, working directory, FFmpeg directory, alert-checkbox state, bitrate & window position.\n"
+        "These settings are automatically loaded each time album-dl is opened.\n"
 
         "\n\n------------------------------------------------------------------------------------------\n"
 
@@ -135,7 +136,14 @@ inline std::string GetReadMe()
         "            -cookies.txt (optional)\n"
         "By default working directory is set to (relative path): workfolder/ and all necessary files are provided there.\n"
 
-        "\n\nARTIST:\n"
+        "\n\nFFMPEG.EXE DIRECTORY:\n"
+        "Full or relative path to a directory containing ffmpeg.exe.\n"
+        "Album-dl requires FFmpeg to work, if you don't have FFmpeg installed, visit:\n"
+        "https://ffmpeg.org/download.html\n"
+
+        "\n\n------------------------------------------------------------------------------------------\n"
+
+        "ARTIST:\n"
         "Used for output album folder name and track filenames.\n"
 
         "\nALBUM NAME & ALBUM YEAR:\n"
@@ -148,7 +156,7 @@ inline std::string GetReadMe()
         "\nPLAYLIST URL WITH PROPER ARTWORK:\n"
         "Album artwork is downloaded from this playlist. If left empty, URL from \"Playlist URL\" is used.\n"
 
-        "\n------------------------------------------------------------------------------------------\n"
+        "\n\n------------------------------------------------------------------------------------------\n"
 
         "OUTPUT FILENAMES & FOLDER NAME FORMAT:\n"
         "Albums Directory/\n"
@@ -161,16 +169,16 @@ inline std::string GetReadMe()
         "                        artwork.png\n"
 
         "\n\nTRASH:\n"
-        "This program uses windows commands to execute renaming and moving files as well as creating directories."
-        " For extra-safety this program does not use the DEL command,"
-        " left-over .mp4 files are instead put in the /Trash/ subfolder in the working directory"
-        " and you are free to delete the contents of that subfolder manually."
-        " However there is no need to clear these files as album-dl"
-        " always overwrites .mp4's with the same name each time leftover .mp4's are moved there,"
-        " so as a result the amount of disk space taken by the /Trash/ subfolder does not stack.\n"
+        "This program uses Windows commands to execute renaming and moving files as well as creating directories.\n"
+        "For extra-safety this program does not use DEL command,\n"
+        "left-over .mp4 files are instead put in /Trash/ subfolder in the working directory\n"
+        "and you are free to delete contents of that subfolder manually.\n"
+        "However there is no need to clear these files as album-dl\n"
+        "always overwrites .mp4's with the same name each time leftover .mp4's are moved there,\n"
+        "so as a result the amount of disk space taken by /Trash/ subfolder does not stack.\n"
 
         "\n\nSTAGES:\n"
-        "The program goes through the following stages after the \"Run\" button is pressed:\n"
+        "Album-dl goes through following stages after the \"Run\" button is pressed:\n"
         "1) downloading best audio quality .mp4's\n"
         "2) getting the track titles\n"
         "3) converting .mp4 files into .mp3's\n"
@@ -182,13 +190,13 @@ inline std::string GetReadMe()
         "9) moving .mp3's into the destination folder\n"
         "10) moving .png into the destination folder\n"
 
-        "\n------------------------------------------------------------------------------------------\n"
+        "\n\n------------------------------------------------------------------------------------------\n"
 
         "BYPASSING AGE-RESTRICTION:\n"
         "In case of an age-restricted URL: \n"
         "1) get a youtube cookies dump into cookies.txt\n"
         "2) place cookies.txt in the working directory\n"
-        "3) include a following line in config.txt:\n--cookies \"cookies.txt\"\n"
+        "3) include the following line in config.txt:\n--cookies \"cookies.txt\"\n"
 
 
         "\n\n------------------------------------------------------------------------------------------\n"

@@ -112,7 +112,7 @@ inline int FindTheTag(const wchar_t* filename, unsigned int* returnTagStartIndex
     for (int i = 0; i < 10; i++)
     {
         if (i != 0) PrintConsole(" ");
-        PrintConsole(HexToStr((unsigned char)tagHeader[i]));
+        PrintConsole(NumToStr((unsigned char)tagHeader[i], 16, 2));
     }
 
     unsigned char tagSizeMinusHeaderSynchsafe[4] ={ 0, 0, 0, 0 };
@@ -326,7 +326,7 @@ inline int AppendFrameToTag(std::string tag, std::string frame, std::string* ret
         {
             newTag += tag[i];
 
-            PrintConsole(HexToStr((unsigned char)tag[i]));
+            PrintConsole(NumToStr((unsigned char)tag[i], 16, 2));
             if ((i + 1) % 16 == 0) PrintConsole("\n");
             else if (i != paddingStart - 1) PrintConsole(" ");
             else PrintConsole("\n");
@@ -340,7 +340,7 @@ inline int AppendFrameToTag(std::string tag, std::string frame, std::string* ret
         {
             newTag += tag[i];
 
-            PrintConsole(HexToStr((unsigned char)tag[i]));
+            PrintConsole(NumToStr((unsigned char)tag[i], 16, 2));
             if ((i + 1) % 16 == 0) PrintConsole("\n");
             else if (i != tag.size() - 1) PrintConsole(" ");
             else PrintConsole("\n");
@@ -453,7 +453,7 @@ inline int writeArtwork(const wchar_t* audioFilename, const wchar_t* artworkFile
     for (int i = 0; i < 4; i++)
     {
         if (i != 0) PrintConsole(" ");
-        PrintConsole(HexToStr(newTagSizeMinusHeaderSynchsafe[i]));
+        PrintConsole(NumToStr(newTagSizeMinusHeaderSynchsafe[i], 16, 2));
     }
     PrintConsole("\n\n");
 
@@ -472,7 +472,7 @@ inline int writeArtwork(const wchar_t* audioFilename, const wchar_t* artworkFile
     PrintConsole("Tag:\n");
     for (int i = 0; i < tag.size(); i++)
     {
-        PrintConsole(HexToStr((unsigned char)tag[i]));
+        PrintConsole(NumToStr((unsigned char)tag[i], 16, 2));
         if ((i + 1) % 16 == 0) PrintConsole("\n");
         else if (i != tag.size() - 1) PrintConsole(" ");
         else PrintConsole("\n");
@@ -497,8 +497,8 @@ inline int writeArtwork(const wchar_t* audioFilename, const wchar_t* artworkFile
             break;
         }
 
-        if (i == 0 || i % 16 == 0) PrintConsole(HexToStr(i, 8) + ": ");
-        PrintConsole(HexToStr((unsigned char)newTag[i]));
+        if (i == 0 || i % 16 == 0) PrintConsole(NumToStr(i, 16, 8) + ": ");
+        PrintConsole(NumToStr((unsigned char)newTag[i], 16, 2));
         if ((i + 1) % 16 == 0) PrintConsole("\n");
         else if (i != newTag.size() - 1) PrintConsole(" ");
         else PrintConsole("\n");
@@ -520,8 +520,8 @@ inline int writeArtwork(const wchar_t* audioFilename, const wchar_t* artworkFile
             break;
         }
 
-        if (i == 0 || i % 16 == 0) PrintConsole(HexToStr(i, 8) + ": ");
-        PrintConsole(HexToStr((unsigned char)outputCheck[i]));
+        if (i == 0 || i % 16 == 0) PrintConsole(NumToStr(i, 16, 8) + ": ");
+        PrintConsole(NumToStr((unsigned char)outputCheck[i], 16, 2));
         if ((i + 1) % 16 == 0) PrintConsole("\n");
         else if (i != outputCheck.size() - 1) PrintConsole(" ");
         else PrintConsole("\n");
@@ -538,15 +538,15 @@ inline void printHex(std::string data, std::string stopQuery = "")
     bool bStop = false;
     for (int i = 0; i < data.size(); i++)
     {
-        if (i == 0 || i % 16 == 0) PrintConsole(HexToStr(i, 8) + ": ");
-        PrintConsole(HexToStr((unsigned char)data[i]));
+        if (i == 0 || i % 16 == 0) PrintConsole(NumToStr(i, 16, 8) + ": ");
+        PrintConsole(NumToStr((unsigned char)data[i], 16, 2));
         if ((i + 1) % 16 == 0)
         {
             PrintConsole("\n");
             if (bStop)
             {
                 //PrintConsole("Found: ");
-                //for (int j = 0; j < stopQuery.size(); j++) PrintConsole(HexToStr((unsigned char)stopQuery[j]));
+                //for (int j = 0; j < stopQuery.size(); j++) PrintConsole(NumToStr((unsigned char)stopQuery[j], 16, 2));
                 //PrintConsole("\n");
                 while (getc(stdin) != 'x') { }
                 //PrintConsole("\n");
