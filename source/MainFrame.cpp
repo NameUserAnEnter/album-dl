@@ -50,6 +50,25 @@ void MainFrame::SizeFields(wxSize TextBoxSize, wxSize ButtonSize, wxSize OutputB
     fields.push_back(Field(20, 405, OutputBoxSize));
 }
 
+void MainFrame::VerifyExecutables()
+{
+    albumsDirectory = fAlbumsDir.GetText();
+    workingDirectory = fWorkingDir.GetText();
+    converterDirectory = fConverterDir.GetText();
+
+    if (!VerifyFile(workingDirectory, downloaderExec))
+    {
+        initialOutput +=    L"Failed to locate " + downloaderExec + L" in:\n" + workingDirectory + L"\n";
+    }
+
+    if (!VerifyFile(converterDirectory, converterExec))
+    {
+        initialOutput +=    L"Failed to locate " + converterExec + L" in:\n" + converterDirectory + L"\n";
+        initialOutput +=    L"Album-dl requires FFmpeg to work, if you don't have FFmpeg installed, visit:\n"
+                            L"https://ffmpeg.org/download.html\n";
+    }
+}
+
 void MainFrame::InitValues()
 {
     bDone = true;
@@ -160,7 +179,7 @@ void MainFrame::InitFields()
     // FIELDS:
     fAlbumsDir.Init(    "Albums directory:",    ID_albumsDir_Field,     fields[index].pos, fields[index].size, &mainPanel);   index++;
     fWorkingDir.Init(   "Working directory:",   ID_workingDir_Field,    fields[index].pos, fields[index].size, &mainPanel);   index++;
-    fConverterDir.Init( "FFmpeg directory:",    ID_converterDir_Field,  fields[index].pos, fields[index].size, &mainPanel);   index++;
+    fConverterDir.Init( "ffmpeg.exe directory:", ID_converterDir_Field, fields[index].pos, fields[index].size, &mainPanel);   index++;
     // extra separation
     fArtist.Init(   "Artist:",      ID_artist_Field,    fields[index].pos, fields[index].size, &mainPanel);   index++;
     fAlbumName.Init("Album name:",  ID_albumName_Field, fields[index].pos, fields[index].size, &mainPanel);   index++;
@@ -309,16 +328,16 @@ void MainFrame::InitClientSize()
 
 void MainFrame::InitTestValues()
 {
-    bResetFields = false;
+    bResetFields = true;
     // SAMPLE TEST VALUES FOR CONVENIENCE:
 
     // SHORT PLAYLISTS
-    ///*
+    /*
     fArtist.SetText(L"Big Black");
     fAlbumName.SetText(L"Racer-X");
     fAlbumYear.SetText(L"1985");
     fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nrAFOfF6ITDAEJ-BuHYWpHYOwsKNTZ994");
-    //*/
+    */
     
     /*
     fArtist.SetText(L"Big Black");
@@ -386,6 +405,10 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     OpenSettings();                                     // LOAD SETTINGS (MAY REPOS WINDOW)
     Show(true);                                         // SHOW WINDOW
 
+
+
+    VerifyExecutables();
+
     mainConsole.PrintLogAndConsole(initialOutput);
     initialOutput.clear();
 }
@@ -415,7 +438,7 @@ void MainFrame::OnExit(wxCommandEvent& event)
 void MainFrame::OnAbout(wxCommandEvent& event)
 {
     // Help / About
-    MessageDialog(GetReadMe(), "About");
+    MessageDialog(GetAbout(), "About");
 }
 
 void MainFrame::OnSave(wxCommandEvent& event)
@@ -475,44 +498,44 @@ void MainFrame::GetAlbum()
 
 
     //--------------------------------------------------
-    //mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
-    //ExecuteBatchSession();
+    mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
+    ExecuteBatchSession();
 
     
     //--------------------------------------------------
-    //ResetTracksFile();
-    //mainConsole.AddCmd(GetTitlesStage(), WINDOWS1250);
-    //ExecuteBatchSession();
+    ResetTracksFile();
+    mainConsole.AddCmd(GetTitlesStage(), WINDOWS1250);
+    ExecuteBatchSession();
 
     LoadTrackTitles();
     ValidateTrackTitles();
-    //ResetTracksFile();
+    ResetTracksFile();
     
     
     //--------------------------------------------------
     mainConsole.AddCmd(ConvertStage(), UTF8);
-    //mainConsole.AddCmd(CreateTrashDirStage());
-    //mainConsole.AddCmd(RemoveLeftoverStage());
-    //mainConsole.AddCmd(RenameFilesStage());
+    mainConsole.AddCmd(CreateTrashDirStage());
+    mainConsole.AddCmd(RemoveLeftoverStage());
+    mainConsole.AddCmd(RenameFilesStage());
     ExecuteBatchSession();
 
 
     //--------------------------------------------------
-    //GetArtworkPre();
+    GetArtworkPre();
 
-    //mainConsole.AddCmd(GetArtworkStage(), WINDOWS1250);
-    //ExecuteBatchSession();
+    mainConsole.AddCmd(GetArtworkStage(), WINDOWS1250);
+    ExecuteBatchSession();
 
-    //GetArtworkPost();
+    GetArtworkPost();
 
 
     //--------------------------------------------------
-    //AttachArtworkToAll();
+    AttachArtworkToAll();
 
-    //mainConsole.AddCmd(CreateAlbumDirectoryStage());
-    //mainConsole.AddCmd(MoveAudioStage());
-    //mainConsole.AddCmd(MoveArtworkStage());
-    //ExecuteBatchSession();
+    mainConsole.AddCmd(CreateAlbumDirectoryStage());
+    mainConsole.AddCmd(MoveAudioStage());
+    mainConsole.AddCmd(MoveArtworkStage());
+    ExecuteBatchSession();
 
     
     // FIELDS VALUE RESET
@@ -966,6 +989,14 @@ void MainFrame::EnableFields()
 
 
 
+bool MainFrame::VerifyFile(std::wstring dir, std::wstring filename)
+{
+    std::wstring path = dir + filename;
+
+    if (!FileExist(path.c_str())) return false;
+    return true;
+}
+
 bool MainFrame::ValidateFields()
 {
     // VALIDATE DIRECTORIES
@@ -997,15 +1028,13 @@ bool MainFrame::ValidateFields()
 
 
     // LOCATE EXECUTABLES
-    std::wstring converterPath = converterDirectory + converterExec;
-    if (!FileExist(converterPath.c_str()))
+    if (!VerifyFile(converterDirectory, converterExec))
     {
         MessageDialog(L"Failed to locate " + converterExec + L" in:\n" + converterDirectory, L"Error");
         return false;
     }
 
-    std::wstring downloaderPath = workingDirectory + downloaderExec;
-    if (!FileExist(downloaderPath.c_str()))
+    if (!VerifyFile(workingDirectory, downloaderExec))
     {
         MessageDialog(L"Failed to locate " + downloaderExec + L" in:\n" + workingDirectory, L"Error");
         return false;
@@ -1093,8 +1122,6 @@ bool MainFrame::ValidateFields()
 
 
 
-
-
     // GET BACKSLASH DIRS
     albumsDirBackslashes = GetBackslashPath(albumsDirectory);
     workingDirBackslashes = GetBackslashPath(workingDirectory);
@@ -1122,9 +1149,9 @@ void MainFrame::OpenSettings()
 
     std::wstring currentWord = L"";
     enum value_ID {
-        converterDir = 1,
-        albumsDir,
+        albumsDir = 1,
         workingDir,
+        converterDir,
         windowX,
         windowY,
         alertDone,
@@ -1142,9 +1169,9 @@ void MainFrame::OpenSettings()
             {
                 try
                 {
-                    if (currentId == converterDir) fConverterDir.SetText(currentWord);
                     if (currentId == albumsDir) fAlbumsDir.SetText(currentWord);
                     if (currentId == workingDir) fWorkingDir.SetText(currentWord);
+                    if (currentId == converterDir) fConverterDir.SetText(currentWord);
 
                     if (currentId == windowX && isStrNum(currentWord)) SetPosition(wxPoint(std::stoi(currentWord), GetPosition().y));
                     if (currentId == windowY && isStrNum(currentWord)) SetPosition(wxPoint(GetPosition().x, std::stoi(currentWord)));
@@ -1194,9 +1221,9 @@ void MainFrame::SaveSettings()
     std::string path = "settings";
 
     std::wstring decoded = L"";
-    decoded += fConverterDir.GetText() + L"\n";
     decoded += fAlbumsDir.GetText() + L"\n";
     decoded += fWorkingDir.GetText() + L"\n";
+    decoded += fConverterDir.GetText() + L"\n";
     decoded += toWide(NumToStr(GetPosition().x)) + L"\n";
     decoded += toWide(NumToStr(GetPosition().y)) + L"\n";
 

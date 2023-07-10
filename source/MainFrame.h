@@ -105,6 +105,7 @@ private:
     void InitClientSize();
     void InitTestValues();
 
+    void VerifyExecutables();
     void SizeFields(wxSize, wxSize, wxSize);
 
 
@@ -123,6 +124,7 @@ private:
 
     void ValidateFilenameStr(std::wstring&);
     void ValidateTrackTitles();
+    bool VerifyFile(std::wstring, std::wstring);
 
     bool ValidateFields();
 
