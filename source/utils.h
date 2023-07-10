@@ -283,6 +283,19 @@ inline int ClearFileData(const wchar_t* filename)
     return WriteDataToFile("", filename);
 }
 
+inline bool FileExist(const wchar_t* filename)
+{
+    FILE* file;
+    _wfopen_s(&file, filename, L"rb");
+    if (file == nullptr)
+    {
+        return false;
+    }
+
+    fclose(file);
+    return true;
+}
+
 
 
 

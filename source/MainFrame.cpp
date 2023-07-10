@@ -11,6 +11,7 @@ enum
 
     ID_albumsDir_Field,
     ID_workingDir_Field,
+    ID_converterDir_Field,
    
     ID_artist_Field,
     ID_albumName_Field,
@@ -31,19 +32,20 @@ void MainFrame::SizeFields(wxSize TextBoxSize, wxSize ButtonSize, wxSize OutputB
 {
     fields.clear();
 
-    fields.push_back(Field(20, 40, TextBoxSize));
-    fields.push_back(Field(20, 80, TextBoxSize));
+    fields.push_back(Field(20, 20, TextBoxSize));
+    fields.push_back(Field(20, 60, TextBoxSize));
+    fields.push_back(Field(20, 100, TextBoxSize));
 
-    fields.push_back(Field(20, 140, TextBoxSize));
-    fields.push_back(Field(20, 180, TextBoxSize));
-    fields.push_back(Field(20, 220, TextBoxSize));
+    fields.push_back(Field(20, 160, TextBoxSize));
+    fields.push_back(Field(20, 200, TextBoxSize));
+    fields.push_back(Field(20, 240, TextBoxSize));
 
-    fields.push_back(Field(20, 260, TextBoxSize));
-    fields.push_back(Field(20, 300, TextBoxSize));
+    fields.push_back(Field(20, 280, TextBoxSize));
+    fields.push_back(Field(20, 320, TextBoxSize));
 
-    fields.push_back(Field(20, 340, ButtonSize));
-    fields.push_back(Field(20 + ButtonSize.x + 10, 340, ButtonSize));
-    fields.push_back(Field(20 + ButtonSize.x + 10 + ButtonSize.x + 10, 342, ButtonSize));
+    fields.push_back(Field(20, 360, ButtonSize));
+    fields.push_back(Field(20 + ButtonSize.x + 10, 360, ButtonSize));
+    fields.push_back(Field(20 + ButtonSize.x + 10 + ButtonSize.x + 10, 362, ButtonSize));
 
     fields.push_back(Field(20, 405, OutputBoxSize));
 }
@@ -158,6 +160,7 @@ void MainFrame::InitFields()
     // FIELDS:
     fAlbumsDir.Init(    "Albums directory:",    ID_albumsDir_Field,     fields[index].pos, fields[index].size, &mainPanel);   index++;
     fWorkingDir.Init(   "Working directory:",   ID_workingDir_Field,    fields[index].pos, fields[index].size, &mainPanel);   index++;
+    fConverterDir.Init( "FFmpeg directory:",    ID_converterDir_Field,  fields[index].pos, fields[index].size, &mainPanel);   index++;
     // extra separation
     fArtist.Init(   "Artist:",      ID_artist_Field,    fields[index].pos, fields[index].size, &mainPanel);   index++;
     fAlbumName.Init("Album name:",  ID_albumName_Field, fields[index].pos, fields[index].size, &mainPanel);   index++;
@@ -412,14 +415,14 @@ void MainFrame::OnExit(wxCommandEvent& event)
 void MainFrame::OnAbout(wxCommandEvent& event)
 {
     // Help / About
-    wxMessageBox(GetReadMe(), "About", wxOK | wxICON_INFORMATION);
+    MessageDialog(GetReadMe(), "About");
 }
 
 void MainFrame::OnSave(wxCommandEvent& event)
 {
     // File / Save settings
     SaveSettings();
-    wxMessageBox("Settings have been saved.", "album-dl", wxOK | wxICON_NONE);
+    MessageDialog("Settings have been saved.", "album-dl");
 }
 
 void MainFrame::OnButtonPress(wxCommandEvent& event)
@@ -578,7 +581,7 @@ std::vector<std::wstring> MainFrame::ConvertStage()
         std::wstring file = fname + L".mp4";
 
         std::wstring cmd = L"";
-        cmd += L"\"" + workingDirectory + converterExec + L"\"";
+        cmd += L"\"" + converterDirectory + converterExec + L"\"";
         cmd += " -i \"" + workingDirectory + file + L"\" ";
         cmd += L"-c:a mp3 ";
         cmd += L"-b:a " + NumToStr(bitrate) + L"k ";
@@ -801,7 +804,8 @@ void MainFrame::AttachArtwork(std::wstring audioFile, std::wstring artworkFile)
 
 
 
-void MainFrame::ValidateFilesystemString(std::wstring& str)
+
+void MainFrame::ValidateFilenameStr(std::wstring& str)
 {
     // Restricted by system: \ / : * ? " < > |
     // Restricted by choice: " - "
@@ -839,7 +843,7 @@ void MainFrame::ValidateTrackTitles()
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
 
     SetStatusText("Analysing track titles in terms of forbidden & unwanted characters...");
-    for (int i = 0; i < trackTitles.size(); i++) ValidateFilesystemString(trackTitles[i]);
+    for (int i = 0; i < trackTitles.size(); i++) ValidateFilenameStr(trackTitles[i]);
 
     PrintTracks();
     SetStatusText("Track titles validated");
@@ -964,42 +968,59 @@ void MainFrame::EnableFields()
 
 bool MainFrame::ValidateFields()
 {
-    // VALIDATING DIRECTORIES
+    // VALIDATE DIRECTORIES
     albumsDirectory = fAlbumsDir.GetText();
     workingDirectory = fWorkingDir.GetText();
+    converterDirectory = fConverterDir.GetText();
 
-    if (!validField(albumsDirectory))
+    if (!validDir(albumsDirectory))
     {
-        wxMessageBox("Albums directory invalid.", "Error", wxOK | wxICON_ERROR);
+        MessageDialog("Invalid albums directory.", "Error");
         return false;
     }
-    if (!validField(workingDirectory))
+    if (!validDir(workingDirectory))
     {
-        wxMessageBox("Working directory invalid.", "Error", wxOK | wxICON_ERROR);
+        MessageDialog("Invalid working directory.", "Error");
+        return false;
+    }
+    if (!validDir(converterDirectory))
+    {
+        MessageDialog("Invalid FFmpeg directory.", "Error");
         return false;
     }
 
-    if (albumsDirectory[albumsDirectory.size() - 1] != '/')
+    
+    // UPDATE FIELDS IN CASE A SLASH AT THE END IS APPENDED OR BACKSLASHES HAVE BEEN REPLACED WITH FORWARDSLASHES
+    fConverterDir.SetText(converterDirectory);
+    fAlbumsDir.SetText(albumsDirectory);
+    fWorkingDir.SetText(workingDirectory);
+
+
+    // LOCATE EXECUTABLES
+    std::wstring converterPath = converterDirectory + converterExec;
+    if (!FileExist(converterPath.c_str()))
     {
-        albumsDirectory += '/';
-        fAlbumsDir.SetText(albumsDirectory);
+        MessageDialog(L"Failed to locate " + converterExec + L" in:\n" + converterDirectory, L"Error");
+        return false;
     }
 
-    if (workingDirectory[workingDirectory.size() - 1] != '/')
+    std::wstring downloaderPath = workingDirectory + downloaderExec;
+    if (!FileExist(downloaderPath.c_str()))
     {
-        workingDirectory += '/';
-        fWorkingDir.SetText(workingDirectory);
+        MessageDialog(L"Failed to locate " + downloaderExec + L" in:\n" + workingDirectory, L"Error");
+        return false;
     }
 
 
-    // VALIDATING ALBUM DATA
+
+    // VALIDATE ALBUM DATA
     artist = fArtist.GetText();
     albumName = fAlbumName.GetText();
     albumYear = fAlbumYear.GetText();
 
-    ValidateFilesystemString(artist);
-    ValidateFilesystemString(albumName);
-    ValidateFilesystemString(albumYear);
+    ValidateFilenameStr(artist);
+    ValidateFilenameStr(albumName);
+    ValidateFilenameStr(albumYear);
 
 
 
@@ -1025,7 +1046,7 @@ bool MainFrame::ValidateFields()
 
 
 
-    // VALIDATING URLs
+    // VALIDATE URLs
     URL = fURL.GetText();
     artworkURL = fArtworkURL.GetText();
 
@@ -1034,12 +1055,13 @@ bool MainFrame::ValidateFields()
     };
     if (!validField(URL, validPlaylistURLs))
     {
-        std::wstring output = L"Playlist URL invalid.\n\nRequires either of:";
+        std::wstring output = L"Invalid playlist-URL.\n\nRequires either of:";
         for (int i = 0; i < validPlaylistURLs.size(); i++)
         {
             output += L"\n" + validPlaylistURLs[i];
         }
-        wxMessageBox(output, "Error", wxOK | wxICON_ERROR);
+
+        MessageDialog(output, L"Error");
         return false;
     }
 
@@ -1050,17 +1072,18 @@ bool MainFrame::ValidateFields()
     {
         if (!validField(URL, validArtworkURLs))
         {
-            std::wstring output = L"Artwork Playlist URL invalid.\n\nRequires either of:";
+            std::wstring output = L"Invalid artwork-playlist-URL.\n\nRequires either of:";
             for (int i = 0; i < validArtworkURLs.size(); i++)
             {
                 output += L"\n" + validArtworkURLs[i];
             }
-            wxMessageBox(output, "Error", wxOK | wxICON_ERROR);
+
+            MessageDialog(output, L"Error");
             return false;
         }
         else
         {
-            SetStatusText("Copying Playlist URL as Artwork Playlist URL");
+            SetStatusText("Copying artwork-playlist-URL from playlist-URL");
             fArtworkURL.SetText(URL);
             artworkURL = URL;
         }
@@ -1099,7 +1122,8 @@ void MainFrame::OpenSettings()
 
     std::wstring currentWord = L"";
     enum value_ID {
-        albumsDir = 1,
+        converterDir = 1,
+        albumsDir,
         workingDir,
         windowX,
         windowY,
@@ -1118,6 +1142,7 @@ void MainFrame::OpenSettings()
             {
                 try
                 {
+                    if (currentId == converterDir) fConverterDir.SetText(currentWord);
                     if (currentId == albumsDir) fAlbumsDir.SetText(currentWord);
                     if (currentId == workingDir) fWorkingDir.SetText(currentWord);
 
@@ -1169,6 +1194,7 @@ void MainFrame::SaveSettings()
     std::string path = "settings";
 
     std::wstring decoded = L"";
+    decoded += fConverterDir.GetText() + L"\n";
     decoded += fAlbumsDir.GetText() + L"\n";
     decoded += fWorkingDir.GetText() + L"\n";
     decoded += toWide(NumToStr(GetPosition().x)) + L"\n";

@@ -48,6 +48,7 @@ private:
 
     TextBox fAlbumsDir;
     TextBox fWorkingDir;
+    TextBox fConverterDir;
     TextBox fArtist;
     TextBox fAlbumName;
     TextBox fAlbumYear;
@@ -120,7 +121,7 @@ private:
 
     void AttachArtwork(std::wstring, std::wstring);
 
-    void ValidateFilesystemString(std::wstring& str);
+    void ValidateFilenameStr(std::wstring&);
     void ValidateTrackTitles();
 
     bool ValidateFields();
@@ -135,6 +136,7 @@ private:
 
     std::wstring albumsDirectory;
     std::wstring workingDirectory;
+    std::wstring converterDirectory;
 
     std::wstring converterExec;
     std::wstring downloaderExec;
@@ -148,10 +150,11 @@ private:
 
     std::vector<std::wstring> trackTitles;
     std::wstring artworkFilename;
-
+    
     std::wstring albumsDirBackslashes;
-    std::wstring albumPathBackslashes;
     std::wstring workingDirBackslashes;
+
+    std::wstring albumPathBackslashes;
 
     std::wstring initialOutput;
 private:
