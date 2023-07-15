@@ -62,7 +62,8 @@ private:
     TextBox fOutput;
 
 private:
-    unsigned int ClientWidth, ClientHeight;
+    unsigned int FullWidth, FullHeight;
+    RECT windowOffset;
 
     wxPoint defaultPos;
 
@@ -96,17 +97,20 @@ private:
     void OnClose(wxCloseEvent& event);
 private:
     void InitValues();
+    void InitMenuAndStatusBar();
     void InitFields();
     void InitConsole();
     void InitThemes();
     void InitFonts();
     void InitBindings();
-    void InitControls();
-    void InitClientSize();
+
     void InitTestValues();
+    void InitWindowSize();
 
     void VerifyExecutables();
-    void SizeFields(wxSize, wxSize, wxSize);
+    
+    void SizeFields();
+    void AdjustFields();
 
 
     void SaveSettings();

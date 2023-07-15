@@ -28,59 +28,6 @@ enum
 };
 
 
-void MainFrame::SizeFields(wxSize TextBoxSize, wxSize ButtonSize, wxSize OutputBoxSize)
-{
-    fields.clear();
-
-    fields.push_back(Field(20, 20, TextBoxSize));
-    fields.push_back(Field(20, 60, TextBoxSize));
-    fields.push_back(Field(20, 100, TextBoxSize));
-
-    fields.push_back(Field(20, 160, TextBoxSize));
-    fields.push_back(Field(20, 200, TextBoxSize));
-    fields.push_back(Field(20, 240, TextBoxSize));
-
-    fields.push_back(Field(20, 280, TextBoxSize));
-    fields.push_back(Field(20, 320, TextBoxSize));
-
-    fields.push_back(Field(20, 360, ButtonSize));
-    fields.push_back(Field(20 + ButtonSize.x + 10, 360, ButtonSize));
-    fields.push_back(Field(20 + ButtonSize.x + 10 + ButtonSize.x + 10, 362, ButtonSize));
-
-    fields.push_back(Field(20, 405, OutputBoxSize));
-}
-
-void MainFrame::VerifyExecutables()
-{
-    albumsDirectory = fAlbumsDir.GetText();
-    workingDirectory = fWorkingDir.GetText();
-    converterDirectory = fConverterDir.GetText();
-
-    if (!VerifyFile(workingDirectory, downloaderExec))
-    {
-        initialOutput +=    L"Failed to locate " + downloaderExec + L" in:\n";
-        
-        if (workingDirectory.empty()) initialOutput += L"<no directory provided>";
-        else initialOutput += workingDirectory;
-        
-        initialOutput += L"\n";
-    }
-
-    if (!VerifyFile(converterDirectory, converterExec))
-    {
-        initialOutput +=    L"Failed to locate " + converterExec + L" in:\n";
-
-        if (converterDirectory.empty()) initialOutput += L"<no directory provided>";
-        else initialOutput += converterDirectory;
-
-        initialOutput += L"\n";
-
-
-        initialOutput +=    L"\nAlbum-dl requires FFmpeg to work, if you don't have FFmpeg installed, visit:\n"
-                            L"https://ffmpeg.org/download.html\n\n";
-    }
-}
-
 void MainFrame::InitValues()
 {
     bDone = true;
@@ -108,15 +55,26 @@ void MainFrame::InitValues()
 
     // VARIABLE SIZE & POS RANGE:
     // defaultPos.x: 0 - 350
-    // ClientHeight: 640 - 955
+    // FullHeight: 640 - 955
     // OutputBoxSize.y: 215 - 530
 
-    float screenResX = GetSystemMetrics(SM_CXSCREEN);
-    float screenResY = GetSystemMetrics(SM_CYSCREEN);
-    
+
     defaultPos.x = 350;
     defaultPos.y = 0;
 
+    // test if taskbar size and orientation can be retrieved and set windowOffset accordingly
+    windowOffset.left = 0;
+    windowOffset.right = 0;
+    windowOffset.top = 0;
+    windowOffset.bottom = 150;
+
+
+    if (defaultPos.x < windowOffset.left) defaultPos.x = windowOffset.left;
+    if (defaultPos.y < windowOffset.top) defaultPos.y = windowOffset.top;
+}
+
+void MainFrame::SizeFields()
+{
     wxSize TextBoxSize;
     wxSize OutputBoxSize;
     wxSize ButtonSize;
@@ -124,45 +82,94 @@ void MainFrame::InitValues()
     TextBoxSize = wxSize(800, 20);
     OutputBoxSize = wxSize(800, 530);
     ButtonSize = wxSize(100, 25);
-    
-    SizeFields(TextBoxSize, ButtonSize, OutputBoxSize);
+
+    fields.clear();
+
+    fields.push_back(Field(20, 20, TextBoxSize));
+    fields.push_back(Field(20, 60, TextBoxSize));
+    fields.push_back(Field(20, 100, TextBoxSize));
+
+    fields.push_back(Field(20, 160, TextBoxSize));
+    fields.push_back(Field(20, 200, TextBoxSize));
+    fields.push_back(Field(20, 240, TextBoxSize));
+
+    fields.push_back(Field(20, 280, TextBoxSize));
+    fields.push_back(Field(20, 320, TextBoxSize));
+
+    fields.push_back(Field(20, 360, ButtonSize));
+    fields.push_back(Field(20 + ButtonSize.x + 10, 360, ButtonSize));
+    fields.push_back(Field(20 + ButtonSize.x + 10 + ButtonSize.x + 10, 362, ButtonSize));
+
+    fields.push_back(Field(20, 405, OutputBoxSize));
+}
+
+void MainFrame::AdjustFields()
+{
+    float screenX, screenY;
+    screenX = GetSystemMetrics(SM_CXSCREEN);
+    screenY = GetSystemMetrics(SM_CYSCREEN);
+    //screenX = 1366;
+    //screenY = 768;
+
+    float areaX, areaY;
+    areaX = screenX - (windowOffset.left + windowOffset.right);
+    areaY = screenY - (windowOffset.top + windowOffset.bottom);
 
 
-    // ADJUST FIELDS WIDTH IF TOO LARGE
+    wxSize sizeFull = GetSize();
+    wxSize sizeClient = GetClientSize();
+
+    // CLIENT-FULL SIZE DIFFERENCE
+    int xDiff = sizeFull.x - sizeClient.x;
+    int yDiff = sizeFull.y - sizeClient.y;
+
+
+    Field& fLast = fields.back();
+    unsigned int bottomClientOff = 20;
+    int minLastHeight = 50;
+    int minFieldWidth = 250;
+
+
+
+
+    initialOutput += L"screen res: " + NumToWstr((int)screenX) + L"x" + NumToWstr((int)screenY) + L"\n";
+    initialOutput += L"available area: " + NumToWstr((int)areaX) + L"x" + NumToWstr((int)areaY) + L"\n\n";
+
+    // July, 14th
+    // TO FIX:
+    // -DID NOT TAKE NON-CLIENT AREA INTO ACCOUNT DURING AUTO-SCALING
+    // -ALSO TAKE THE TASKBAR INTO ACCOUNT. MAYBE IT'S SIZE/ORIENTATION CAN BE RETRIEVED RUN-TIME
+    // -DEAL WITH NO PERMISSION TO OPEN FILE HANDLE. CONSIDER SWITCHING TO STD METHODS INSTEAD OF SYS METHODS
+    // -TEST FOR OTHER SYS METHODS PERMISSION REQUIREMENTS I.E. CREATEPROCESS()
+    //
+
+
+    // ADJUST FIELDS WIDTH IF TOO WIDE
     for (int i = 0; i < fields.size(); i++)
     {
-        if (defaultPos.x + fields[i].pos.x * 2 + fields[i].size.x > screenResX)
+        if (defaultPos.x + (fields[i].pos.x * 2 + fields[i].size.x + xDiff) > areaX)
         {
-            if (screenResX - fields[i].pos.x * 2 - fields[i].size.x >= 0)
+            if (areaX - (fields[i].pos.x * 2 + fields[i].size.x + xDiff) >= 0)
             {
-                defaultPos.x = screenResX - fields[i].pos.x * 2 - fields[i].size.x;
+                defaultPos.x = areaX - (fields[i].pos.x * 2 + fields[i].size.x + xDiff);
             }
             else
             {
                 defaultPos.x = 0;
-                if (fields[i].pos.x * 2 + fields[i].size.x > screenResX)
+                if ((fields[i].pos.x * 2 + fields[i].size.x + xDiff) > areaX)
                 {
-                    if (screenResX - fields[i].pos.x * 2 > 250)
-                    {
-                        fields[i].size.x = screenResX - fields[i].pos.x * 2;
-                    }
-                    else fields[i].size.x = 250;
+                    fields[i].size.x = areaX - (fields[i].pos.x * 2 + xDiff);
+                    if (fields[i].size.x < minFieldWidth) fields[i].size.x = minFieldWidth;
                 }
             }
         }
     }
 
     // ADJUST LAST FIELD (OUTPUT-BOX) HEIGHT IF TOO LARGE
-    if (fields.back().pos.y + fields.back().size.y + 20 > screenResY)
+    if ((fLast.pos.y + fLast.size.y + bottomClientOff + yDiff) > areaY)
     {
-        if (screenResY - fields.back().pos.y - 20 < 215)
-        {
-            fields.back().size.y = 215;
-        }
-        else
-        {
-            fields.back().size.y = screenResY - fields.back().pos.y - 20;
-        }
+        fLast.size.y = areaY - (fLast.pos.y + bottomClientOff + yDiff);
+        if (fLast.size.y < minLastHeight) fLast.size.y = minLastHeight;
     }
 
 
@@ -176,8 +183,27 @@ void MainFrame::InitValues()
         if (currentWidth > maxWidth) index = i;
     }
 
-    ClientWidth = fields[index].pos.x + fields[index].size.x + fields[index].pos.x;
-    ClientHeight = fields.back().pos.y + fields.back().size.y + 20; // BASE CLIENT HEIGHT ON THE LAST FIELD (OUTPUT-BOX)
+
+
+    //MessageDialog("sizeFull: " + NumToStr(sizeFull.x) + "x" + NumToStr(sizeFull.y) + "\n" + "sizeClient: " + NumToStr(sizeClient.x) + "x" + NumToStr(sizeClient.y));
+
+    FullWidth = fields[index].pos.x + fields[index].size.x + fields[index].pos.x + (sizeFull.x - sizeClient.x);
+    FullHeight = fLast.pos.y + fLast.size.y + bottomClientOff + (sizeFull.y - sizeClient.y); // BASE CLIENT HEIGHT ON THE LAST FIELD (OUTPUT-BOX)
+
+
+
+
+    // PRINT OUTPUT FOR TESTING
+    for (int i = 0; i < fields.size(); i++)
+    {
+        initialOutput += L"fields[" + NumToWstr(i, 10, 2, ' ') + L"]: (";
+        initialOutput += NumToWstr(fields[i].pos.x, 10, 3, ' ') + L", " + NumToWstr(fields[i].pos.y, 10, 3, ' ') + L"), (";
+        initialOutput += NumToWstr(fields[i].size.x, 10, 3, ' ') + L", " + NumToWstr(fields[i].size.y, 10, 3, ' ') + L")\n";
+    }
+    initialOutput += L"\nFullSize: " + NumToWstr(FullWidth) + L"x" + NumToWstr(FullHeight) + L"\n";
+    initialOutput += L"defaultPos: " + NumToWstr(defaultPos.x) + L", " + NumToWstr(defaultPos.y) + L"\n";
+    initialOutput += L"bottom-right corner: " + NumToWstr(defaultPos.x + FullWidth) + L", " + NumToWstr(defaultPos.y + FullHeight) + L"\n";
+    initialOutput += L"\n";
 }
 
 void MainFrame::InitFields()
@@ -291,7 +317,7 @@ void MainFrame::InitBindings()
     Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose, this);
 }
 
-void MainFrame::InitControls()
+void MainFrame::InitMenuAndStatusBar()
 {
     // File:
     //      Save settings
@@ -319,28 +345,11 @@ void MainFrame::InitControls()
 
     CreateStatusBar();
     SetStatusText("");
-
-    //fOutput.SetEditable(false);
-
-    ///*
-    fBitrate.AppendItem("128 kbit/s");
-    fBitrate.AppendItem("144 kbit/s");
-    fBitrate.AppendItem("160 kbit/s");
-    fBitrate.AppendItem("192 kbit/s");
-    fBitrate.AppendItem("224 kbit/s");
-    fBitrate.AppendItem("256 kbit/s");
-    fBitrate.AppendItem("320 kbit/s");
-    //*/
-
-
-
-    fWorkingDir.SetText(L"workfolder/");
-    fArtist.SetFocus();
 }
 
-void MainFrame::InitClientSize()
+void MainFrame::InitWindowSize()
 {
-    SetClientSize(ClientWidth, ClientHeight);
+    SetSize(FullWidth, FullHeight);
 }
 
 void MainFrame::InitTestValues()
@@ -401,10 +410,45 @@ void MainFrame::InitTestValues()
     */
 }
 
+void MainFrame::VerifyExecutables()
+{
+    albumsDirectory = fAlbumsDir.GetText();
+    workingDirectory = fWorkingDir.GetText();
+    converterDirectory = fConverterDir.GetText();
+
+    if (!VerifyFile(workingDirectory, downloaderExec))
+    {
+        initialOutput +=    L"Failed to locate " + downloaderExec + L" in:\n";
+
+        if (workingDirectory.empty()) initialOutput += L"<no directory provided>";
+        else initialOutput += workingDirectory;
+
+        initialOutput += L"\n";
+    }
+
+    if (!VerifyFile(converterDirectory, converterExec))
+    {
+        initialOutput +=    L"Failed to locate " + converterExec + L" in:\n";
+
+        if (converterDirectory.empty()) initialOutput += L"<no directory provided>";
+        else initialOutput += converterDirectory;
+
+        initialOutput += L"\n";
+
+
+        initialOutput +=    L"\nAlbum-dl requires FFmpeg to work, if you don't have FFmpeg installed, visit:\n"
+            L"https://ffmpeg.org/download.html\n\n";
+    }
+}
+
 MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 {
     InitValues();
-    InitFields();
+    InitMenuAndStatusBar();
+
+    SizeFields();       // SET INITIAL FIELDS SIZE
+    AdjustFields();     // ADJUST FIELDS SIZE ACCORDING TO SCREEN RESOLUTION
+    InitFields();       // SET LABELS AND CONSTRUCT FIELDS
 
     InitConsole();
 
@@ -412,11 +456,10 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     InitFonts();
 
     InitBindings();
-    InitControls();
-
-    InitClientSize();
 
     InitTestValues();
+    InitWindowSize();
+
 
     SetPosition(wxPoint(defaultPos.x, defaultPos.y));   // SET WINDOW POS TO DEFAULT POS
     OpenSettings();                                     // LOAD SETTINGS (MAY REPOS WINDOW)
@@ -425,6 +468,23 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 
 
     VerifyExecutables();
+
+
+
+    ///*
+    fBitrate.AppendItem("128 kbit/s");
+    fBitrate.AppendItem("144 kbit/s");
+    fBitrate.AppendItem("160 kbit/s");
+    fBitrate.AppendItem("192 kbit/s");
+    fBitrate.AppendItem("224 kbit/s");
+    fBitrate.AppendItem("256 kbit/s");
+    fBitrate.AppendItem("320 kbit/s");
+    //*/
+
+
+    fWorkingDir.SetText(L"workfolder/");
+    fArtist.SetFocus();
+
 
     mainConsole.PrintLogAndConsole(initialOutput);
     initialOutput.clear();
