@@ -366,56 +366,44 @@ void MainFrame::InitTestValues()
     // SAMPLE TEST VALUES FOR CONVENIENCE:
 
     // SHORT PLAYLISTS
-    /*
     fArtist.SetText(L"Big Black");
     fAlbumName.SetText(L"Racer-X");
     fAlbumYear.SetText(L"1985");
     fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nrAFOfF6ITDAEJ-BuHYWpHYOwsKNTZ994");
-    */
     
-    /*
-    fArtist.SetText(L"Big Black");
-    fAlbumName.SetText(L"Lungs");
-    fAlbumYear.SetText(L"1982");
-    fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_lSCRmY_Qw8RCNnMKHcp05O1K8fAIyqLjs");
-    */
+    //fArtist.SetText(L"Big Black");
+    //fAlbumName.SetText(L"Lungs");
+    //fAlbumYear.SetText(L"1982");
+    //fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_lSCRmY_Qw8RCNnMKHcp05O1K8fAIyqLjs");
 
 
 
 
     // RARE UNICODE CHAR THAT SHOWS DIFFERENCE BETWEEN WINDOWS-1250 AND WINDOWS-1252
-    /*
-    fArtist.SetText(L"The Jesus Lizard");
-    fAlbumName.SetText(L"Down");
-    fAlbumYear.SetText(L"1994");
-    fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_kULt5j2pKzT5PtLz1RGW7EO-IWDwqVtHw");
-    */
+    //fArtist.SetText(L"The Jesus Lizard");
+    //fAlbumName.SetText(L"Down");
+    //fAlbumYear.SetText(L"1994");
+    //fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_kULt5j2pKzT5PtLz1RGW7EO-IWDwqVtHw");
 
     // RARE UNICODE CODE POINTS
-    /*
-    fArtist.SetText(L"Death in June");
-    fAlbumName.SetText(L"Discriminate: A Compilation of Personal Choice 1981-97");
-    fAlbumYear.SetText(L"1997");
-    fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_ll7VmeyNV0J4d4HroMPrLrRfBcjiLIVLo");
-    */
+    //fArtist.SetText(L"Death in June");
+    //fAlbumName.SetText(L"Discriminate: A Compilation of Personal Choice 1981-97");
+    //fAlbumYear.SetText(L"1997");
+    //fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_ll7VmeyNV0J4d4HroMPrLrRfBcjiLIVLo");
 
     // TYPICAL UNICODE TITLES
-    /*
-    fArtist.SetText(L"O.S.T.R.");
-    fAlbumName.SetText(L"Tylko Dla Doros³ych");
-    fAlbumYear.SetText(L"2010");
-    fURL.SetText(L"https://www.youtube.com/playlist?list=PLIKxxmyVA3HZ5vCNl3b0gQXDhuMWLz-mG");
-    fArtworkURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_l6DSlExq2EbVR7ILChbL9ZHn-1SbyKRO8");
-    */
+    //fArtist.SetText(L"O.S.T.R.");
+    //fAlbumName.SetText(L"Tylko Dla Doros³ych");
+    //fAlbumYear.SetText(L"2010");
+    //fURL.SetText(L"https://www.youtube.com/playlist?list=PLIKxxmyVA3HZ5vCNl3b0gQXDhuMWLz-mG");
+    //fArtworkURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_l6DSlExq2EbVR7ILChbL9ZHn-1SbyKRO8");
 
     // TYPICAL UNICODE TITLES
-    /*
-    fArtist.SetText(L"Goat");
-    fAlbumName.SetText(L"World Music");
-    fAlbumYear.SetText(L"2012");
-    fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
-    //fArtworkURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
-    */
+    //fArtist.SetText(L"Goat");
+    //fAlbumName.SetText(L"World Music");
+    //fAlbumYear.SetText(L"2012");
+    //fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
+    ////fArtworkURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
 }
 
 void MainFrame::VerifyExecutables()
@@ -469,6 +457,15 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     InitWindowSize();
 
 
+    fBitrate.AppendItem("128 kbit/s");
+    fBitrate.AppendItem("144 kbit/s");
+    fBitrate.AppendItem("160 kbit/s");
+    fBitrate.AppendItem("192 kbit/s");
+    fBitrate.AppendItem("224 kbit/s");
+    fBitrate.AppendItem("256 kbit/s");
+    fBitrate.AppendItem("320 kbit/s");
+
+
     SetPosition(wxPoint(defaultPos.x, defaultPos.y));   // SET WINDOW POS TO DEFAULT POS
     OpenSettings();                                     // LOAD SETTINGS (MAY REPOS WINDOW)
     Show(true);                                         // SHOW WINDOW
@@ -478,16 +475,6 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     VerifyExecutables();
 
 
-
-    ///*
-    fBitrate.AppendItem("128 kbit/s");
-    fBitrate.AppendItem("144 kbit/s");
-    fBitrate.AppendItem("160 kbit/s");
-    fBitrate.AppendItem("192 kbit/s");
-    fBitrate.AppendItem("224 kbit/s");
-    fBitrate.AppendItem("256 kbit/s");
-    fBitrate.AppendItem("320 kbit/s");
-    //*/
 
 
     fWorkingDir.SetText(L"workfolder/");
