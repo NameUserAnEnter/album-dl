@@ -53,24 +53,11 @@ void MainFrame::InitValues()
 
 
 
-    // VARIABLE SIZE & POS RANGE:
-    // defaultPos.x: 0 - 350
-    // FullHeight: 640 - 955
-    // OutputBoxSize.y: 215 - 530
-
-
     defaultPos.x = 350;
     defaultPos.y = 0;
 
-    // test if taskbar size and orientation can be retrieved and set windowOffset accordingly
-    windowOffset.left = 0;
-    windowOffset.right = 0;
-    windowOffset.top = 0;
-    windowOffset.bottom = 150;
 
-
-    if (defaultPos.x < windowOffset.left) defaultPos.x = windowOffset.left;
-    if (defaultPos.y < windowOffset.top) defaultPos.y = windowOffset.top;
+    taskbarHeight = 44;
 }
 
 void MainFrame::SizeFields()
@@ -105,26 +92,27 @@ void MainFrame::SizeFields()
 
 void MainFrame::AdjustFields()
 {
+    // screen resolution
     float screenX, screenY;
     screenX = GetSystemMetrics(SM_CXSCREEN);
     screenY = GetSystemMetrics(SM_CYSCREEN);
     //screenX = 1366;
     //screenY = 768;
 
+    // available screen area
     float areaX, areaY;
-    areaX = screenX - (windowOffset.left + windowOffset.right);
-    areaY = screenY - (windowOffset.top + windowOffset.bottom);
+    areaX = screenX;
+    areaY = screenY - taskbarHeight;
 
 
     wxSize sizeFull = GetSize();
     wxSize sizeClient = GetClientSize();
 
-    // CLIENT-FULL SIZE DIFFERENCE
+    // WINDOW-SIZE - CLIENT-SIZE DIFFERENCE
     int xDiff = sizeFull.x - sizeClient.x;
     int yDiff = sizeFull.y - sizeClient.y;
 
 
-    Field& fLast = fields.back();
     unsigned int bottomClientOff = 20;
     int minLastHeight = 50;
     int minFieldWidth = 250;
@@ -135,45 +123,66 @@ void MainFrame::AdjustFields()
     initialOutput += L"screen res: " + NumToWstr((int)screenX) + L"x" + NumToWstr((int)screenY) + L"\n";
     initialOutput += L"available area: " + NumToWstr((int)areaX) + L"x" + NumToWstr((int)areaY) + L"\n\n";
 
-    // July, 14th
-    // TO FIX:
-    // -DID NOT TAKE NON-CLIENT AREA INTO ACCOUNT DURING AUTO-SCALING
-    // -ALSO TAKE THE TASKBAR INTO ACCOUNT. MAYBE IT'S SIZE/ORIENTATION CAN BE RETRIEVED RUN-TIME
-    // -DEAL WITH NO PERMISSION TO OPEN FILE HANDLE. CONSIDER SWITCHING TO STD METHODS INSTEAD OF SYS METHODS
+    // July, 16th
     // -TEST FOR OTHER SYS METHODS PERMISSION REQUIREMENTS I.E. CREATEPROCESS()
+    // -FILE PERMISSION PROBLEM CANNOT BE SOLVED BY USING STD METHODS (BOTH LOG & SETTINGS CANNOT BE ACCESSED WITHOUT ADMIN PRIVILAGE)
     //
 
 
     // ADJUST FIELDS WIDTH IF TOO WIDE
     for (int i = 0; i < fields.size(); i++)
     {
-        if (defaultPos.x + (fields[i].pos.x * 2 + fields[i].size.x + xDiff) > areaX)
+        Field& fCurrent = fields[i];
+
+        int currentFullWidth = fCurrent.pos.x * 2 + fCurrent.size.x + xDiff;
+        if (defaultPos.x + currentFullWidth > areaX)
         {
-            if (areaX - (fields[i].pos.x * 2 + fields[i].size.x + xDiff) >= 0)
+            if (areaX >= currentFullWidth)
             {
-                defaultPos.x = areaX - (fields[i].pos.x * 2 + fields[i].size.x + xDiff);
+                // no resize needed, just repos
+                defaultPos.x = areaX - currentFullWidth;
             }
-            else
+            else // areaX < currentFullWidth
             {
+                // align to left
                 defaultPos.x = 0;
-                if ((fields[i].pos.x * 2 + fields[i].size.x + xDiff) > areaX)
-                {
-                    fields[i].size.x = areaX - (fields[i].pos.x * 2 + xDiff);
-                    if (fields[i].size.x < minFieldWidth) fields[i].size.x = minFieldWidth;
-                }
+
+                // get new field width
+                fCurrent.size.x = areaX - (fCurrent.pos.x * 2 + xDiff);
+                // if too small set to minimal
+                if (fCurrent.size.x < minFieldWidth) fCurrent.size.x = minFieldWidth;
             }
         }
     }
 
     // ADJUST LAST FIELD (OUTPUT-BOX) HEIGHT IF TOO LARGE
-    if ((fLast.pos.y + fLast.size.y + bottomClientOff + yDiff) > areaY)
+    Field& fLast = fields.back();
+
+    int currentFullHeight = fLast.pos.y + fLast.size.y + bottomClientOff + yDiff;
+    if (defaultPos.y + currentFullHeight > areaY)
     {
-        fLast.size.y = areaY - (fLast.pos.y + bottomClientOff + yDiff);
-        if (fLast.size.y < minLastHeight) fLast.size.y = minLastHeight;
+        if (areaY >= currentFullHeight)
+        {
+            // no resize needed, just repos
+            defaultPos.y = areaY - currentFullHeight;
+        }
+        else // areaY < currentFullHeight
+        {
+            // align to top
+            defaultPos.y = 0;
+
+            // get new field height, so that the window does not exceed available area (checks with the equation):
+            // areaY = fLast.pos.y + fLast.size.y + bottomClientOff + yDiff
+            // areaY - fLast.pos.y - bottomClientOff - yDiff = fLast.size.y
+            // areaY - (fLast.pos.y + bottomClientOff + yDiff) = fLast.size.y
+            fLast.size.y = areaY - (fLast.pos.y + bottomClientOff + yDiff);
+            // if too small set to minimal
+            if (fLast.size.y < minLastHeight) fLast.size.y = minLastHeight;
+        }
     }
 
 
-    // GET WIDEST FIELD TO BASE CLIENT WIDTH ON
+    // GET WIDEST FIELD TO BASE WINDOW WIDTH ON
     int index = 0;
     for (int i = 0; i < fields.size(); i++)
     {
@@ -185,7 +194,6 @@ void MainFrame::AdjustFields()
 
 
 
-    //MessageDialog("sizeFull: " + NumToStr(sizeFull.x) + "x" + NumToStr(sizeFull.y) + "\n" + "sizeClient: " + NumToStr(sizeClient.x) + "x" + NumToStr(sizeClient.y));
 
     FullWidth = fields[index].pos.x + fields[index].size.x + fields[index].pos.x + (sizeFull.x - sizeClient.x);
     FullHeight = fLast.pos.y + fLast.size.y + bottomClientOff + (sizeFull.y - sizeClient.y); // BASE CLIENT HEIGHT ON THE LAST FIELD (OUTPUT-BOX)
@@ -522,7 +530,6 @@ void MainFrame::OnSave(wxCommandEvent& event)
 {
     // File / Save settings
     SaveSettings();
-    MessageDialog("Settings have been saved.", "album-dl");
 }
 
 void MainFrame::OnButtonPress(wxCommandEvent& event)
@@ -1320,6 +1327,7 @@ void MainFrame::SaveSettings()
         return;
     }
     SetStatusText("Settings have been saved");
+    MessageDialog("Settings have been saved.", "album-dl");
 }
 
 

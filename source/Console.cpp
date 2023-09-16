@@ -219,7 +219,7 @@ void Console::PrintLogAndConsole(std::wstring buf)
 	PrintConsole(buf);
 
 	if (!bLogOpen) return;
-	Write(hLogWrite, EncodeToUTF8(buf));
+	AppendDataToFile(EncodeToUTF8(buf), logFilepath);
 }
 
 void Console::PrintLogAndConsoleNarrow(std::string buf)
@@ -235,6 +235,8 @@ void Console::PrintConsole(std::wstring buf)
 	std::lock_guard<std::mutex> bufLock(printMutex);
 	*pOutputBuffer += (buf);
 }
+
+
 
 
 void Console::Write(HANDLE hOut, std::string buf)
@@ -264,6 +266,9 @@ void Console::Read(HANDLE hIn, std::string& buf)
 	free(chBuf);
 	if (!bResult) ErrorWithCode("ReadFile", GetLastError(), ERR_READ);
 }
+
+
+
 
 unsigned long Console::GetPipeBufSize()
 {
@@ -339,9 +344,7 @@ void Console::OpenLog()
 {
 	if (!bInit) return;
 
-	GetFileHandle(logFilepath.c_str(), CREATE_ALWAYS, &hLogWrite, true, FILE_SHARE_READ, GENERIC_WRITE);
-	AddActiveHandle(hLogWrite);
-
+	ClearFileData(logFilepath);
 	bLogOpen = true;
 }
 
@@ -350,27 +353,8 @@ void Console::CloseLog()
 	if (!bInit) return;
 	if (!bLogOpen) return;
 
-	RemoveActiveHandle(hLogWrite);
+
 	bLogOpen = false;
-}
-
-void Console::GetFileHandle(std::wstring wPath, DWORD dwCreationDisposition, HANDLE* hDest, bool bInheritable,
-							DWORD dwShareMode, DWORD dwDesiredAccess)
-{
-	std::wstring path = (wPath);
-
-	if (!bInheritable) *hDest = CreateFileW(path.c_str(), dwDesiredAccess, dwShareMode, NULL, dwCreationDisposition, FILE_ATTRIBUTE_NORMAL, NULL);
-	else
-	{
-		SECURITY_ATTRIBUTES secAttr ={ };
-		secAttr.nLength = sizeof(secAttr);
-		secAttr.lpSecurityDescriptor = NULL;
-		secAttr.bInheritHandle = true;
-
-		*hDest = CreateFileW(path.c_str(), dwDesiredAccess, dwShareMode, &secAttr, dwCreationDisposition, FILE_ATTRIBUTE_NORMAL, NULL);
-	}
-
-	if (*hDest == INVALID_HANDLE_VALUE) ErrorWithCode("CreateFile", GetLastError(), ERR_FILE);
 }
 
 

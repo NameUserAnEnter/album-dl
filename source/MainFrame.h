@@ -63,7 +63,7 @@ private:
 
 private:
     unsigned int FullWidth, FullHeight;
-    RECT windowOffset;
+    unsigned int taskbarHeight;
 
     wxPoint defaultPos;
 

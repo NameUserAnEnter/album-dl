@@ -92,7 +92,7 @@ private:
 
 
 
-	void GetFileHandle(std::wstring, DWORD, HANDLE*, bool = false, DWORD = NULL, DWORD = GENERIC_READ | GENERIC_WRITE);
+
 	
 
 	void AddActiveHandle(HANDLE hActive);
