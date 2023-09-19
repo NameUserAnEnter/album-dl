@@ -177,7 +177,7 @@ private:
     std::wstring CreateTrashDirStage();
     std::vector<std::wstring> RemoveLeftoverStage();
 
-    std::wstring GetTitlesStage();
+    std::wstring GetTitlesStageAlt();
 
     std::vector<std::wstring> RenameFilesStage(std::wstring ext = L".mp3");
 

@@ -386,10 +386,10 @@ void MainFrame::InitTestValues()
 
 
     // RARE UNICODE CHAR THAT SHOWS DIFFERENCE BETWEEN WINDOWS-1250 AND WINDOWS-1252
-    fArtist.SetText(L"The Jesus Lizard");
-    fAlbumName.SetText(L"Down");
-    fAlbumYear.SetText(L"1994");
-    fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_kULt5j2pKzT5PtLz1RGW7EO-IWDwqVtHw");
+    //fArtist.SetText(L"The Jesus Lizard");
+    //fAlbumName.SetText(L"Down");
+    //fAlbumYear.SetText(L"1994");
+    //fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_kULt5j2pKzT5PtLz1RGW7EO-IWDwqVtHw");
 
     // RARE UNICODE CODE POINTS
     //fArtist.SetText(L"Death in June");
@@ -398,11 +398,11 @@ void MainFrame::InitTestValues()
     //fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_ll7VmeyNV0J4d4HroMPrLrRfBcjiLIVLo");
 
     // TYPICAL UNICODE TITLES
-    //fArtist.SetText(L"O.S.T.R.");
-    //fAlbumName.SetText(L"Tylko Dla Doros³ych");
-    //fAlbumYear.SetText(L"2010");
-    //fURL.SetText(L"https://www.youtube.com/playlist?list=PLIKxxmyVA3HZ5vCNl3b0gQXDhuMWLz-mG");
-    //fArtworkURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_l6DSlExq2EbVR7ILChbL9ZHn-1SbyKRO8");
+    fArtist.SetText(L"O.S.T.R.");
+    fAlbumName.SetText(L"Tylko Dla Doros³ych");
+    fAlbumYear.SetText(L"2010");
+    fURL.SetText(L"https://www.youtube.com/playlist?list=PLIKxxmyVA3HZ5vCNl3b0gQXDhuMWLz-mG");
+    fArtworkURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_l6DSlExq2EbVR7ILChbL9ZHn-1SbyKRO8");
 
     // TYPICAL UNICODE TITLES
     //fArtist.SetText(L"Goat");
@@ -609,7 +609,7 @@ void MainFrame::GetAlbum()
 
     
     //--------------------------------------------------
-    //GetArtworkStage();
+    GetArtworkStage();
 
 
 
@@ -617,8 +617,8 @@ void MainFrame::GetAlbum()
     ResetTracksFile();
     GetTrackTitles();
 
-    LoadTrackTitles();
-    ValidateTrackTitles();
+    //LoadTrackTitles();
+    //ValidateTrackTitles();
     //ResetTracksFile();
     
     
@@ -779,53 +779,6 @@ std::vector<std::wstring> MainFrame::RemoveLeftoverStage()
 
 
 
-void MainFrame::GetTrackTitles()
-{
-    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
-    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "GetTrackTitles()" "\n");
-    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
-    std::wstring pagePath = workingDirectory + pageFilename;
-
-    std::string data = "";
-    GetFileData(pagePath, &data);
-    std::string query = "]},\"title\":{\"runs\":[{\"text\":\"";
-
-    std::vector<std::string> split = splitByStr(data, query, false);
-
-    std::vector<std::string> titles;
-    titles.clear();
-    for (int i = 1; i < split.size(); i++)
-    {
-        for (int j = 0; j < split[i].size(); j++)
-        {
-            if (j == 0) titles.push_back("");
-            if (split[i][j] == '"') break;
-            titles.back() += split[i][j];
-        }
-    }
-
-    std::string output = "";
-    for (auto title : titles)
-    {
-        std::string current = title + "\n";
-        output += current;
-        mainConsole.PrintLogAndConsoleNarrow(current);
-    }
-
-    std::wstring tracksPath = workingDirectory + tracksFilename;
-    WriteDataToFile(output, tracksPath);
-
-    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
-    mainConsole.PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
-    mainConsole.PrintLogAndConsoleNarrow("\n\n");
-}
-
-std::wstring MainFrame::GetTitlesStage()
-{
-    //std::wstring cmd = L"cmd /a /c \"\"" + workingDirectory + downloaderExec + L"\" -e --print-to-file %(title)s \"tracks\" \"" + URL + L"\"\"";
-    std::wstring cmd = L"cmd /a /c \"\"" + workingDirectory + downloaderExec + L"\" -e --print-to-file %(title)s \"" + tracksFilename + L"\" \"" + URL + L"\"\"";
-    return cmd;
-}
 
 std::vector<std::wstring> MainFrame::RenameFilesStage(std::wstring ext)
 {
@@ -908,7 +861,7 @@ void MainFrame::GetArtworkStage()
     PrintConsole("\n\n");
     FixImageData(artworkBrokenPath.c_str(), artworkPath.c_str());
 
-    // Erase the page (resource) .html file data
+    // Erase the page (resource) .html file data, disabled, since now it's moved to trash dir instead
     //ClearFileData(pagePath);
 
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
@@ -1052,6 +1005,49 @@ void MainFrame::PrintTracks()
     }
 }
 
+
+
+void MainFrame::GetTrackTitles()
+{
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "GetTrackTitles()" "\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
+    std::wstring pagePath = workingDirectory + pageFilename;
+
+    std::string data = "";
+    GetFileData(pagePath, &data);
+    std::string query = "]},\"title\":{\"runs\":[{\"text\":\"";
+
+    std::vector<std::string> split = splitByStr(data, query, false);
+
+    std::vector<std::string> titles;
+    titles.clear();
+    for (int i = 1; i < split.size(); i++)
+    {
+        for (int j = 0; j < split[i].size(); j++)
+        {
+            if (j == 0) titles.push_back("");
+            if (split[i][j] == '"') break;
+            titles.back() += split[i][j];
+        }
+    }
+
+    std::string output = "";
+    for (auto title : titles)
+    {
+        std::string current = title + "\n";
+        output += current;
+        mainConsole.PrintLogAndConsole(DecodeFromUTF8(current));
+    }
+
+    std::wstring tracksPath = workingDirectory + tracksFilename;
+    WriteDataToFile(output, tracksPath);
+
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
+    mainConsole.PrintLogAndConsoleNarrow("\n\n");
+}
+
 void MainFrame::ResetTracksFile()
 {
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
@@ -1117,6 +1113,13 @@ void MainFrame::LoadTrackTitles()
 }
 
 
+
+std::wstring MainFrame::GetTitlesStageAlt()
+{
+    //std::wstring cmd = L"cmd /a /c \"\"" + workingDirectory + downloaderExec + L"\" -e --print-to-file %(title)s \"tracks\" \"" + URL + L"\"\"";
+    std::wstring cmd = L"cmd /a /c \"\"" + workingDirectory + downloaderExec + L"\" -e --print-to-file %(title)s \"" + tracksFilename + L"\" \"" + URL + L"\"\"";
+    return cmd;
+}
 
 
 
