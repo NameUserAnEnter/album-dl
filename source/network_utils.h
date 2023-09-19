@@ -394,23 +394,15 @@ inline void modifyData(std::string* data)
 
 
     PrintConsole("\nSearching:\n");
-    //unsigned int cFound = 0;
     clock_t before = clock();
     for (int i = 0; i < copy.size() - 1; i++)
     {
         if (copy[i] == 0x0D && copy[i + 1] == 0x0A)
         {
             copy.replace(i, 2, "\n");
-            //PrintConsole("\r" + NumToStr(i, 16, 8));
-            //PrintConsole(NumToStr(i, 16, 8));
-
-            //cFound++;
-            //if (cFound % 8 == 0) PrintConsole("\n");
-            //else PrintConsole(" ");
         }
     }
-    //PrintConsole("\nDONE");
-    PrintConsole("\rDONE: " + MsToSec(clock() - before, 1));
+    PrintConsole("DONE: " + MsToSec(clock() - before, 1));
     PrintConsole("\n\n");
 
 

@@ -157,6 +157,8 @@ private:
     std::vector<std::wstring> trackTitles;
     std::wstring artworkFilename;
     std::wstring artworkBrokenFilename;
+
+    std::wstring trashFoldername;
     
     std::wstring albumsDirBackslashes;
     std::wstring workingDirBackslashes;
@@ -174,9 +176,8 @@ private:
 
     std::vector<std::wstring> RenameFilesStage(std::wstring ext = L".mp3");
 
-    void GetArtworkPre();
-    void GetArtworkPost();
-    std::wstring GetArtworkStage();
+    void GetArtworkStage();
+    std::wstring GetArtworkStageAlt();
 
     void AttachArtworkToAll();
 

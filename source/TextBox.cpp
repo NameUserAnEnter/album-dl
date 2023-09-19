@@ -3,7 +3,7 @@
 TextBox::TextBox()
 {
     bInit = false;
-    bAcceptReturn = true;
+    bAcceptReturn = false;
     fieldEncoding = UNICODE_NONE;
 
     bufMutex = nullptr;

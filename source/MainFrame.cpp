@@ -48,6 +48,8 @@ void MainFrame::InitValues()
     pageFilename = L"index.html";
     tracksFilename = L"tracks";
 
+    trashFoldername = L"Trash";
+
     thumbnailURL = L"";
 
     bitrate = 0;
@@ -563,32 +565,6 @@ void MainFrame::ExecuteBatchSession(bool addPadding)
 
 void MainFrame::GetAlbum()
 {
-    std::wstring currentContent = fOutput.GetContent();
-
-
-    // TEST CARRIAGE RETURN
-    std::string copy;
-    GetFileData(artworkBrokenFilename, &copy);
-
-    clock_t diff;
-    do
-    {
-        clock_t before = clock();
-        mainConsole.PrintLogAndConsoleNarrow("Searching:\n");
-        for (int i = 0; i < copy.size() - 1; i++)
-        {
-            if (copy[i] == 0x0D && copy[i + 1] == 0x0A)
-            {
-                copy.replace(i, 2, "\n");
-                //mainConsole.PrintLogAndConsoleNarrow("\r" + NumToStr(i, 16, 8));
-            }
-        }
-        diff = clock() - before;
-        mainConsole.PrintLogAndConsoleNarrow("DONE: " + MsToSec(diff, 1) + "\n\n");
-    } while (MsToSec(diff, 1).size() > 5);
-    
-    
-
     //--------------------------------------------------
     if (!fOutput.IsEmpty()) mainConsole.PrintLogAndConsoleNarrow("\n\n");
 
@@ -603,6 +579,13 @@ void MainFrame::GetAlbum()
 
     //
     ////--------------------------------------------------
+    GetArtworkStage();
+    
+    //mainConsole.AddCmd(GetArtworkStageAlt(), WINDOWS1250);
+    //ExecuteBatchSession();
+
+
+    ////--------------------------------------------------
     //ResetTracksFile();
     //mainConsole.AddCmd(GetTitlesStage(), WINDOWS1250);
     //ExecuteBatchSession();
@@ -614,19 +597,10 @@ void MainFrame::GetAlbum()
     //
     ////--------------------------------------------------
     //mainConsole.AddCmd(ConvertStage(), UTF8);
-    //mainConsole.AddCmd(CreateTrashDirStage());
-    //mainConsole.AddCmd(RemoveLeftoverStage());
+    mainConsole.AddCmd(CreateTrashDirStage());
+    mainConsole.AddCmd(RemoveLeftoverStage());
     //mainConsole.AddCmd(RenameFilesStage());
-    //ExecuteBatchSession();
-
-
-    ////--------------------------------------------------
-    //GetArtworkPre();
-    
-    //mainConsole.AddCmd(GetArtworkStage(), WINDOWS1250);
-    //ExecuteBatchSession();
-
-    //GetArtworkPost();
+    ExecuteBatchSession();
 
 
     ////--------------------------------------------------
@@ -642,14 +616,14 @@ void MainFrame::GetAlbum()
     //if (bResetFields)
     //{
     //    SetStatusText("Resetting");
-
+    //
     //    // Reset fields & set focus
     //    fURL.SetText(L"");
     //    fArtworkURL.SetText(L"");
     //    fArtist.SetText(L"");
     //    fAlbumName.SetText(L"");
     //    fAlbumYear.SetText(L"");
-
+    //
     //    fArtist.SetFocus();
     //}
 
@@ -724,9 +698,16 @@ std::wstring MainFrame::CreateTrashDirStage()
 
 std::vector<std::wstring> MainFrame::RemoveLeftoverStage()
 {
+    std::wstring artworkBrokenPath = workingDirectory + artworkBrokenFilename;
+    std::wstring artworkBrokenPathBackslashes = GetBackslashPath(artworkBrokenPath);
+
+    std::wstring trashPath = workingDirectory + trashFoldername + L"/";
+    std::wstring trashPathBackslashes = GetBackslashPath(trashPath);
+
     std::vector<std::wstring> rv;
-    rv.push_back(L"cmd /u /c \"MOVE \"" + workingDirBackslashes + L"\\td8_index*.mp4\" \"" + workingDirBackslashes + L"\\Trash\"\"");
-    //rv.push_back(L"cmd /u /c \"MOVE \"" + workingDirBackslashes + L"\\Trash\\td8_index*.mp4\" \"" + workingDirBackslashes + L"\"\"");
+    //rv.push_back(L"cmd /u /c \"MOVE \"" + workingDirBackslashes + L"\\td8_index*.mp4\" \"" + trashPathBackslashes + L""\"");
+    rv.push_back(L"cmd /u /c \"MOVE \"" + artworkBrokenPathBackslashes + L"\" \"" + trashPathBackslashes + L"\"");
+    //rv.push_back(L"cmd /u /c \"MOVE \"" + workingDirBackslashes + L"\\Trash\\td8_index*.mp4\" \"" + trashPathBackslashes + L"\"\"");
     return rv;
 }
 
@@ -784,7 +765,7 @@ std::vector<std::wstring> MainFrame::RenameFilesStage(std::wstring ext)
     return cmds;
 }
 
-void MainFrame::GetArtworkPre()
+void MainFrame::GetArtworkStage()
 {
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "GetArtworkPre()" "\n");
@@ -803,32 +784,26 @@ void MainFrame::GetArtworkPre()
     mainConsole.PrintLogAndConsoleNarrow("\n\n");
 
 
+    std::wstring artworkBrokenPath = workingDirectory + artworkBrokenFilename;
+    std::wstring artworkPath = workingDirectory + artworkFilename;
+
+    std::wstring pagePath = workingDirectory + pageFilename;
 
     using namespace net;
 
-    GetImage(pageHost.c_str(), pageResource.c_str(), pageFilename.c_str(), artworkBrokenFilename.c_str());
+    GetImage(pageHost.c_str(), pageResource.c_str(), pagePath.c_str(), artworkBrokenPath.c_str());
     PrintConsole("\n\n");
-    FixImageData(artworkBrokenFilename.c_str(), artworkFilename.c_str());
+    FixImageData(artworkBrokenPath.c_str(), artworkPath.c_str());
+
+    // Erase the page (resource) .html file data
+    ClearFileData(pagePath);
 
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
     mainConsole.PrintLogAndConsoleNarrow("\n\n");
 }
 
-void MainFrame::GetArtworkPost()
-{
-    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
-    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "GetArtworkPost()" "\n");
-    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
-    // Erase the resource .html file data
-    ClearFileData(pageFilename);
-
-    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
-    mainConsole.PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
-    mainConsole.PrintLogAndConsoleNarrow("\n\n");
-}
-
-std::wstring MainFrame::GetArtworkStage()
+std::wstring MainFrame::GetArtworkStageAlt()
 {
     std::wstring args = L"";
     args += L"-o \"" + workingDirectory + artworkFilename + "\" \"" + thumbnailURL + "\"";
