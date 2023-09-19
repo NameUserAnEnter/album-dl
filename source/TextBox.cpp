@@ -3,6 +3,7 @@
 TextBox::TextBox()
 {
     bInit = false;
+    bAcceptReturn = true;
     fieldEncoding = UNICODE_NONE;
 
     bufMutex = nullptr;
@@ -42,11 +43,8 @@ void TextBox::SetText(std::wstring text)
 {
     if (!bInit) return;
 
-    std::wstring output = FormatText(text);
-
-
-    textField.SetValue(output);
-    textField.SetInsertionPointEnd();
+    textField.SetValue("");
+    AddText(text);
 }
 
 void TextBox::AddText(std::wstring text)
@@ -56,7 +54,30 @@ void TextBox::AddText(std::wstring text)
     std::wstring output = FormatText(text);
 
 
-    textField.AppendText(output);
+    if (bAcceptReturn)
+    {
+        // use only GetInsertionPoint() to assign startOfLastLine value
+        static long startOfLastLine = 0;
+
+        std::vector<std::wstring> lines = splitByNewlines(text);
+        for (int i = 0; i < lines.size(); i++)
+        {
+            std::vector<std::wstring> lineFrags = splitByChar(lines[i], L'\r', false);
+            for (int j = 0; j < lineFrags.size(); j++)
+            {
+                if (j == 0) textField.AppendText(lineFrags[j]);
+                if (j > 0)
+                {
+                    textField.Replace(startOfLastLine, startOfLastLine + lineFrags[j].size() - 1, lineFrags[j]);
+                }
+            }
+            textField.AppendText("\n");
+            startOfLastLine = textField.GetInsertionPoint();
+        }
+    }
+    else textField.AppendText(output);
+    //textField.AppendText(output);
+
     textField.SetInsertionPointEnd();
 }
 
@@ -103,6 +124,27 @@ void TextBox::FlushBuf()
 
     AddText(outputBuf);
     outputBuf.clear();
+}
+
+
+std::wstring TextBox::GetContent()
+{
+    if (bufMutex == nullptr) return L"";
+    return (std::wstring)textField.GetValue();
+}
+
+long TextBox::GetCursorPos()
+{
+    if (bufMutex == nullptr) return -1;
+    return textField.GetInsertionPoint();
+}
+
+void TextBox::Replace(long startIndex, long endIndex, std::wstring with)
+{
+    if (bufMutex == nullptr) return;
+
+    std::lock_guard<std::mutex> bufLock(*bufMutex);
+    textField.Replace(startIndex, endIndex + 1, with);
 }
 
 

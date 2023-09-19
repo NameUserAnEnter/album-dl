@@ -396,8 +396,31 @@ inline void ClearBytesDump(std::string filepath)
 
 
 
+// VECTOR UTILS
+template<typename T>
+std::vector<T> reverseVector(std::vector<T> input)
+{
+    std::vector<T> returnValue;
+    for (int i = input.size() - 1; i >= 0; i--)
+    {
+        returnValue.push_back(input[i]);
+    }
+    return returnValue;
+}
+
 
 // STRING TRANSFORMATIONS UTILS
+template<typename T>
+std::basic_string<T> reverseStr(std::basic_string<T> input)
+{
+    std::basic_string<T> returnValue;
+    for (int i = input.size() - 1; i >= 0; i--)
+    {
+        returnValue.push_back(input[i]);
+    }
+    return returnValue;
+}
+
 template<typename T>
 inline std::basic_string<T> GetBackslashPath(std::basic_string<T> forwardslashPath)
 {
@@ -437,7 +460,6 @@ inline unsigned int GetNumFromFirstWord(std::basic_string<T> str)
     return std::stoi(num);
 }
 
-
 template<typename T>
 inline bool findCharInStr(std::basic_string<T> str, T query)
 {
@@ -447,7 +469,6 @@ inline bool findCharInStr(std::basic_string<T> str, T query)
     }
     return false;
 }
-
 
 template<typename T>
 inline bool findInStr(std::basic_string<T> str, std::basic_string<T> query)
@@ -471,7 +492,6 @@ inline bool findInStr(std::basic_string<T> str, std::basic_string<T> query)
     return false;
 }
 
-
 template<typename T>
 inline int whereSubStr(std::basic_string<T> str, std::basic_string<T> query)
 {
@@ -482,6 +502,11 @@ inline int whereSubStr(std::basic_string<T> str, std::basic_string<T> query)
         {
             if (index + 1 == query.size())
             {
+                // 012345678901
+                //      ^
+                // tests\rtests
+                // i = 5, index = 0
+                // i = 6, index = 1, index + 1 = 2 == 2, 6 - 1 = 5
                 return i - index;
             }
             index++;
@@ -555,6 +580,85 @@ template<typename T>
 inline bool beginWith(std::basic_string<T> str, const T* query)
 {
     return beginWith(str, std::basic_string<T>(query));
+}
+
+template<typename T>
+inline std::vector<std::basic_string<T>> splitByChar(std::basic_string<T> str, T query, bool leaveQueried = true)
+{
+    std::vector<std::basic_string<T>> returnValue;
+    returnValue.clear();
+    returnValue.push_back(std::basic_string<T>());
+    for (int i = 0; i < str.size(); i++)
+    {
+        returnValue.back() += str[i];
+        if (str[i] == query)
+        {
+            if (!leaveQueried) returnValue.back().pop_back();
+            returnValue.push_back(std::basic_string<T>());
+        }
+    }
+    if (returnValue.back().size() == 0) returnValue.pop_back();
+    return returnValue;
+}
+
+template<typename T>
+inline std::vector<std::basic_string<T>> splitByNewlines(std::basic_string<T> str, bool leaveNewlines = true)
+{
+    std::vector<std::basic_string<T>> returnValue = splitByChar(str, (T)'\n', leaveNewlines);
+    return returnValue;
+}
+
+template<typename T>
+inline void splitByFirstFoundChar(std::basic_string<T> str, T query, std::basic_string<T>& firstHalf, std::basic_string<T>& secondHalf)
+{
+    firstHalf.clear();
+    secondHalf.clear();
+    bool bFound = false;
+    for (int i = 0; i < str.size(); i++)
+    {
+        if (!bFound)
+        {
+            firstHalf += str[i];
+        }
+        else
+        {
+            secondHalf += str[i];
+            continue;
+        }
+
+        if (str[i] == query)
+        {
+            bFound = true;
+        }
+    }
+}
+
+template<typename T>
+inline void splitByLastFoundChar(std::basic_string<T> str, T query, std::basic_string<T>& firstHalf, std::basic_string<T>& secondHalf)
+{
+    firstHalf.clear();
+    secondHalf.clear();
+    bool bFound = false;
+    for (int i = str.size() - 1; i >= 0; i--)
+    {
+        if (str[i] == query)
+        {
+            bFound = true;
+        }
+
+        if (!bFound)
+        {
+            secondHalf += str[i];
+        }
+        else
+        {
+            firstHalf += str[i];
+            continue;
+        }
+    }
+
+    firstHalf = reverseStr(firstHalf);
+    secondHalf = reverseStr(secondHalf);
 }
 
 

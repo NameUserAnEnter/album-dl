@@ -53,7 +53,7 @@ private:
 	bool bWrap;
 
 	std::vector<HANDLE> ActiveHandles;
-	HANDLE hLogWrite;
+	//HANDLE hLogWrite;
 
 	HANDLE hSubOutWr;
 	HANDLE hSubOutRd;

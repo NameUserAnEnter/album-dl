@@ -43,11 +43,12 @@ void MainFrame::InitValues()
     configName = L"config.txt";
     consoleLogFilepath = L"log";
     artworkFilename = L"artwork.png";
+    artworkBrokenFilename = L"artwork_broken.png";
 
-    resourceFilename = "index.html";
-    tracksFilename = "tracks";
+    pageFilename = L"index.html";
+    tracksFilename = L"tracks";
 
-    thumbnailURL = "";
+    thumbnailURL = L"";
 
     bitrate = 0;
 
@@ -366,9 +367,9 @@ void MainFrame::InitTestValues()
     // SAMPLE TEST VALUES FOR CONVENIENCE:
 
     // SHORT PLAYLISTS
-    fArtist.SetText(L"Big Black");
-    fAlbumName.SetText(L"Racer-X");
-    fAlbumYear.SetText(L"1985");
+    //fArtist.SetText(L"Big Black");
+    //fAlbumName.SetText(L"Racer-X");
+    //fAlbumYear.SetText(L"1985");
     fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nrAFOfF6ITDAEJ-BuHYWpHYOwsKNTZ994");
     
     //fArtist.SetText(L"Big Black");
@@ -481,7 +482,13 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     fArtist.SetFocus();
 
 
-    mainConsole.PrintLogAndConsole(initialOutput);
+    //mainConsole.PrintLogAndConsole(initialOutput);
+    mainConsole.PrintLogAndConsole(L" shown\n");
+    mainConsole.PrintLogAndConsole(L"hidden\n shown\n");
+
+    mainConsole.PrintLogAndConsole(L"\n shown\n");
+    mainConsole.PrintLogAndConsole(L"hidden\n shown\n");
+    bnRunScript.SetFocus();
     initialOutput.clear();
 }
 
@@ -561,68 +568,127 @@ void MainFrame::ExecuteBatchSession(bool addPadding)
 
 void MainFrame::GetAlbum()
 {
-    //if (bLog) mainConsole.OpenLog();
+    std::wstring currentContent = fOutput.GetContent();
+    mainConsole.PrintLogAndConsoleNarrow("\n");
+
+
+    // FIND LAST NEWLINE
+    long lastNewline = 0;
+    for (int i = currentContent.size() - 1; i >= 0; i--)
+    {
+        if (currentContent[i] == L'\n')
+        {
+            lastNewline = i;
+            break;
+        }
+    }
+    long afterLastNewline = lastNewline + 1;
+
+    // REPLACE TEST
+    // SOLUTION: INDEX NEED TO BE CALCULATED INCLUDING A PHANTOM SECOND CHAR AT EACH NEWLINE
+    mainConsole.PrintLogAndConsoleNarrow(NumToStr(fOutput.GetCursorPos()) + "\n");
+    mainConsole.PrintLogAndConsoleNarrow(NumToStr(currentContent.size()) + "\n");
+    mainConsole.PrintLogAndConsoleNarrow("afterLastNewline: " + NumToStr(afterLastNewline) + "\n");
+
+
+    // PRINT OUT EACH CHAR
+    for (int i = 0; i < currentContent.size(); i++)
+    {
+        mainConsole.PrintLogAndConsole(NumToWstr(i, 10, 2) + L": ");
+        if (currentContent[i] == '\n')
+        {
+            afterLastNewline = i;
+            mainConsole.PrintLogAndConsole(L"\\n");
+        }
+        else mainConsole.PrintLogAndConsole(std::wstring(L"") + currentContent[i]);
+        mainConsole.PrintLogAndConsoleNarrow("\n");
+    }
+
+
+    // TEST CARRIAGE RETURN
+    //std::string copy;
+    //GetFileData("artwork_broken.png", &copy);
+
+    //for (int i = 0; i < copy.size() - 1; i++)
+    //{
+    //    if (copy[i] == 0x0D && copy[i + 1] == 0x0A)
+    //    {
+    //        copy.replace(i, 2, "\n");
+    //        mainConsole.PrintLogAndConsoleNarrow("\r                        \r" + NumToStr(i, 16, 8));
+    //        //PrintConsole(NumToStr(i, 16, 8));
+
+    //        //cFound++;
+    //        //if (cFound % 8 == 0) PrintConsole("\n");
+    //        //else PrintConsole(" ");
+    //    }
+    //}
+    //mainConsole.PrintLogAndConsoleNarrow("\r                        \rDONE");
+    
+    
+
+    //--------------------------------------------------
     if (!fOutput.IsEmpty()) mainConsole.PrintLogAndConsoleNarrow("\n\n");
 
     SetStatusText("Running the program...");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Program start.      ----------------------------\n");
-
-
     //--------------------------------------------------
-    mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
-    ExecuteBatchSession();
 
+
+    ////--------------------------------------------------
+    //mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
+    //ExecuteBatchSession();
+
+    //
+    ////--------------------------------------------------
+    //ResetTracksFile();
+    //mainConsole.AddCmd(GetTitlesStage(), WINDOWS1250);
+    //ExecuteBatchSession();
+
+    //LoadTrackTitles();
+    //ValidateTrackTitles();
+    //ResetTracksFile();
+    //
+    //
+    ////--------------------------------------------------
+    //mainConsole.AddCmd(ConvertStage(), UTF8);
+    //mainConsole.AddCmd(CreateTrashDirStage());
+    //mainConsole.AddCmd(RemoveLeftoverStage());
+    //mainConsole.AddCmd(RenameFilesStage());
+    //ExecuteBatchSession();
+
+
+    ////--------------------------------------------------
+    //GetArtworkPre();
     
-    //--------------------------------------------------
-    ResetTracksFile();
-    mainConsole.AddCmd(GetTitlesStage(), WINDOWS1250);
-    ExecuteBatchSession();
+    //mainConsole.AddCmd(GetArtworkStage(), WINDOWS1250);
+    //ExecuteBatchSession();
 
-    LoadTrackTitles();
-    ValidateTrackTitles();
-    ResetTracksFile();
-    
-    
-    //--------------------------------------------------
-    mainConsole.AddCmd(ConvertStage(), UTF8);
-    mainConsole.AddCmd(CreateTrashDirStage());
-    mainConsole.AddCmd(RemoveLeftoverStage());
-    mainConsole.AddCmd(RenameFilesStage());
-    ExecuteBatchSession();
+    //GetArtworkPost();
 
 
-    //--------------------------------------------------
-    GetArtworkPre();
+    ////--------------------------------------------------
+    //AttachArtworkToAll();
 
-    mainConsole.AddCmd(GetArtworkStage(), WINDOWS1250);
-    ExecuteBatchSession();
+    //mainConsole.AddCmd(CreateAlbumDirectoryStage());
+    //mainConsole.AddCmd(MoveAudioStage());
+    //mainConsole.AddCmd(MoveArtworkStage());
+    //ExecuteBatchSession();
 
-    GetArtworkPost();
+    //
+    //// FIELDS VALUE RESET
+    //if (bResetFields)
+    //{
+    //    SetStatusText("Resetting");
 
+    //    // Reset fields & set focus
+    //    fURL.SetText(L"");
+    //    fArtworkURL.SetText(L"");
+    //    fArtist.SetText(L"");
+    //    fAlbumName.SetText(L"");
+    //    fAlbumYear.SetText(L"");
 
-    //--------------------------------------------------
-    AttachArtworkToAll();
-
-    mainConsole.AddCmd(CreateAlbumDirectoryStage());
-    mainConsole.AddCmd(MoveAudioStage());
-    mainConsole.AddCmd(MoveArtworkStage());
-    ExecuteBatchSession();
-
-    
-    // FIELDS VALUE RESET
-    if (bResetFields)
-    {
-        SetStatusText("Resetting");
-
-        // Reset fields & set focus
-        fURL.SetText(L"");
-        fArtworkURL.SetText(L"");
-        fArtist.SetText(L"");
-        fAlbumName.SetText(L"");
-        fAlbumYear.SetText(L"");
-
-        fArtist.SetFocus();
-    }
+    //    fArtist.SetFocus();
+    //}
 
     
     
@@ -630,7 +696,6 @@ void MainFrame::GetAlbum()
     if (checkAlert.GetValue() == true) MessageDialog("Script has finished.", "Done");
     mainConsole.PrintLogAndConsoleNarrow("\n----------------------------   Program finished.   ----------------------------\n");
 
-    //if (bLog) mainConsole.CloseLog();
 
     bDone = true;
     EnableFields();
@@ -762,49 +827,26 @@ void MainFrame::GetArtworkPre()
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "GetArtworkPre()" "\n");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
 
-    std::string host = "";
-    std::string resource = "";
+    std::wstring pageHost, pageResource;
+    SplitHostResourceURL(artworkURL, pageHost, pageResource);
 
     unsigned int cFragment = 0;
 
-    for (int i = 0; i < artworkURL.size(); i++)
-    {
-        if (cFragment == 0)
-        {
-            if (artworkURL[i] == ':')
-            {
-                host = "";
-                i += 2;
-                continue;
-            }
-            else if (artworkURL[i] == '/')
-            {
-                cFragment++;
-            }
-            else
-            {
-                host += artworkURL[i];
-            }
-        }
 
-        if (cFragment == 1)
-        {
-            resource += artworkURL[i];
-        }
-    }
 
     mainConsole.PrintLogAndConsoleNarrow("Downloading album artwork...\n");
-    mainConsole.PrintLogAndConsoleNarrow("host: " + host + '\n');
-    mainConsole.PrintLogAndConsoleNarrow("resource: " + resource + '\n');
+    mainConsole.PrintLogAndConsole(L"pageHost: " + pageHost + L"\n");
+    mainConsole.PrintLogAndConsole(L"pageResource: " + pageResource + L"\n");
     mainConsole.PrintLogAndConsoleNarrow("\n\n");
 
 
 
     using namespace net;
 
-    GetResource(host.c_str(), resource.c_str(), resourceFilename.c_str());
-    thumbnailURL = "";
-    GetThumbnailURL(&thumbnailURL, resourceFilename.c_str());
+    GetImage(pageHost.c_str(), pageResource.c_str(), pageFilename.c_str(), artworkBrokenFilename.c_str());
+    PrintConsole("\n\n");
+    FixImageData(artworkBrokenFilename.c_str(), artworkFilename.c_str());
+
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
     mainConsole.PrintLogAndConsoleNarrow("\n\n");
@@ -816,7 +858,7 @@ void MainFrame::GetArtworkPost()
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "GetArtworkPost()" "\n");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
     // Erase the resource .html file data
-    ClearFileData(resourceFilename);
+    ClearFileData(pageFilename);
 
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");

@@ -81,10 +81,10 @@ private:
     std::wstring consoleLogFilepath;
 
 
-    std::string thumbnailURL;
-    std::string resourceFilename;
+    std::wstring thumbnailURL;
+    std::wstring pageFilename;
 
-    std::string tracksFilename;
+    std::wstring tracksFilename;
 
 
 private:
@@ -156,6 +156,7 @@ private:
 
     std::vector<std::wstring> trackTitles;
     std::wstring artworkFilename;
+    std::wstring artworkBrokenFilename;
     
     std::wstring albumsDirBackslashes;
     std::wstring workingDirBackslashes;

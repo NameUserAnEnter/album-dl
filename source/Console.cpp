@@ -24,7 +24,7 @@ void Console::InitValues()
 	logFilepath = L"";
 	pOutputBuffer = nullptr;
 
-	hLogWrite = NULL;
+	//hLogWrite = NULL;
 
 	hSubOutWr = NULL;
 	hSubOutRd = NULL;

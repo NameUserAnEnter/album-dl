@@ -20,12 +20,13 @@ class TextBox
 {
 private:
     bool bInit;
+    bool bAcceptReturn;
 
     RECT labelOffset;
 
     wxStaticBox labelBox;
-    wxTextCtrl textField;
 
+    wxTextCtrl textField;
     TEXT_ENCODING fieldEncoding;
 
     std::mutex* bufMutex;
@@ -46,6 +47,10 @@ public:
 
     void AddText(std::wstring);
     void AddTextNarrow(std::string);
+
+    std::wstring GetContent();
+    long GetCursorPos();
+    void Replace(long, long, std::wstring);
 
     void SetFocus();
     void SetEditable(bool);

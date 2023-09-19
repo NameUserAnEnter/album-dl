@@ -30,14 +30,48 @@ inline void net::PrintConsole(std::wstring text)
 }
 
 
-inline int GetResource(const char* host, const char* resource, const char* outputFilename)
+template<typename T>
+inline void SplitHostResourceURL(std::basic_string<T> URL, std::basic_string<T>& host, std::basic_string<T>& resource)
+{
+    host.clear();
+    resource.clear();
+
+    bool bHost = true;
+    for (int i = 0; i < URL.size(); i++)
+    {
+        if (bHost)
+        {
+            if (URL[i] == ':')
+            {
+                host.clear();
+                i += 2;
+                continue;
+            }
+            else if (URL[i] == '/')
+            {
+                bHost = false;
+            }
+            else
+            {
+                host += URL[i];
+            }
+        }
+        else
+        {
+            resource += URL[i];
+        }
+    }
+}
+
+
+inline int GetResource(const wchar_t* host, const wchar_t* resource, const wchar_t* outputFilename)
 {
     using namespace net;
 
     // Figure out what does the "Retrieves configuration from the registry" mean for INTERNET_OPEN_TYPE_PRECONFIG
     // dwAccessType: INTERNET_OPEN_TYPE_PRECONFIG or INTERNET_OPEN_TYPE_DIRECT
     // dwFlags: INTERNET_FLAG_ASYNC or NULL
-    HINTERNET hInternet = InternetOpenA("Mozilla/5.0", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, NULL);
+    HINTERNET hInternet = InternetOpenW(L"Mozilla/5.0", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, NULL);
     if (hInternet == NULL)
     {
         PrintConsole("InternetOpen() failed: " + std::to_string(GetLastError()) + "\n");
@@ -46,7 +80,7 @@ inline int GetResource(const char* host, const char* resource, const char* outpu
     }
 
 
-    HINTERNET hConnection = InternetConnectA(hInternet, host, INTERNET_DEFAULT_HTTPS_PORT, NULL, NULL, INTERNET_SERVICE_HTTP,
+    HINTERNET hConnection = InternetConnectW(hInternet, host, INTERNET_DEFAULT_HTTPS_PORT, NULL, NULL, INTERNET_SERVICE_HTTP,
                                              INTERNET_FLAG_SECURE, INTERNET_NO_CALLBACK);
     if (hConnection == NULL)
     {
@@ -57,10 +91,9 @@ inline int GetResource(const char* host, const char* resource, const char* outpu
     }
 
 
-    const char* acceptTypes[] ={ "text/*", "image/avif", "image/webp", "image/apng", "*/*", NULL };
-    // Investigate flags
-    HINTERNET hRequest = HttpOpenRequestA(hConnection, "GET", resource, "HTTP/1.1", NULL, acceptTypes,
-                                          INTERNET_FLAG_KEEP_CONNECTION | INTERNET_FLAG_SECURE, INTERNET_NO_CALLBACK);
+    const wchar_t* acceptTypes[] ={ L"text/*", L"image/avif", L"image/webp", L"image/apng", L"*/*", NULL };
+    HINTERNET hRequest = HttpOpenRequestW(hConnection, L"GET", resource, L"HTTP/1.1", NULL, acceptTypes,
+                                          INTERNET_FLAG_KEEP_CONNECTION | INTERNET_FLAG_SECURE | INTERNET_FLAG_NO_COOKIES, INTERNET_NO_CALLBACK);
     if (hRequest == NULL)
     {
         PrintConsole("HttpOpenRequest() failed: " + std::to_string(GetLastError()) + "\n");
@@ -70,9 +103,8 @@ inline int GetResource(const char* host, const char* resource, const char* outpu
         return 3;
     }
 
-    // lpszHeaders: "host: en.wikipedia.org" or NULL
     BOOL bResult;
-    bResult = HttpSendRequestA(hRequest, NULL, 0, NULL, 0);
+    bResult = HttpSendRequestW(hRequest, NULL, 0, NULL, 0);
     if (bResult != TRUE)
     {
         PrintConsole("HttpSendRequest() failed: " + std::to_string(GetLastError()) + "\n");
@@ -87,10 +119,10 @@ inline int GetResource(const char* host, const char* resource, const char* outpu
     bool bContinue = true;
 
     FILE* outputFile = nullptr;
-    fopen_s(&outputFile, outputFilename, "w");
+    _wfopen_s(&outputFile, outputFilename, L"w");
     if (outputFile == nullptr)
     {
-        PrintConsole("Failed to open: " + std::string(outputFilename) + "\n");
+        PrintConsole(L"Failed to open: " + std::wstring(outputFilename) + L"\n");
         InternetCloseHandle(hRequest);
         InternetCloseHandle(hConnection);
         InternetCloseHandle(hInternet);
@@ -151,11 +183,11 @@ inline int GetResource(const char* host, const char* resource, const char* outpu
         }
 
         FILE* outputFile = nullptr;
-        fopen_s(&outputFile, outputFilename, "a");
+        _wfopen_s(&outputFile, outputFilename, L"a");
         if (outputFile == nullptr)
         {
             free(buf);
-            PrintConsole("Failed to open: " + std::string(outputFilename) + "\n");
+            PrintConsole(L"Failed to open: " + std::wstring(outputFilename) + L"\n");
             InternetCloseHandle(hRequest);
             InternetCloseHandle(hConnection);
             InternetCloseHandle(hInternet);
@@ -186,15 +218,15 @@ inline int GetResource(const char* host, const char* resource, const char* outpu
     return 0;
 }
 
-inline int GetThumbnailURL(std::string* returnURL, const char* inputFilename)
+inline int GetThumbnailURL(std::string* returnURL, const wchar_t* inputFilename)
 {
     using namespace net;
 
     FILE* resourceFile = nullptr;
-    fopen_s(&resourceFile, inputFilename, "r");
+    _wfopen_s(&resourceFile, inputFilename, L"r");
     if (resourceFile == nullptr)
     {
-        PrintConsole("Failed to open: " + std::string(inputFilename) + "\n");
+        PrintConsole(L"Failed to open: " + std::wstring(inputFilename) + L"\n");
         return 1;
     }
 
@@ -326,6 +358,83 @@ inline int GetThumbnailURL(std::string* returnURL, const char* inputFilename)
     return 0;
 }
 
+
+
+inline void GetImage(const wchar_t* pageHost, const wchar_t* pageResource, const wchar_t* outputPageFilename, const wchar_t* outputImageFilename)
+{
+    using namespace net;
+
+    GetResource(pageHost, pageResource, outputPageFilename);
+    std::string thumbnailURL = "";
+    GetThumbnailURL(&thumbnailURL, outputPageFilename);
+    PrintConsole("\n");
+
+    std::string thumbnailHost, thumbnailResource;
+    SplitHostResourceURL(thumbnailURL, thumbnailHost, thumbnailResource);
+    
+
+    PrintConsole("\n\n");
+    PrintConsole("thumbnailHost: " + thumbnailHost + "\n");
+    PrintConsole("thumbnailResource: " + thumbnailResource + "\n");
+
+    PrintConsole("\n\n");
+    GetResource(toWide(thumbnailHost).c_str(), toWide(thumbnailResource).c_str(), outputImageFilename);
+}
+
+
+
+
+
+inline void modifyData(std::string* data)
+{
+    using namespace net;
+
+    if (data == nullptr) return;
+    std::string copy = *data;
+
+
+    PrintConsole("\nSearching:\n");
+    //unsigned int cFound = 0;
+    for (int i = 0; i < copy.size() - 1; i++)
+    {
+        if (copy[i] == 0x0D && copy[i + 1] == 0x0A)
+        {
+            copy.replace(i, 2, "\n");
+            PrintConsole("\r                        \r" + NumToStr(i, 16, 8));
+            //PrintConsole(NumToStr(i, 16, 8));
+
+            //cFound++;
+            //if (cFound % 8 == 0) PrintConsole("\n");
+            //else PrintConsole(" ");
+        }
+    }
+    PrintConsole("\r                        \rDONE");
+    //PrintConsole("\nDONE");
+    PrintConsole("\n\n");
+
+
+    *data = copy;
+}
+
+inline void FixImageData(const wchar_t* inputFilename, const wchar_t* outputFilename)
+{
+    using namespace net;
+
+    PrintConsole("Fixing image data stage:\n");
+    std::string fileData;
+    PrintConsole("Reading image data...\n");
+    GetFileData(inputFilename, &fileData);
+
+    PrintConsole("Modifying the data...\n");
+    modifyData(&fileData);
+
+    PrintConsole("Clearing the output file...\n");
+    ClearFileData(outputFilename);
+    PrintConsole("Writing the output...\n");
+    WriteDataToFile(fileData, outputFilename);
+
+    PrintConsole("\nDone fixing image data.\n");
+}
 
 
 
