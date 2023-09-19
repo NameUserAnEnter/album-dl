@@ -1035,7 +1035,15 @@ void MainFrame::GetTrackTitles()
         for (int j = 0; j < split[i].size(); j++)
         {
             if (j == 0) titles.push_back("");
-            if (split[i][j] == '"') break;
+            if (split[i][j] == '"')
+            {
+                if (j + 2 < split[i].size())
+                {
+                    if (split[i][j + 1] != '}') titles.pop_back();
+                    else if (split[i][j + 2] != ']') titles.pop_back();
+                }
+                break;
+            }
             titles.back() += split[i][j];
         }
     }
