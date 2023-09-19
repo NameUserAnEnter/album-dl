@@ -373,10 +373,10 @@ void MainFrame::InitTestValues()
     // SAMPLE TEST VALUES FOR CONVENIENCE:
 
     // SHORT PLAYLISTS
-    //fArtist.SetText(L"Big Black");
-    //fAlbumName.SetText(L"Racer-X");
-    //fAlbumYear.SetText(L"1985");
-    //fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nrAFOfF6ITDAEJ-BuHYWpHYOwsKNTZ994");
+    fArtist.SetText(L"Big Black");
+    fAlbumName.SetText(L"Racer-X");
+    fAlbumYear.SetText(L"1985");
+    fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nrAFOfF6ITDAEJ-BuHYWpHYOwsKNTZ994");
     
     //fArtist.SetText(L"Big Black");
     //fAlbumName.SetText(L"Lungs");
@@ -399,11 +399,11 @@ void MainFrame::InitTestValues()
     //fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_ll7VmeyNV0J4d4HroMPrLrRfBcjiLIVLo");
 
     // TYPICAL UNICODE TITLES
-    fArtist.SetText(L"O.S.T.R.");
-    fAlbumName.SetText(L"Tylko Dla Doros³ych");
-    fAlbumYear.SetText(L"2010");
-    fURL.SetText(L"https://www.youtube.com/playlist?list=PLIKxxmyVA3HZ5vCNl3b0gQXDhuMWLz-mG");
-    fArtworkURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_l6DSlExq2EbVR7ILChbL9ZHn-1SbyKRO8");
+    //fArtist.SetText(L"O.S.T.R.");
+    //fAlbumName.SetText(L"Tylko Dla Doros³ych");
+    //fAlbumYear.SetText(L"2010");
+    //fURL.SetText(L"https://www.youtube.com/playlist?list=PLIKxxmyVA3HZ5vCNl3b0gQXDhuMWLz-mG");
+    //fArtworkURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_l6DSlExq2EbVR7ILChbL9ZHn-1SbyKRO8");
 
     // TYPICAL UNICODE TITLES
     //fArtist.SetText(L"Goat");
@@ -496,12 +496,14 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 
 
     fWorkingDir.SetText(L"workfolder/");
-    fArtist.SetFocus();
 
 
     mainConsole.PrintLogAndConsole(initialOutput);
-    bnRunScript.SetFocus();
     initialOutput.clear();
+
+    bnRunScript.SetFocus();
+    bResetFields = false;
+    //fArtist.SetFocus();
 }
 
 MainFrame::~MainFrame()
@@ -605,12 +607,12 @@ void MainFrame::GetAlbum()
 
 
     //--------------------------------------------------
-    //mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
-    //ExecuteBatchSession();
+    mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
+    ExecuteBatchSession();
 
     
     //--------------------------------------------------
-    //GetArtworkStage();
+    GetArtworkStage();
 
 
 
@@ -618,26 +620,26 @@ void MainFrame::GetAlbum()
     ResetTracksFile();
     GetTrackTitles();
 
-    //LoadTrackTitles();
-    //ValidateTrackTitles();
-    //ResetTracksFile();
+    LoadTrackTitles();
+    ValidateTrackTitles();
+    ResetTracksFile();
     
     
     //--------------------------------------------------
-    //mainConsole.AddCmd(ConvertStage(), UTF8);
-    //mainConsole.AddCmd(CreateTrashDirStage());
-    //mainConsole.AddCmd(RemoveLeftoverStage());
-    //mainConsole.AddCmd(RenameFilesStage());
-    //ExecuteBatchSession();
+    mainConsole.AddCmd(ConvertStage(), UTF8);
+    mainConsole.AddCmd(CreateTrashDirStage());
+    mainConsole.AddCmd(RemoveLeftoverStage());
+    mainConsole.AddCmd(RenameFilesStage());
+    ExecuteBatchSession();
 
 
     //--------------------------------------------------
-    //AttachArtworkToAll();
+    AttachArtworkToAll();
 
-    //mainConsole.AddCmd(CreateAlbumDirectoryStage());
-    //mainConsole.AddCmd(MoveAudioStage());
-    //mainConsole.AddCmd(MoveArtworkStage());
-    //ExecuteBatchSession();
+    mainConsole.AddCmd(CreateAlbumDirectoryStage());
+    mainConsole.AddCmd(MoveAudioStage());
+    mainConsole.AddCmd(MoveArtworkStage());
+    ExecuteBatchSession();
 
     
     // FIELDS VALUE RESET
@@ -760,7 +762,7 @@ std::vector<std::wstring> MainFrame::RemoveLeftoverStage()
     std::wstring playlistPagePath = workingDirectory + playlistPageFilename;
     std::wstring playlistPagePathBackslashes = GetBackslashPath(playlistPagePath);
 
-    std::wstring playlistArtPagePath = workingDirectory + playlistPageFilename;
+    std::wstring playlistArtPagePath = workingDirectory + playlistArtPageFilename;
     std::wstring playlistArtPagePathBackslashes = GetBackslashPath(playlistArtPagePath);
 
     std::wstring trashPath = workingDirectory + trashFoldername + L"/";
