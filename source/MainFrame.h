@@ -56,6 +56,7 @@ private:
     TextBox fArtworkURL;
     
     wxButton bnRunScript;
+    wxButton bnUpdateDownloader;
     wxCheckBox checkAlert;
     DropDown fBitrate;
 
@@ -88,7 +89,8 @@ private:
 
 
 private:
-    void OnButtonPress(wxCommandEvent& event);
+    void OnButtonGet(wxCommandEvent& event);
+    void OnButtonUpdate(wxCommandEvent& event);
 
     void OnSave(wxCommandEvent& event);
     void OnExit(wxCommandEvent& event);
@@ -117,6 +119,7 @@ private:
     void OpenSettings();
 private:
     void GetAlbum();
+    void UpdateDownloader();
 
     void ExecuteBatchSession(bool = true);
     void UpdateOutput();
@@ -131,6 +134,7 @@ private:
     bool VerifyFile(std::wstring, std::wstring);
 
     bool ValidateFields();
+    bool ValidateFieldsUpdate();
 
     void DisableFields();
     void EnableFields();

@@ -20,9 +20,10 @@ enum
     ID_URL_Field,
     ID_URL_Artwork_Field,
 
-    ID_Button,
+    ID_ButtonDownload,
     ID_AlertOnDone,
     ID_Bitrate,
+    ID_ButtonUpdate,
 
     ID_output_Field
 };
@@ -55,10 +56,8 @@ void MainFrame::InitValues()
     bitrate = 0;
 
 
-
     defaultPos.x = 350;
     defaultPos.y = 0;
-
 
     taskbarHeight = 44;
 }
@@ -89,6 +88,7 @@ void MainFrame::SizeFields()
     fields.push_back(Field(20, 360, ButtonSize));
     fields.push_back(Field(20 + ButtonSize.x + 10, 360, ButtonSize));
     fields.push_back(Field(20 + ButtonSize.x + 10 + ButtonSize.x + 10, 362, ButtonSize));
+    fields.push_back(Field(20 + ButtonSize.x + 10 + ButtonSize.x + 10 + ButtonSize.x + 10, 360, ButtonSize));
 
     fields.push_back(Field(20, 405, OutputBoxSize));
 }
@@ -236,10 +236,12 @@ void MainFrame::InitFields()
     fURL.Init(          "Playlist URL:",                        ID_URL_Field,           fields[index].pos, fields[index].size, &mainPanel);   index++;
     fArtworkURL.Init(   "Playlist URL with proper artwork:",    ID_URL_Artwork_Field,   fields[index].pos, fields[index].size, &mainPanel);   index++;
 
-    bnRunScript.Create( &mainPanel, ID_Button,      "Run",              fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Run button");     index++;
+    bnRunScript.Create( &mainPanel, ID_ButtonDownload, "Run",           fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Run button");     index++;
     checkAlert.Create(  &mainPanel, ID_AlertOnDone, "Alert on done",    fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Alert checkbox"); index++;
     //fBitrate.Create(&mainPanel, ID_Bitrate, "Bitrate", fields[index].pos, fields[index].size, 0, NULL, NULL, wxDefaultValidator, "Bitrate dropdown");  index++;
     fBitrate.Init( "Bitrate:", L"----", ID_Bitrate, fields[index].pos, fields[index].size, &mainPanel);    index++;
+    bnUpdateDownloader.Create(&mainPanel, ID_ButtonUpdate, "Update YT-DLP", fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Update button");
+    index++;
     // extra separation
     fOutput.Init("Output:", ID_output_Field, fields[index].pos, fields[index].size, &mainPanel, wxTE_MULTILINE | wxTE_READONLY);    index++;
 }
@@ -319,7 +321,8 @@ void MainFrame::InitFonts()
 
 void MainFrame::InitBindings()
 {
-    Bind(wxEVT_BUTTON, &MainFrame::OnButtonPress, this, ID_Button);
+    Bind(wxEVT_BUTTON, &MainFrame::OnButtonGet, this, ID_ButtonDownload);
+    Bind(wxEVT_BUTTON, &MainFrame::OnButtonUpdate, this, ID_ButtonUpdate);
 
 
     Bind(wxEVT_MENU, &MainFrame::OnSave, this, ID_Save);
@@ -484,7 +487,7 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     fArtist.SetFocus();
 
 
-    //mainConsole.PrintLogAndConsole(initialOutput);
+    mainConsole.PrintLogAndConsole(initialOutput);
     bnRunScript.SetFocus();
     initialOutput.clear();
 }
@@ -523,7 +526,7 @@ void MainFrame::OnSave(wxCommandEvent& event)
     SaveSettings();
 }
 
-void MainFrame::OnButtonPress(wxCommandEvent& event)
+void MainFrame::OnButtonGet(wxCommandEvent& event)
 {
     if (!bDone) return;
     if (!ValidateFields()) return;
@@ -534,6 +537,19 @@ void MainFrame::OnButtonPress(wxCommandEvent& event)
 
     if (workingThread.joinable()) workingThread.join();
     workingThread = std::move(std::thread(&MainFrame::GetAlbum, this));
+}
+
+void MainFrame::OnButtonUpdate(wxCommandEvent& event)
+{
+    if (!bDone) return;
+    if (!ValidateFieldsUpdate()) return;
+
+
+    DisableFields();
+    bDone = false;
+
+    if (workingThread.joinable()) workingThread.join();
+    workingThread = std::move(std::thread(&MainFrame::UpdateDownloader, this));
 }
 
 
@@ -562,6 +578,9 @@ void MainFrame::ExecuteBatchSession(bool addPadding)
 
     if (addPadding) mainConsole.PrintLogAndConsoleNarrow("\n\n");
 }
+
+
+
 
 void MainFrame::GetAlbum()
 {
@@ -631,7 +650,35 @@ void MainFrame::GetAlbum()
     
     SetStatusText("Done");
     if (checkAlert.GetValue() == true) MessageDialog("Script has finished.", "Done");
-    mainConsole.PrintLogAndConsoleNarrow("\n----------------------------   Program finished.   ----------------------------\n");
+    mainConsole.PrintLogAndConsoleNarrow("\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Program finished.   ----------------------------\n");
+
+
+    bDone = true;
+    EnableFields();
+}
+
+void MainFrame::UpdateDownloader()
+{
+    //--------------------------------------------------
+    if (!fOutput.IsEmpty()) mainConsole.PrintLogAndConsoleNarrow("\n\n");
+
+    SetStatusText("Running the program...");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Program start.      ----------------------------\n");
+    //--------------------------------------------------
+
+    std::wstring args = L"--update";
+    std::wstring updateCmd = L"";
+    updateCmd += L"\"" + workingDirectory + downloaderExec + L"\"" + L' ' + args;
+
+    mainConsole.AddCmd(updateCmd, WINDOWS1250);
+    ExecuteBatchSession();
+
+
+    SetStatusText("Done");
+    if (checkAlert.GetValue() == true) MessageDialog("Script has finished.", "Done");
+    mainConsole.PrintLogAndConsoleNarrow("\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Program finished.   ----------------------------\n");
 
 
     bDone = true;
@@ -1049,6 +1096,8 @@ bool MainFrame::VerifyFile(std::wstring dir, std::wstring filename)
     return true;
 }
 
+
+
 bool MainFrame::ValidateFields()
 {
     // VALIDATE DIRECTORIES
@@ -1184,6 +1233,39 @@ bool MainFrame::ValidateFields()
     trackTitles.clear();
     return true;
 }
+
+bool MainFrame::ValidateFieldsUpdate()
+{
+    // VALIDATE DIRECTORIES
+    workingDirectory = fWorkingDir.GetText();
+
+    if (!validDir(workingDirectory))
+    {
+        MessageDialog(L"Invalid working directory:\n\"" + workingDirectory + L"\"", L"Error");
+        return false;
+    }
+
+
+    // UPDATE FIELDS IN CASE A SLASH AT THE END IS APPENDED OR BACKSLASHES HAVE BEEN REPLACED WITH FORWARDSLASHES
+    fWorkingDir.SetText(workingDirectory);
+
+
+    // LOCATE EXECUTABLES
+    if (!VerifyFile(workingDirectory, downloaderExec))
+    {
+        MessageDialog(L"Failed to locate " + downloaderExec + L" in:\n" + workingDirectory, L"Error");
+        return false;
+    }
+
+    
+    
+    // GET BACKSLASH DIRS
+    workingDirBackslashes = GetBackslashPath(workingDirectory);
+    return true;
+}
+
+
+
 
 void MainFrame::OpenSettings()
 {
