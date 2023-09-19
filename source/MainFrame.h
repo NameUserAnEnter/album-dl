@@ -170,6 +170,7 @@ private:
     std::wstring albumPathBackslashes;
 
     std::wstring initialOutput;
+    std::wstring dimensionsInfo;
 private:
     std::wstring DownloadStage();
     std::vector<std::wstring> ConvertStage();
@@ -182,6 +183,8 @@ private:
 
     void GetArtworkStage();
     std::wstring GetArtworkStageAlt();
+
+    void GetTrackTitles();
 
     void AttachArtworkToAll();
 

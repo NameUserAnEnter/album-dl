@@ -37,32 +37,6 @@ void TextBox::Init(std::string label, wxWindowID textFieldID, wxPoint position, 
 
 
 
-template<typename T>
-std::vector<std::basic_string<T>> TextBox::splitByChar(std::basic_string<T> str, T query, bool leaveQueried)
-{
-    std::vector<std::basic_string<T>> returnValue;
-    returnValue.clear();
-    returnValue.push_back(std::basic_string<T>());
-    for (int i = 0; i < str.size(); i++)
-    {
-        returnValue.back() += str[i];
-        if (str[i] == query)
-        {
-            if (!leaveQueried) returnValue.back().pop_back();
-            returnValue.push_back(std::basic_string<T>());
-        }
-    }
-    if (returnValue.back().size() == 0) returnValue.pop_back();
-    return returnValue;
-}
-
-template<typename T>
-std::vector<std::basic_string<T>> TextBox::splitByNewlines(std::basic_string<T> str, bool leaveNewlines)
-{
-    std::vector<std::basic_string<T>> returnValue = splitByChar(str, (T)'\n', leaveNewlines);
-    return returnValue;
-}
-
 
 
 

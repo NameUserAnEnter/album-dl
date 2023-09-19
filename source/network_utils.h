@@ -393,7 +393,7 @@ inline void modifyData(std::string* data)
     std::string copy = *data;
 
 
-    PrintConsole("\nSearching:\n");
+    PrintConsole("\nFixing newlines:\n");
     clock_t before = clock();
     for (int i = 0; i < copy.size() - 1; i++)
     {

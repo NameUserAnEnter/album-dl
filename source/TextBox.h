@@ -33,12 +33,6 @@ private:
     std::wstring outputBuf;
 
     std::wstring FormatText(std::wstring);
-
-
-    template<typename T>
-    std::vector<std::basic_string<T>> splitByChar(std::basic_string<T> str, T query, bool leaveQueried = true);
-    template<typename T>
-    std::vector<std::basic_string<T>> splitByNewlines(std::basic_string<T> str, bool leaveNewlines = true);
 public:
     TextBox();
 

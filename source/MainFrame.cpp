@@ -123,8 +123,8 @@ void MainFrame::AdjustFields()
 
 
 
-    initialOutput += L"screen res: " + NumToWstr((int)screenX) + L"x" + NumToWstr((int)screenY) + L"\n";
-    initialOutput += L"available area: " + NumToWstr((int)areaX) + L"x" + NumToWstr((int)areaY) + L"\n\n";
+    dimensionsInfo += L"screen res: " + NumToWstr((int)screenX) + L"x" + NumToWstr((int)screenY) + L"\n";
+    dimensionsInfo += L"available area: " + NumToWstr((int)areaX) + L"x" + NumToWstr((int)areaY) + L"\n\n";
 
     // July, 16th
     // -TEST FOR OTHER SYS METHODS PERMISSION REQUIREMENTS I.E. CREATEPROCESS()
@@ -207,14 +207,14 @@ void MainFrame::AdjustFields()
     // PRINT OUTPUT FOR TESTING
     for (int i = 0; i < fields.size(); i++)
     {
-        initialOutput += L"fields[" + NumToWstr(i, 10, 2, ' ') + L"]: (";
-        initialOutput += NumToWstr(fields[i].pos.x, 10, 3, ' ') + L", " + NumToWstr(fields[i].pos.y, 10, 3, ' ') + L"), (";
-        initialOutput += NumToWstr(fields[i].size.x, 10, 3, ' ') + L", " + NumToWstr(fields[i].size.y, 10, 3, ' ') + L")\n";
+        dimensionsInfo += L"fields[" + NumToWstr(i, 10, 2, ' ') + L"]: (";
+        dimensionsInfo += NumToWstr(fields[i].pos.x, 10, 3, ' ') + L", " + NumToWstr(fields[i].pos.y, 10, 3, ' ') + L"), (";
+        dimensionsInfo += NumToWstr(fields[i].size.x, 10, 3, ' ') + L", " + NumToWstr(fields[i].size.y, 10, 3, ' ') + L")\n";
     }
-    initialOutput += L"\nFullSize: " + NumToWstr(FullWidth) + L"x" + NumToWstr(FullHeight) + L"\n";
-    initialOutput += L"defaultPos: " + NumToWstr(defaultPos.x) + L", " + NumToWstr(defaultPos.y) + L"\n";
-    initialOutput += L"bottom-right corner: " + NumToWstr(defaultPos.x + FullWidth) + L", " + NumToWstr(defaultPos.y + FullHeight) + L"\n";
-    initialOutput += L"\n";
+    dimensionsInfo += L"\nFullSize: " + NumToWstr(FullWidth) + L"x" + NumToWstr(FullHeight) + L"\n";
+    dimensionsInfo += L"defaultPos: " + NumToWstr(defaultPos.x) + L", " + NumToWstr(defaultPos.y) + L"\n";
+    dimensionsInfo += L"bottom-right corner: " + NumToWstr(defaultPos.x + FullWidth) + L", " + NumToWstr(defaultPos.y + FullHeight) + L"\n";
+    dimensionsInfo += L"\n";
 }
 
 void MainFrame::InitFields()
@@ -375,7 +375,7 @@ void MainFrame::InitTestValues()
     //fArtist.SetText(L"Big Black");
     //fAlbumName.SetText(L"Racer-X");
     //fAlbumYear.SetText(L"1985");
-    fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nrAFOfF6ITDAEJ-BuHYWpHYOwsKNTZ994");
+    //fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nrAFOfF6ITDAEJ-BuHYWpHYOwsKNTZ994");
     
     //fArtist.SetText(L"Big Black");
     //fAlbumName.SetText(L"Lungs");
@@ -386,10 +386,10 @@ void MainFrame::InitTestValues()
 
 
     // RARE UNICODE CHAR THAT SHOWS DIFFERENCE BETWEEN WINDOWS-1250 AND WINDOWS-1252
-    //fArtist.SetText(L"The Jesus Lizard");
-    //fAlbumName.SetText(L"Down");
-    //fAlbumYear.SetText(L"1994");
-    //fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_kULt5j2pKzT5PtLz1RGW7EO-IWDwqVtHw");
+    fArtist.SetText(L"The Jesus Lizard");
+    fAlbumName.SetText(L"Down");
+    fAlbumYear.SetText(L"1994");
+    fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_kULt5j2pKzT5PtLz1RGW7EO-IWDwqVtHw");
 
     // RARE UNICODE CODE POINTS
     //fArtist.SetText(L"Death in June");
@@ -477,6 +477,17 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     Show(true);                                         // SHOW WINDOW
 
 
+
+
+    initialOutput += L"Welcome to album-dl's output terminal, stand-by.\n\n";
+
+    initialOutput += L"INFO:\n";
+    initialOutput += L"Remember to get 'ffmpeg.exe' and provide it's directory in the field above.\n";
+    initialOutput += L"If album-dl still can't locate 'ffmpeg.exe', try running as administrator.\n";
+
+    initialOutput += L"\n";
+    initialOutput += L"INFO:\n";
+    initialOutput += L"You can save settings like set directories and bitrate with (Ctrl+S).\n";
 
     VerifyExecutables();
 
@@ -592,37 +603,34 @@ void MainFrame::GetAlbum()
     //--------------------------------------------------
 
 
-    ////--------------------------------------------------
+    //--------------------------------------------------
     //mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
     //ExecuteBatchSession();
 
-    //
-    ////--------------------------------------------------
-    GetArtworkStage();
     
-    //mainConsole.AddCmd(GetArtworkStageAlt(), WINDOWS1250);
-    //ExecuteBatchSession();
+    //--------------------------------------------------
+    //GetArtworkStage();
 
 
-    ////--------------------------------------------------
+
+    //--------------------------------------------------
+    ResetTracksFile();
+    GetTrackTitles();
+
+    LoadTrackTitles();
+    ValidateTrackTitles();
     //ResetTracksFile();
-    //mainConsole.AddCmd(GetTitlesStage(), WINDOWS1250);
-    //ExecuteBatchSession();
-
-    //LoadTrackTitles();
-    //ValidateTrackTitles();
-    //ResetTracksFile();
-    //
-    //
-    ////--------------------------------------------------
+    
+    
+    //--------------------------------------------------
     //mainConsole.AddCmd(ConvertStage(), UTF8);
-    mainConsole.AddCmd(CreateTrashDirStage());
-    mainConsole.AddCmd(RemoveLeftoverStage());
+    //mainConsole.AddCmd(CreateTrashDirStage());
+    //mainConsole.AddCmd(RemoveLeftoverStage());
     //mainConsole.AddCmd(RenameFilesStage());
-    ExecuteBatchSession();
+    //ExecuteBatchSession();
 
 
-    ////--------------------------------------------------
+    //--------------------------------------------------
     //AttachArtworkToAll();
 
     //mainConsole.AddCmd(CreateAlbumDirectoryStage());
@@ -630,21 +638,21 @@ void MainFrame::GetAlbum()
     //mainConsole.AddCmd(MoveArtworkStage());
     //ExecuteBatchSession();
 
-    //
-    //// FIELDS VALUE RESET
-    //if (bResetFields)
-    //{
-    //    SetStatusText("Resetting");
-    //
-    //    // Reset fields & set focus
-    //    fURL.SetText(L"");
-    //    fArtworkURL.SetText(L"");
-    //    fArtist.SetText(L"");
-    //    fAlbumName.SetText(L"");
-    //    fAlbumYear.SetText(L"");
-    //
-    //    fArtist.SetFocus();
-    //}
+    
+    // FIELDS VALUE RESET
+    if (bResetFields)
+    {
+        SetStatusText("Resetting");
+    
+        // Reset fields & set focus
+        fURL.SetText(L"");
+        fArtworkURL.SetText(L"");
+        fArtist.SetText(L"");
+        fAlbumName.SetText(L"");
+        fAlbumYear.SetText(L"");
+    
+        fArtist.SetFocus();
+    }
 
     
     
@@ -748,19 +756,74 @@ std::vector<std::wstring> MainFrame::RemoveLeftoverStage()
     std::wstring artworkBrokenPath = workingDirectory + artworkBrokenFilename;
     std::wstring artworkBrokenPathBackslashes = GetBackslashPath(artworkBrokenPath);
 
+    std::wstring pagePath = workingDirectory + pageFilename;
+    std::wstring pagePathBackslashes = GetBackslashPath(pagePath);
+
     std::wstring trashPath = workingDirectory + trashFoldername + L"/";
     std::wstring trashPathBackslashes = GetBackslashPath(trashPath);
 
+    std::wstring tracksPath = workingDirectory + tracksFilename;
+    std::wstring tracksPathBackslashes = GetBackslashPath(tracksPath);
+
     std::vector<std::wstring> rv;
-    //rv.push_back(L"cmd /u /c \"MOVE \"" + workingDirBackslashes + L"\\td8_index*.mp4\" \"" + trashPathBackslashes + L""\"");
-    rv.push_back(L"cmd /u /c \"MOVE \"" + artworkBrokenPathBackslashes + L"\" \"" + trashPathBackslashes + L"\"");
+    rv.push_back(L"cmd /u /c \"MOVE \"" + workingDirBackslashes + L"\\td8_index*.mp4\" \"" + trashPathBackslashes + L"\"");
+    rv.push_back(L"cmd /u /c \"MOVE \"" + artworkBrokenPathBackslashes  + L"\" \"" + trashPathBackslashes + L"\"");
+    rv.push_back(L"cmd /u /c \"MOVE \"" + pagePathBackslashes           + L"\" \"" + trashPathBackslashes + L"\"");
+    rv.push_back(L"cmd /u /c \"MOVE \"" + tracksPathBackslashes         + L"\" \"" + trashPathBackslashes + L"\"");
+    
+
+    // useful testing command that reverses the previous command so that the method can be run again:
     //rv.push_back(L"cmd /u /c \"MOVE \"" + workingDirBackslashes + L"\\Trash\\td8_index*.mp4\" \"" + trashPathBackslashes + L"\"\"");
     return rv;
 }
 
+
+
+void MainFrame::GetTrackTitles()
+{
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "GetTrackTitles()" "\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
+    std::wstring pagePath = workingDirectory + pageFilename;
+
+    std::string data = "";
+    GetFileData(pagePath, &data);
+    std::string query = "]},\"title\":{\"runs\":[{\"text\":\"";
+
+    std::vector<std::string> split = splitByStr(data, query, false);
+
+    std::vector<std::string> titles;
+    titles.clear();
+    for (int i = 1; i < split.size(); i++)
+    {
+        for (int j = 0; j < split[i].size(); j++)
+        {
+            if (j == 0) titles.push_back("");
+            if (split[i][j] == '"') break;
+            titles.back() += split[i][j];
+        }
+    }
+
+    std::string output = "";
+    for (auto title : titles)
+    {
+        std::string current = title + "\n";
+        output += current;
+        mainConsole.PrintLogAndConsoleNarrow(current);
+    }
+
+    std::wstring tracksPath = workingDirectory + tracksFilename;
+    WriteDataToFile(output, tracksPath);
+
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+    mainConsole.PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
+    mainConsole.PrintLogAndConsoleNarrow("\n\n");
+}
+
 std::wstring MainFrame::GetTitlesStage()
 {
-    std::wstring cmd = L"cmd /a /c \"\"" + workingDirectory + downloaderExec + L"\" -e --print-to-file %(title)s \"tracks\" \"" + URL + L"\"\"";
+    //std::wstring cmd = L"cmd /a /c \"\"" + workingDirectory + downloaderExec + L"\" -e --print-to-file %(title)s \"tracks\" \"" + URL + L"\"\"";
+    std::wstring cmd = L"cmd /a /c \"\"" + workingDirectory + downloaderExec + L"\" -e --print-to-file %(title)s \"" + tracksFilename + L"\" \"" + URL + L"\"\"";
     return cmd;
 }
 
@@ -812,6 +875,9 @@ std::vector<std::wstring> MainFrame::RenameFilesStage(std::wstring ext)
     return cmds;
 }
 
+
+
+
 void MainFrame::GetArtworkStage()
 {
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
@@ -843,7 +909,7 @@ void MainFrame::GetArtworkStage()
     FixImageData(artworkBrokenPath.c_str(), artworkPath.c_str());
 
     // Erase the page (resource) .html file data
-    ClearFileData(pagePath);
+    //ClearFileData(pagePath);
 
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
@@ -858,6 +924,8 @@ std::wstring MainFrame::GetArtworkStageAlt()
     std::wstring fullCommand = L"\""; fullCommand += workingDirectory + downloaderExec + L"\" " + args;
     return fullCommand;
 }
+
+
 
 
 std::wstring MainFrame::CreateAlbumDirectoryStage()
@@ -990,7 +1058,8 @@ void MainFrame::ResetTracksFile()
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "ResetTracksFile()" "\n");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
 
-    ClearFileData(tracksFilename);
+    std::wstring tracksPath = workingDirectory + tracksFilename;
+    ClearFileData(tracksPath);
 
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
@@ -1003,10 +1072,9 @@ void MainFrame::LoadTrackTitles()
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "LoadTrackTitles()" "\n");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
 
-
-
+    std::wstring tracksPath = workingDirectory + tracksFilename;
     std::string data = "";
-    if (GetFileData(tracksFilename, &data))
+    if (GetFileData(tracksPath, &data))
     {
         SetStatusText("Failed to load track titles from file");
     }

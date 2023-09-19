@@ -582,30 +582,30 @@ inline bool beginWith(std::basic_string<T> str, const T* query)
     return beginWith(str, std::basic_string<T>(query));
 }
 
-//template<typename T>
-//inline std::vector<std::basic_string<T>> splitByChar(std::basic_string<T> str, T query, bool leaveQueried = true)
-//{
-//    std::vector<std::basic_string<T>> returnValue;
-//    returnValue.clear();
-//    returnValue.push_back(std::basic_string<T>());
-//    for (int i = 0; i < str.size(); i++)
-//    {
-//        returnValue.back() += str[i];
-//        if (str[i] == query)
-//        {
-//            if (!leaveQueried) returnValue.back().pop_back();
-//            returnValue.push_back(std::basic_string<T>());
-//        }
-//    }
-//    if (returnValue.back().size() == 0) returnValue.pop_back();
-//    return returnValue;
-//}
-//
-//template<typename T>
-//inline std::vector<std::basic_string<T>> splitByNewlines(std::basic_string<T> str, bool leaveNewlines = true)
-//{
-//    return splitByChar(str, (T)'\n', leaveNewlines);
-//}
+template<typename T>
+inline std::vector<std::basic_string<T>> splitByChar(std::basic_string<T> str, T query, bool leaveQueried = true)
+{
+    std::vector<std::basic_string<T>> returnValue;
+    returnValue.clear();
+    returnValue.push_back(std::basic_string<T>());
+    for (int i = 0; i < str.size(); i++)
+    {
+        returnValue.back() += str[i];
+        if (str[i] == query)
+        {
+            if (!leaveQueried) returnValue.back().pop_back();
+            returnValue.push_back(std::basic_string<T>());
+        }
+    }
+    if (returnValue.back().size() == 0) returnValue.pop_back();
+    return returnValue;
+}
+
+template<typename T>
+inline std::vector<std::basic_string<T>> splitByNewlines(std::basic_string<T> str, bool leaveNewlines = true)
+{
+    return splitByChar(str, (T)'\n', leaveNewlines);
+}
 
 template<typename T>
 inline void splitByFirstFoundChar(std::basic_string<T> str, T query, std::basic_string<T>& firstHalf, std::basic_string<T>& secondHalf)
@@ -659,6 +659,72 @@ inline void splitByLastFoundChar(std::basic_string<T> str, T query, std::basic_s
     firstHalf = reverseStr(firstHalf);
     secondHalf = reverseStr(secondHalf);
 }
+
+template<typename T>
+inline std::vector<std::basic_string<T>> splitByStr(std::basic_string<T> str, std::basic_string<T> query, bool leaveQueried = true)
+{
+    std::vector<std::basic_string<T>> returnValue;
+    returnValue.clear();
+
+    int result = whereSubStr(str, query);
+
+    if (result != -1)
+    {
+        std::basic_string<T> left, right;
+        left.clear();
+        right.clear();
+
+        //           1         2
+        // 0123456789012345678901
+        // Stars in the universe.
+        // query.size(): 3
+        // query: the
+        // result: 9
+        // query[9]:  t
+        // query[10}: h
+        // query[11]: e
+        // 
+        // 9 + x = 11
+        //     x = 11 - 9
+        //     x = 2
+        //
+        for (int i = 0; i < str.size(); i++)
+        {
+            if (i < result) left += str[i];
+            else
+            {
+                if (i <= result + query.size() - 1)
+                {
+                    if (leaveQueried) left += str[i];
+                }
+                else
+                {
+                    right += str[i];
+                }
+            }
+        }
+
+        if (!left.empty()) returnValue.push_back(left);
+
+        std::vector<std::basic_string<T>> rest = splitByStr(right, query);
+        for (auto current : rest) returnValue.push_back(current);
+    }
+    else
+    {
+        returnValue.push_back(str);
+    }
+
+
+    return returnValue;
+}
+
+template<typename T>
+inline std::vector<std::basic_string<T>> splitByStr(std::basic_string<T> str, const T* query, bool leaveQueried = true)
+{
+    return splitByStr(str, std::basic_string<T>(query), leaveQueried);
+}
+
+
 
 
 
