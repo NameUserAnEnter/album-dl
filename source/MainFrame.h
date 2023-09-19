@@ -79,14 +79,6 @@ private:
     const bool bLog = true;
     unsigned int uMaxOutputLines;
 
-    std::wstring consoleLogFilepath;
-
-
-    std::wstring thumbnailURL;
-    std::wstring pageFilename;
-
-    std::wstring tracksFilename;
-
 
 private:
     void OnButtonGet(wxCommandEvent& event);
@@ -154,6 +146,7 @@ private:
 
     unsigned int bitrate;
 
+
     std::wstring artist;
     std::wstring albumName;
     std::wstring albumYear;
@@ -163,11 +156,19 @@ private:
     std::wstring artworkBrokenFilename;
 
     std::wstring trashFoldername;
+
+    std::wstring thumbnailURL;
+    std::wstring playlistPageFilename;
+    std::wstring playlistArtPageFilename;
+
+    std::wstring tracksFilename;
     
     std::wstring albumsDirBackslashes;
     std::wstring workingDirBackslashes;
 
     std::wstring albumPathBackslashes;
+
+    std::wstring consoleLogFilepath;
 
     std::wstring initialOutput;
     std::wstring dimensionsInfo;

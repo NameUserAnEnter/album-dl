@@ -46,7 +46,8 @@ void MainFrame::InitValues()
     artworkFilename = L"artwork.png";
     artworkBrokenFilename = L"artwork_broken.png";
 
-    pageFilename = L"index.html";
+    playlistPageFilename = L"playlist.html";
+    playlistArtPageFilename = L"playlist_art.html";
     tracksFilename = L"tracks";
 
     trashFoldername = L"Trash";
@@ -609,7 +610,7 @@ void MainFrame::GetAlbum()
 
     
     //--------------------------------------------------
-    GetArtworkStage();
+    //GetArtworkStage();
 
 
 
@@ -756,8 +757,11 @@ std::vector<std::wstring> MainFrame::RemoveLeftoverStage()
     std::wstring artworkBrokenPath = workingDirectory + artworkBrokenFilename;
     std::wstring artworkBrokenPathBackslashes = GetBackslashPath(artworkBrokenPath);
 
-    std::wstring pagePath = workingDirectory + pageFilename;
-    std::wstring pagePathBackslashes = GetBackslashPath(pagePath);
+    std::wstring playlistPagePath = workingDirectory + playlistPageFilename;
+    std::wstring playlistPagePathBackslashes = GetBackslashPath(playlistPagePath);
+
+    std::wstring playlistArtPagePath = workingDirectory + playlistPageFilename;
+    std::wstring playlistArtPagePathBackslashes = GetBackslashPath(playlistArtPagePath);
 
     std::wstring trashPath = workingDirectory + trashFoldername + L"/";
     std::wstring trashPathBackslashes = GetBackslashPath(trashPath);
@@ -767,9 +771,10 @@ std::vector<std::wstring> MainFrame::RemoveLeftoverStage()
 
     std::vector<std::wstring> rv;
     rv.push_back(L"cmd /u /c \"MOVE \"" + workingDirBackslashes + L"\\td8_index*.mp4\" \"" + trashPathBackslashes + L"\"");
-    rv.push_back(L"cmd /u /c \"MOVE \"" + artworkBrokenPathBackslashes  + L"\" \"" + trashPathBackslashes + L"\"");
-    rv.push_back(L"cmd /u /c \"MOVE \"" + pagePathBackslashes           + L"\" \"" + trashPathBackslashes + L"\"");
-    rv.push_back(L"cmd /u /c \"MOVE \"" + tracksPathBackslashes         + L"\" \"" + trashPathBackslashes + L"\"");
+    rv.push_back(L"cmd /u /c \"MOVE \"" + artworkBrokenPathBackslashes      + L"\" \"" + trashPathBackslashes + L"\"");
+    rv.push_back(L"cmd /u /c \"MOVE \"" + playlistPagePathBackslashes       + L"\" \"" + trashPathBackslashes + L"\"");
+    rv.push_back(L"cmd /u /c \"MOVE \"" + playlistArtPagePathBackslashes    + L"\" \"" + trashPathBackslashes + L"\"");
+    rv.push_back(L"cmd /u /c \"MOVE \"" + tracksPathBackslashes             + L"\" \"" + trashPathBackslashes + L"\"");
     
 
     // useful testing command that reverses the previous command so that the method can be run again:
@@ -837,32 +842,32 @@ void MainFrame::GetArtworkStage()
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "GetArtworkPre()" "\n");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
 
-    std::wstring pageHost, pageResource;
-    SplitHostResourceURL(artworkURL, pageHost, pageResource);
+    std::wstring playlistArtPageHost, playlistArtPageResource;
+    SplitHostResourceURL(artworkURL, playlistArtPageHost, playlistArtPageResource);
 
     unsigned int cFragment = 0;
 
 
 
     mainConsole.PrintLogAndConsoleNarrow("Downloading album artwork...\n");
-    mainConsole.PrintLogAndConsole(L"pageHost: " + pageHost + L"\n");
-    mainConsole.PrintLogAndConsole(L"pageResource: " + pageResource + L"\n");
+    mainConsole.PrintLogAndConsole(L"playlistArtPageHost: " + playlistArtPageHost + L"\n");
+    mainConsole.PrintLogAndConsole(L"playlistArtPageResource: " + playlistArtPageResource + L"\n");
     mainConsole.PrintLogAndConsoleNarrow("\n\n");
 
 
     std::wstring artworkBrokenPath = workingDirectory + artworkBrokenFilename;
     std::wstring artworkPath = workingDirectory + artworkFilename;
 
-    std::wstring pagePath = workingDirectory + pageFilename;
+    std::wstring playlistArtPagePath = workingDirectory + playlistArtPageFilename;
 
     using namespace net;
 
-    GetImage(pageHost.c_str(), pageResource.c_str(), pagePath.c_str(), artworkBrokenPath.c_str());
+    GetImage(playlistArtPageHost.c_str(), playlistArtPageResource.c_str(), playlistArtPagePath.c_str(), artworkBrokenPath.c_str());
     PrintConsole("\n\n");
     FixImageData(artworkBrokenPath.c_str(), artworkPath.c_str());
 
     // Erase the page (resource) .html file data, disabled, since now it's moved to trash dir instead
-    //ClearFileData(pagePath);
+    //ClearFileData(playlistArtPagePath);
 
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
@@ -1012,10 +1017,13 @@ void MainFrame::GetTrackTitles()
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "GetTrackTitles()" "\n");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
-    std::wstring pagePath = workingDirectory + pageFilename;
+    std::wstring playlistPagePath = workingDirectory + playlistPageFilename;
+    std::wstring host, resource;
+    SplitHostResourceURL(URL, host, resource);
+    GetResource(host.c_str(), resource.c_str(), playlistPagePath.c_str());
 
     std::string data = "";
-    GetFileData(pagePath, &data);
+    GetFileData(playlistPagePath, &data);
     std::string query = "]},\"title\":{\"runs\":[{\"text\":\"";
 
     std::vector<std::string> split = splitByStr(data, query, false);
@@ -1033,6 +1041,7 @@ void MainFrame::GetTrackTitles()
     }
 
     std::string output = "";
+    mainConsole.PrintLogAndConsole(L"\n---- Track titles:\n");
     for (auto title : titles)
     {
         std::string current = title + "\n";
