@@ -582,31 +582,30 @@ inline bool beginWith(std::basic_string<T> str, const T* query)
     return beginWith(str, std::basic_string<T>(query));
 }
 
-template<typename T>
-inline std::vector<std::basic_string<T>> splitByChar(std::basic_string<T> str, T query, bool leaveQueried = true)
-{
-    std::vector<std::basic_string<T>> returnValue;
-    returnValue.clear();
-    returnValue.push_back(std::basic_string<T>());
-    for (int i = 0; i < str.size(); i++)
-    {
-        returnValue.back() += str[i];
-        if (str[i] == query)
-        {
-            if (!leaveQueried) returnValue.back().pop_back();
-            returnValue.push_back(std::basic_string<T>());
-        }
-    }
-    if (returnValue.back().size() == 0) returnValue.pop_back();
-    return returnValue;
-}
-
-template<typename T>
-inline std::vector<std::basic_string<T>> splitByNewlines(std::basic_string<T> str, bool leaveNewlines = true)
-{
-    std::vector<std::basic_string<T>> returnValue = splitByChar(str, (T)'\n', leaveNewlines);
-    return returnValue;
-}
+//template<typename T>
+//inline std::vector<std::basic_string<T>> splitByChar(std::basic_string<T> str, T query, bool leaveQueried = true)
+//{
+//    std::vector<std::basic_string<T>> returnValue;
+//    returnValue.clear();
+//    returnValue.push_back(std::basic_string<T>());
+//    for (int i = 0; i < str.size(); i++)
+//    {
+//        returnValue.back() += str[i];
+//        if (str[i] == query)
+//        {
+//            if (!leaveQueried) returnValue.back().pop_back();
+//            returnValue.push_back(std::basic_string<T>());
+//        }
+//    }
+//    if (returnValue.back().size() == 0) returnValue.pop_back();
+//    return returnValue;
+//}
+//
+//template<typename T>
+//inline std::vector<std::basic_string<T>> splitByNewlines(std::basic_string<T> str, bool leaveNewlines = true)
+//{
+//    return splitByChar(str, (T)'\n', leaveNewlines);
+//}
 
 template<typename T>
 inline void splitByFirstFoundChar(std::basic_string<T> str, T query, std::basic_string<T>& firstHalf, std::basic_string<T>& secondHalf)
@@ -701,6 +700,27 @@ inline bool isPrintable(wchar_t ch)
 
 
 // TIME UTILS
+inline std::string MsToSec(long ms, unsigned int minFracDigits = 0)
+{
+    // minFracDigits: 0 <-> 3
+    std::string returnValue = NumToStr(ms, 10, 4, '0');
+    returnValue.insert(returnValue.size() - 1 + 1 - 3, 1, '.');
+
+    unsigned int cutFracDigits = 0;
+    while (returnValue.back() == '0')
+    {
+        if (3 - cutFracDigits == minFracDigits) break;
+
+        returnValue.pop_back();
+        cutFracDigits++;
+    }
+
+    if (returnValue.back() == '.') returnValue.pop_back();
+
+    returnValue += "s";
+    return returnValue;
+}
+
 inline std::tm GetCurrentDateAndTime()
 {
     std::time_t seconds_since = time(nullptr);

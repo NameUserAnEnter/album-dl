@@ -483,11 +483,6 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 
 
     //mainConsole.PrintLogAndConsole(initialOutput);
-    mainConsole.PrintLogAndConsole(L" shown\n");
-    mainConsole.PrintLogAndConsole(L"hidden\r shown\n");
-
-    mainConsole.PrintLogAndConsole(L"\n shown\n");
-    mainConsole.PrintLogAndConsole(L"hidden\r shown\n");
     bnRunScript.SetFocus();
     initialOutput.clear();
 }
@@ -569,66 +564,28 @@ void MainFrame::ExecuteBatchSession(bool addPadding)
 void MainFrame::GetAlbum()
 {
     std::wstring currentContent = fOutput.GetContent();
-    mainConsole.PrintLogAndConsoleNarrow("\n");
-
-
-    // REPLACE TEST
-    //mainConsole.PrintLogAndConsoleNarrow("hello\rworld\n");
-
-
-    // FIND LAST NEWLINE
-    //long lastNewline = 0;
-    //for (int i = currentContent.size() - 1; i >= 0; i--)
-    //{
-    //    if (currentContent[i] == L'\n')
-    //    {
-    //        lastNewline = i;
-    //        break;
-    //    }
-    //}
-    //long afterLastNewline = lastNewline + 1;
-
-    // PRINT SOME NUMBERS
-    // SOLUTION: INDEX NEED TO BE CALCULATED INCLUDING A PHANTOM SECOND CHAR AT EACH NEWLINE
-    //mainConsole.PrintLogAndConsoleNarrow(NumToStr(fOutput.GetCursorPos()) + "\n");
-    //mainConsole.PrintLogAndConsoleNarrow(NumToStr(currentContent.size()) + "\n");
-    //mainConsole.PrintLogAndConsoleNarrow("afterLastNewline: " + NumToStr(afterLastNewline) + "\n");
-
-
-    //// PRINT OUT EACH CHAR
-    //for (int i = 0; i < currentContent.size(); i++)
-    //{
-    //    mainConsole.PrintLogAndConsole(NumToWstr(i, 10, 2) + L": ");
-    //    if (currentContent[i] == '\n')
-    //    {
-    //        afterLastNewline = i;
-    //        mainConsole.PrintLogAndConsole(L"\\n");
-    //    }
-    //    else mainConsole.PrintLogAndConsole(std::wstring(L"") + currentContent[i]);
-    //    mainConsole.PrintLogAndConsoleNarrow("\n");
-    //}
 
 
     // TEST CARRIAGE RETURN
     std::string copy;
-    GetFileData("artwork_broken.png", &copy);
+    GetFileData(artworkBrokenFilename, &copy);
 
-    for (int i = 0; i < copy.size() - 1; i++)
+    clock_t diff;
+    do
     {
-        if (copy[i] == 0x0D && copy[i + 1] == 0x0A)
+        clock_t before = clock();
+        mainConsole.PrintLogAndConsoleNarrow("Searching:\n");
+        for (int i = 0; i < copy.size() - 1; i++)
         {
-            copy.replace(i, 2, "\n");
-            mainConsole.PrintLogAndConsoleNarrow("\r" + NumToStr(i, 16, 8));
-            //mainConsole.PrintLogAndConsoleNarrow("\r                        \r" + NumToStr(i, 16, 8));
-            //PrintConsole(NumToStr(i, 16, 8));
-
-            //cFound++;
-            //if (cFound % 8 == 0) PrintConsole("\n");
-            //else PrintConsole(" ");
+            if (copy[i] == 0x0D && copy[i + 1] == 0x0A)
+            {
+                copy.replace(i, 2, "\n");
+                //mainConsole.PrintLogAndConsoleNarrow("\r" + NumToStr(i, 16, 8));
+            }
         }
-    }
-    mainConsole.PrintLogAndConsoleNarrow("\rDONE");
-    //mainConsole.PrintLogAndConsoleNarrow("\r                        \rDONE");
+        diff = clock() - before;
+        mainConsole.PrintLogAndConsoleNarrow("DONE: " + MsToSec(diff, 1) + "\n\n");
+    } while (MsToSec(diff, 1).size() > 5);
     
     
 
@@ -1126,17 +1083,17 @@ bool MainFrame::ValidateFields()
 
     if (!validDir(albumsDirectory))
     {
-        MessageDialog("Invalid albums directory.", "Error");
+        MessageDialog(L"Invalid albums directory:\n\"" + albumsDirectory + L"\"", L"Error");
         return false;
     }
     if (!validDir(workingDirectory))
     {
-        MessageDialog("Invalid working directory.", "Error");
+        MessageDialog(L"Invalid working directory:\n\"" + workingDirectory + L"\"", L"Error");
         return false;
     }
     if (!validDir(converterDirectory))
     {
-        MessageDialog("Invalid FFmpeg directory.", "Error");
+        MessageDialog(L"Invalid FFmpeg directory:\n\"" + converterDirectory + L"\"", L"Error");
         return false;
     }
 

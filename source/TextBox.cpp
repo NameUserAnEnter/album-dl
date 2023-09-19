@@ -37,6 +37,35 @@ void TextBox::Init(std::string label, wxWindowID textFieldID, wxPoint position, 
 
 
 
+template<typename T>
+std::vector<std::basic_string<T>> TextBox::splitByChar(std::basic_string<T> str, T query, bool leaveQueried)
+{
+    std::vector<std::basic_string<T>> returnValue;
+    returnValue.clear();
+    returnValue.push_back(std::basic_string<T>());
+    for (int i = 0; i < str.size(); i++)
+    {
+        returnValue.back() += str[i];
+        if (str[i] == query)
+        {
+            if (!leaveQueried) returnValue.back().pop_back();
+            returnValue.push_back(std::basic_string<T>());
+        }
+    }
+    if (returnValue.back().size() == 0) returnValue.pop_back();
+    return returnValue;
+}
+
+template<typename T>
+std::vector<std::basic_string<T>> TextBox::splitByNewlines(std::basic_string<T> str, bool leaveNewlines)
+{
+    std::vector<std::basic_string<T>> returnValue = splitByChar(str, (T)'\n', leaveNewlines);
+    return returnValue;
+}
+
+
+
+
 
 
 void TextBox::SetText(std::wstring text)
@@ -62,17 +91,21 @@ void TextBox::AddText(std::wstring text)
         std::vector<std::wstring> lines = splitByNewlines(text);
         for (int i = 0; i < lines.size(); i++)
         {
-            std::vector<std::wstring> lineFrags = splitByChar(lines[i], L'\r', false);
+            std::wstring currentLine = lines[i];
+            if (lines[i].back() == L'\n') currentLine.pop_back();
+
+            std::vector<std::wstring> lineFrags = splitByChar(currentLine, L'\r', false);
             for (int j = 0; j < lineFrags.size(); j++)
             {
-                if (j == 0) textField.AppendText(lineFrags[j]);
-                if (j > 0)
-                {
-                    textField.Replace(startOfLastLine, startOfLastLine + lineFrags[j].size() - 1, lineFrags[j]);
-                }
+                // not TextBox::Replace()
+                textField.Replace(startOfLastLine, startOfLastLine + lineFrags[j].size(), lineFrags[j]);
             }
-            //textField.AppendText("\n");
-            startOfLastLine = textField.GetInsertionPoint();
+
+            if (lines[i].back() == L'\n')
+            {
+                textField.AppendText("\n");
+                startOfLastLine = textField.GetInsertionPoint();
+            }
         }
     }
     else textField.AppendText(output);
@@ -139,13 +172,6 @@ long TextBox::GetCursorPos()
     return textField.GetInsertionPoint();
 }
 
-void TextBox::Replace(long startIndex, long endIndex, std::wstring with)
-{
-    if (bufMutex == nullptr) return;
-
-    std::lock_guard<std::mutex> bufLock(*bufMutex);
-    textField.Replace(startIndex, endIndex + 1, with);
-}
 
 
 
