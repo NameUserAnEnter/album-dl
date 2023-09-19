@@ -35,6 +35,11 @@ struct Field
     }
 };
 
+struct Margin
+{
+    unsigned int top, left, bottom, right;
+};
+
 class MainFrame : public wxFrame
 {
 public:
@@ -69,6 +74,12 @@ private:
     wxPoint defaultPos;
 
     std::vector<Field> fields;
+    unsigned int horizontalMax;
+    unsigned int verticalMax;
+    unsigned int horizontalMaxDistance;
+    unsigned int verticalMaxDistance;
+
+    Margin clientMargin;
 
 
 private:
@@ -104,7 +115,10 @@ private:
     void VerifyExecutables();
     
     void SizeFields();
+    void FindMaxDistanceFields();
     void AdjustFields();
+    void SetFullSize();
+    void ComputeDimensionsInfo();
 
 
     void SaveSettings();
@@ -169,6 +183,9 @@ private:
     std::wstring albumPathBackslashes;
 
     std::wstring consoleLogFilepath;
+
+    std::wstring settingsFilename;
+    std::wstring defaultSettings;
 
     std::wstring initialOutput;
     std::wstring dimensionsInfo;

@@ -48,19 +48,34 @@ void MainFrame::InitValues()
 
     playlistPageFilename = L"playlist.html";
     playlistArtPageFilename = L"playlist_art.html";
-    tracksFilename = L"tracks";
 
     trashFoldername = L"Trash";
+
+    tracksFilename = L"tracks";
+    settingsFilename = L"settings";
+    defaultSettings = L"";
+
+    defaultSettings += L"\n";
+    defaultSettings += L"workfolder/\n";
+    defaultSettings += L"\n";
+
+    defaultSettings += L"-\n";
+    defaultSettings += L"-\n";
+    defaultSettings += L"0\n";
+    defaultSettings += L"192 kbit/s\n";
 
     thumbnailURL = L"";
 
     bitrate = 0;
 
 
-    defaultPos.x = 350;
+    defaultPos.x = 0;
     defaultPos.y = 0;
 
     taskbarHeight = 44;
+
+    horizontalMax = 0;
+    verticalMax = 0;
 }
 
 void MainFrame::SizeFields()
@@ -70,45 +85,48 @@ void MainFrame::SizeFields()
     wxSize ButtonSize;
 
     TextBoxSize = wxSize(800, 20);
-    OutputBoxSize = wxSize(800, 530);
     ButtonSize = wxSize(100, 25);
+
+    clientMargin = { 20, 20, 20, 20 };
 
     fields.clear();
 
-    fields.push_back(Field(20, 20, TextBoxSize));
-    fields.push_back(Field(20, 60, TextBoxSize));
-    fields.push_back(Field(20, 100, TextBoxSize));
+    fields.push_back(Field(clientMargin.left, clientMargin.top, TextBoxSize));
+    fields.push_back(Field(clientMargin.left, 60, TextBoxSize));
+    fields.push_back(Field(clientMargin.left, 100, TextBoxSize));
 
-    fields.push_back(Field(20, 160, TextBoxSize));
-    fields.push_back(Field(20, 200, TextBoxSize));
-    fields.push_back(Field(20, 240, TextBoxSize));
+    fields.push_back(Field(clientMargin.left, 160, TextBoxSize));
+    fields.push_back(Field(clientMargin.left, 200, TextBoxSize));
+    fields.push_back(Field(clientMargin.left, 240, TextBoxSize));
 
-    fields.push_back(Field(20, 280, TextBoxSize));
-    fields.push_back(Field(20, 320, TextBoxSize));
+    fields.push_back(Field(clientMargin.left, 280, TextBoxSize));
+    fields.push_back(Field(clientMargin.left, 320, TextBoxSize));
 
-    fields.push_back(Field(20, 360, ButtonSize));
-    fields.push_back(Field(20 + ButtonSize.x + 10, 360, ButtonSize));
-    fields.push_back(Field(20 + ButtonSize.x + 10 + ButtonSize.x + 10, 362, ButtonSize));
-    fields.push_back(Field(20 + ButtonSize.x + 10 + ButtonSize.x + 10 + ButtonSize.x + 10, 360, ButtonSize));
+    fields.push_back(Field(clientMargin.left, 360, ButtonSize));
+    fields.push_back(Field(clientMargin.left + ButtonSize.x + 10, 360, ButtonSize));
+    fields.push_back(Field(clientMargin.left + ButtonSize.x + 10 + ButtonSize.x + 10, 362, ButtonSize));
+    fields.push_back(Field(clientMargin.left + ButtonSize.x + 10 + ButtonSize.x + 10 + ButtonSize.x + 10, 360, ButtonSize));
 
-    fields.push_back(Field(20, 405, OutputBoxSize));
+
+    FindMaxDistanceFields();
+    OutputBoxSize = wxSize(800, verticalMaxDistance - clientMargin.top);
+    fields.push_back(Field(horizontalMaxDistance + 10, clientMargin.top, OutputBoxSize));
 }
 
-void MainFrame::AdjustFields()
+void MainFrame::FindMaxDistanceFields()
 {
-    // screen resolution
-    float screenX, screenY;
-    screenX = GetSystemMetrics(SM_CXSCREEN);
-    screenY = GetSystemMetrics(SM_CYSCREEN);
-    //screenX = 1366;
-    //screenY = 768;
+    for (int i = 0; i < fields.size(); i++)
+    {
+        if (fields[i].pos.x + fields[i].size.x >= fields[horizontalMax].pos.x + fields[horizontalMax].size.x) horizontalMax = i;
+        if (fields[i].pos.y + fields[i].size.y >= fields[verticalMax].pos.y + fields[verticalMax].size.y) verticalMax = i;
+    }
 
-    // available screen area
-    float areaX, areaY;
-    areaX = screenX;
-    areaY = screenY - taskbarHeight;
+    horizontalMaxDistance = fields[horizontalMax].pos.x + fields[horizontalMax].size.x;
+    verticalMaxDistance = fields[verticalMax].pos.y + fields[verticalMax].size.y;
+}
 
-
+void MainFrame::SetFullSize()
+{
     wxSize sizeFull = GetSize();
     wxSize sizeClient = GetClientSize();
 
@@ -116,96 +134,26 @@ void MainFrame::AdjustFields()
     int xDiff = sizeFull.x - sizeClient.x;
     int yDiff = sizeFull.y - sizeClient.y;
 
+    FindMaxDistanceFields();
+    FullWidth = fields[horizontalMax].pos.x + fields[horizontalMax].size.x + clientMargin.right + xDiff;
+    FullHeight = fields[verticalMax].pos.y + fields[verticalMax].size.y + clientMargin.bottom + yDiff;
+}
 
-    unsigned int bottomClientOff = 20;
-    int minLastHeight = 50;
-    int minFieldWidth = 250;
+void MainFrame::ComputeDimensionsInfo()
+{
+    // screen resolution
+    float screenX, screenY;
+    screenX = GetSystemMetrics(SM_CXSCREEN);
+    screenY = GetSystemMetrics(SM_CYSCREEN);
 
-
-
+    // available screen area
+    float areaX, areaY;
+    areaX = screenX;
+    areaY = screenY - taskbarHeight;
 
     dimensionsInfo += L"screen res: " + NumToWstr((int)screenX) + L"x" + NumToWstr((int)screenY) + L"\n";
     dimensionsInfo += L"available area: " + NumToWstr((int)areaX) + L"x" + NumToWstr((int)areaY) + L"\n\n";
 
-    // July, 16th
-    // -TEST FOR OTHER SYS METHODS PERMISSION REQUIREMENTS I.E. CREATEPROCESS()
-    // -FILE PERMISSION PROBLEM CANNOT BE SOLVED BY USING STD METHODS (BOTH LOG & SETTINGS CANNOT BE ACCESSED WITHOUT ADMIN PRIVILAGE)
-    //
-
-
-    // ADJUST FIELDS WIDTH IF TOO WIDE
-    for (int i = 0; i < fields.size(); i++)
-    {
-        Field& fCurrent = fields[i];
-
-        int currentFullWidth = fCurrent.pos.x * 2 + fCurrent.size.x + xDiff;
-        if (defaultPos.x + currentFullWidth > areaX)
-        {
-            if (areaX >= currentFullWidth)
-            {
-                // no resize needed, just repos
-                defaultPos.x = areaX - currentFullWidth;
-            }
-            else // areaX < currentFullWidth
-            {
-                // align to left
-                defaultPos.x = 0;
-
-                // get new field width
-                fCurrent.size.x = areaX - (fCurrent.pos.x * 2 + xDiff);
-                // if too small set to minimal
-                if (fCurrent.size.x < minFieldWidth) fCurrent.size.x = minFieldWidth;
-            }
-        }
-    }
-
-    // ADJUST LAST FIELD (OUTPUT-BOX) HEIGHT IF TOO LARGE
-    Field& fLast = fields.back();
-
-    int currentFullHeight = fLast.pos.y + fLast.size.y + bottomClientOff + yDiff;
-    if (defaultPos.y + currentFullHeight > areaY)
-    {
-        if (areaY >= currentFullHeight)
-        {
-            // no resize needed, just repos
-            defaultPos.y = areaY - currentFullHeight;
-        }
-        else // areaY < currentFullHeight
-        {
-            // align to top
-            defaultPos.y = 0;
-
-            // get new field height, so that the window does not exceed available area (checks with the equation):
-            // areaY = fLast.pos.y + fLast.size.y + bottomClientOff + yDiff
-            // areaY - fLast.pos.y - bottomClientOff - yDiff = fLast.size.y
-            // areaY - (fLast.pos.y + bottomClientOff + yDiff) = fLast.size.y
-            fLast.size.y = areaY - (fLast.pos.y + bottomClientOff + yDiff);
-            // if too small set to minimal
-            if (fLast.size.y < minLastHeight) fLast.size.y = minLastHeight;
-        }
-    }
-
-
-    // GET WIDEST FIELD TO BASE WINDOW WIDTH ON
-    int index = 0;
-    for (int i = 0; i < fields.size(); i++)
-    {
-        int currentWidth = fields[i].pos.x * 2 + fields[i].size.x;
-        int maxWidth = fields[index].pos.x * 2 + fields[index].size.x;
-
-        if (currentWidth > maxWidth) index = i;
-    }
-
-
-
-
-    FullWidth = fields[index].pos.x + fields[index].size.x + fields[index].pos.x + (sizeFull.x - sizeClient.x);
-    FullHeight = fLast.pos.y + fLast.size.y + bottomClientOff + (sizeFull.y - sizeClient.y); // BASE CLIENT HEIGHT ON THE LAST FIELD (OUTPUT-BOX)
-
-
-
-
-    // PRINT OUTPUT FOR TESTING
     for (int i = 0; i < fields.size(); i++)
     {
         dimensionsInfo += L"fields[" + NumToWstr(i, 10, 2, ' ') + L"]: (";
@@ -216,6 +164,29 @@ void MainFrame::AdjustFields()
     dimensionsInfo += L"defaultPos: " + NumToWstr(defaultPos.x) + L", " + NumToWstr(defaultPos.y) + L"\n";
     dimensionsInfo += L"bottom-right corner: " + NumToWstr(defaultPos.x + FullWidth) + L", " + NumToWstr(defaultPos.y + FullHeight) + L"\n";
     dimensionsInfo += L"\n";
+}
+
+void MainFrame::AdjustFields()
+{
+    // screen resolution
+    float screenX, screenY;
+    screenX = GetSystemMetrics(SM_CXSCREEN);
+    screenY = GetSystemMetrics(SM_CYSCREEN);
+
+    // available screen area
+    float areaX, areaY;
+    areaX = screenX;
+    areaY = screenY - taskbarHeight;
+
+    wxSize sizeFull = GetSize();
+    wxSize sizeClient = GetClientSize();
+
+    // WINDOW-SIZE - CLIENT-SIZE DIFFERENCE
+    int xDiff = sizeFull.x - sizeClient.x;
+    int yDiff = sizeFull.y - sizeClient.y;
+
+    int minLastHeight = 400;
+    int minFieldWidth = 250;
 }
 
 void MainFrame::InitFields()
@@ -364,6 +335,7 @@ void MainFrame::InitMenuAndStatusBar()
 
 void MainFrame::InitWindowSize()
 {
+    SetFullSize();
     SetSize(FullWidth, FullHeight);
 }
 
@@ -421,17 +393,20 @@ void MainFrame::VerifyExecutables()
 
     if (!VerifyFile(workingDirectory, downloaderExec))
     {
-        initialOutput +=    L"Failed to locate " + downloaderExec + L" in:\n";
+        if (!initialOutput.empty()) initialOutput += L"\n\n";
+        initialOutput +=    L"Failed to locate '" + downloaderExec + L"' in:\n";
 
         if (workingDirectory.empty()) initialOutput += L"<no directory provided>";
         else initialOutput += workingDirectory;
 
         initialOutput += L"\n";
+        initialOutput += L"--------------------------------------------------------------------------\n\n";
     }
 
     if (!VerifyFile(converterDirectory, converterExec))
     {
-        initialOutput +=    L"Failed to locate " + converterExec + L" in:\n";
+        if (!initialOutput.empty()) initialOutput += L"\n\n";
+        initialOutput +=    L"Failed to locate '" + converterExec + L"' in:\n";
 
         if (converterDirectory.empty()) initialOutput += L"<no directory provided>";
         else initialOutput += converterDirectory;
@@ -440,7 +415,11 @@ void MainFrame::VerifyExecutables()
 
 
         initialOutput +=    L"\nAlbum-dl requires FFmpeg to work, if you don't have FFmpeg installed, visit:\n"
-            L"https://ffmpeg.org/download.html\n\n";
+                            L"https://ffmpeg.org/download.html\n\n";
+
+        initialOutput += L"Remember to get 'ffmpeg.exe' and provide it's directory in the field above.\n";
+        initialOutput += L"If album-dl still can't locate 'ffmpeg.exe', try running as administrator.\n";
+        initialOutput += L"--------------------------------------------------------------------------\n\n";
     }
 }
 
@@ -453,6 +432,7 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     AdjustFields();     // ADJUST FIELDS SIZE ACCORDING TO SCREEN RESOLUTION
     InitFields();       // SET LABELS AND CONSTRUCT FIELDS
 
+
     InitConsole();
 
     InitThemes();
@@ -461,7 +441,9 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     InitBindings();
 
     InitTestValues();
+
     InitWindowSize();
+    ComputeDimensionsInfo();
 
 
     fBitrate.AppendItem("128 kbit/s");
@@ -473,36 +455,26 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     fBitrate.AppendItem("320 kbit/s");
 
 
+    initialOutput += L"--------------------------------------------------------------------------\n";
+    initialOutput += L"|            Welcome to album-dl's output terminal, stand-by.            |\n";
+    initialOutput += L"--------------------------------------------------------------------------\n\n";
+
     SetPosition(wxPoint(defaultPos.x, defaultPos.y));   // SET WINDOW POS TO DEFAULT POS
     OpenSettings();                                     // LOAD SETTINGS (MAY REPOS WINDOW)
     Show(true);                                         // SHOW WINDOW
 
 
 
-
-    initialOutput += L"Welcome to album-dl's output terminal, stand-by.\n\n";
-
-    initialOutput += L"INFO:\n";
-    initialOutput += L"Remember to get 'ffmpeg.exe' and provide it's directory in the field above.\n";
-    initialOutput += L"If album-dl still can't locate 'ffmpeg.exe', try running as administrator.\n";
-
-    initialOutput += L"\n";
-    initialOutput += L"INFO:\n";
-    initialOutput += L"You can save settings like set directories and bitrate with (Ctrl+S).\n";
-
     VerifyExecutables();
 
-
-
-
-    fWorkingDir.SetText(L"workfolder/");
+    initialOutput += dimensionsInfo;
 
 
     mainConsole.PrintLogAndConsole(initialOutput);
     initialOutput.clear();
 
-    bnRunScript.SetFocus();
     bResetFields = false;
+    bnRunScript.SetFocus();
     //fArtist.SetFocus();
 }
 
@@ -607,12 +579,12 @@ void MainFrame::GetAlbum()
 
 
     //--------------------------------------------------
-    mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
-    ExecuteBatchSession();
+    //mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
+    //ExecuteBatchSession();
 
-    
-    //--------------------------------------------------
-    GetArtworkStage();
+    //
+    ////--------------------------------------------------
+    //GetArtworkStage();
 
 
 
@@ -620,26 +592,26 @@ void MainFrame::GetAlbum()
     ResetTracksFile();
     GetTrackTitles();
 
-    LoadTrackTitles();
-    ValidateTrackTitles();
-    ResetTracksFile();
-    
-    
-    //--------------------------------------------------
-    mainConsole.AddCmd(ConvertStage(), UTF8);
-    mainConsole.AddCmd(CreateTrashDirStage());
-    mainConsole.AddCmd(RemoveLeftoverStage());
-    mainConsole.AddCmd(RenameFilesStage());
-    ExecuteBatchSession();
+    //LoadTrackTitles();
+    //ValidateTrackTitles();
+    //ResetTracksFile();
+    //
+    //
+    ////--------------------------------------------------
+    //mainConsole.AddCmd(ConvertStage(), UTF8);
+    //mainConsole.AddCmd(CreateTrashDirStage());
+    //mainConsole.AddCmd(RemoveLeftoverStage());
+    //mainConsole.AddCmd(RenameFilesStage());
+    //ExecuteBatchSession();
 
 
-    //--------------------------------------------------
-    AttachArtworkToAll();
+    ////--------------------------------------------------
+    //AttachArtworkToAll();
 
-    mainConsole.AddCmd(CreateAlbumDirectoryStage());
-    mainConsole.AddCmd(MoveAudioStage());
-    mainConsole.AddCmd(MoveArtworkStage());
-    ExecuteBatchSession();
+    //mainConsole.AddCmd(CreateAlbumDirectoryStage());
+    //mainConsole.AddCmd(MoveAudioStage());
+    //mainConsole.AddCmd(MoveArtworkStage());
+    //ExecuteBatchSession();
 
     
     // FIELDS VALUE RESET
@@ -1359,15 +1331,29 @@ bool MainFrame::ValidateFieldsUpdate()
 
 void MainFrame::OpenSettings()
 {
-    std::string path = "settings";
     std::string encoded;
-    if (GetFileData(toWide(path).c_str(), &encoded))
+    std::wstring decoded;
+
+    // use FileExist to avoid alert if possible, and silently use default settings instead
+    if (FileExist(settingsFilename.c_str()))
     {
-        SetStatusText("Settings file not found");
-        return;
+        if (GetFileData(settingsFilename.c_str(), &encoded))
+        {
+            SetStatusText("Settings file not found");
+            return;
+        }
+        decoded = DecodeFromUTF8(encoded);
+    }
+    else
+    {
+        decoded = defaultSettings;
+
+        initialOutput += L"\n";
+        initialOutput += L"INFO:\n";
+        initialOutput += L"You can save settings like set directories and bitrate with (Ctrl+S).\n";
+        initialOutput += L"--------------------------------------------------------------------------\n\n";
     }
 
-    std::wstring decoded = DecodeFromUTF8(encoded);
 
 
 
