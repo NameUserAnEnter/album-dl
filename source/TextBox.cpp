@@ -71,7 +71,7 @@ void TextBox::AddText(std::wstring text)
                     textField.Replace(startOfLastLine, startOfLastLine + lineFrags[j].size() - 1, lineFrags[j]);
                 }
             }
-            textField.AppendText("\n");
+            //textField.AppendText("\n");
             startOfLastLine = textField.GetInsertionPoint();
         }
     }

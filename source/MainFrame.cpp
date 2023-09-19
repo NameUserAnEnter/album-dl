@@ -484,10 +484,10 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 
     //mainConsole.PrintLogAndConsole(initialOutput);
     mainConsole.PrintLogAndConsole(L" shown\n");
-    mainConsole.PrintLogAndConsole(L"hidden\n shown\n");
+    mainConsole.PrintLogAndConsole(L"hidden\r shown\n");
 
     mainConsole.PrintLogAndConsole(L"\n shown\n");
-    mainConsole.PrintLogAndConsole(L"hidden\n shown\n");
+    mainConsole.PrintLogAndConsole(L"hidden\r shown\n");
     bnRunScript.SetFocus();
     initialOutput.clear();
 }
@@ -572,56 +572,62 @@ void MainFrame::GetAlbum()
     mainConsole.PrintLogAndConsoleNarrow("\n");
 
 
-    // FIND LAST NEWLINE
-    long lastNewline = 0;
-    for (int i = currentContent.size() - 1; i >= 0; i--)
-    {
-        if (currentContent[i] == L'\n')
-        {
-            lastNewline = i;
-            break;
-        }
-    }
-    long afterLastNewline = lastNewline + 1;
-
     // REPLACE TEST
+    //mainConsole.PrintLogAndConsoleNarrow("hello\rworld\n");
+
+
+    // FIND LAST NEWLINE
+    //long lastNewline = 0;
+    //for (int i = currentContent.size() - 1; i >= 0; i--)
+    //{
+    //    if (currentContent[i] == L'\n')
+    //    {
+    //        lastNewline = i;
+    //        break;
+    //    }
+    //}
+    //long afterLastNewline = lastNewline + 1;
+
+    // PRINT SOME NUMBERS
     // SOLUTION: INDEX NEED TO BE CALCULATED INCLUDING A PHANTOM SECOND CHAR AT EACH NEWLINE
-    mainConsole.PrintLogAndConsoleNarrow(NumToStr(fOutput.GetCursorPos()) + "\n");
-    mainConsole.PrintLogAndConsoleNarrow(NumToStr(currentContent.size()) + "\n");
-    mainConsole.PrintLogAndConsoleNarrow("afterLastNewline: " + NumToStr(afterLastNewline) + "\n");
+    //mainConsole.PrintLogAndConsoleNarrow(NumToStr(fOutput.GetCursorPos()) + "\n");
+    //mainConsole.PrintLogAndConsoleNarrow(NumToStr(currentContent.size()) + "\n");
+    //mainConsole.PrintLogAndConsoleNarrow("afterLastNewline: " + NumToStr(afterLastNewline) + "\n");
 
 
-    // PRINT OUT EACH CHAR
-    for (int i = 0; i < currentContent.size(); i++)
-    {
-        mainConsole.PrintLogAndConsole(NumToWstr(i, 10, 2) + L": ");
-        if (currentContent[i] == '\n')
-        {
-            afterLastNewline = i;
-            mainConsole.PrintLogAndConsole(L"\\n");
-        }
-        else mainConsole.PrintLogAndConsole(std::wstring(L"") + currentContent[i]);
-        mainConsole.PrintLogAndConsoleNarrow("\n");
-    }
+    //// PRINT OUT EACH CHAR
+    //for (int i = 0; i < currentContent.size(); i++)
+    //{
+    //    mainConsole.PrintLogAndConsole(NumToWstr(i, 10, 2) + L": ");
+    //    if (currentContent[i] == '\n')
+    //    {
+    //        afterLastNewline = i;
+    //        mainConsole.PrintLogAndConsole(L"\\n");
+    //    }
+    //    else mainConsole.PrintLogAndConsole(std::wstring(L"") + currentContent[i]);
+    //    mainConsole.PrintLogAndConsoleNarrow("\n");
+    //}
 
 
     // TEST CARRIAGE RETURN
-    //std::string copy;
-    //GetFileData("artwork_broken.png", &copy);
+    std::string copy;
+    GetFileData("artwork_broken.png", &copy);
 
-    //for (int i = 0; i < copy.size() - 1; i++)
-    //{
-    //    if (copy[i] == 0x0D && copy[i + 1] == 0x0A)
-    //    {
-    //        copy.replace(i, 2, "\n");
-    //        mainConsole.PrintLogAndConsoleNarrow("\r                        \r" + NumToStr(i, 16, 8));
-    //        //PrintConsole(NumToStr(i, 16, 8));
+    for (int i = 0; i < copy.size() - 1; i++)
+    {
+        if (copy[i] == 0x0D && copy[i + 1] == 0x0A)
+        {
+            copy.replace(i, 2, "\n");
+            mainConsole.PrintLogAndConsoleNarrow("\r" + NumToStr(i, 16, 8));
+            //mainConsole.PrintLogAndConsoleNarrow("\r                        \r" + NumToStr(i, 16, 8));
+            //PrintConsole(NumToStr(i, 16, 8));
 
-    //        //cFound++;
-    //        //if (cFound % 8 == 0) PrintConsole("\n");
-    //        //else PrintConsole(" ");
-    //    }
-    //}
+            //cFound++;
+            //if (cFound % 8 == 0) PrintConsole("\n");
+            //else PrintConsole(" ");
+        }
+    }
+    mainConsole.PrintLogAndConsoleNarrow("\rDONE");
     //mainConsole.PrintLogAndConsoleNarrow("\r                        \rDONE");
     
     
