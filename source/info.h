@@ -66,10 +66,10 @@ inline std::string GetLicense()
 
         "In jurisdictions that recognize copyright laws, the author or authors\n"
         "of this software dedicate any and all copyright interest in the\n"
-        "software to the public domain.We make this dedication for the benefit\n"
-        "of the public at largeand to the detriment of our heirsand\n"
-        "successors.We intend this dedication to be an overt act of\n"
-        "relinquishment in perpetuity of all presentand future rights to this\n"
+        "software to the public domain. We make this dedication for the benefit\n"
+        "of the public at large and to the detriment of our heirs and\n"
+        "successors. We intend this dedication to be an overt act of\n"
+        "relinquishment in perpetuity of all present and future rights to this\n"
         "software under copyright law.\n\n"
 
         "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\n"
@@ -80,7 +80,7 @@ inline std::string GetLicense()
         "ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR\n"
         "OTHER DEALINGS IN THE SOFTWARE.\n\n"
 
-        "For more information, please refer to <http://unlicense.org/>";
+        "For more information, please refer to <https://unlicense.org/>";
     return output;
 }
 
@@ -207,12 +207,16 @@ inline std::string GetReadMe()
 
 inline void DumpReadMe()
 {
-    WriteDataToFile(GetReadMe(), L"README.txt");
+    std::string readme = GetReadMe();
+    replaceAllSubStr(readme, "\n", "\r\n");
+    WriteDataToFile(readme, L"README.txt");
 }
 
 inline void DumpLicense()
 {
-    WriteDataToFile(GetLicense(), L"LICENSE.txt");
+    std::string license = GetLicense();
+    replaceAllSubStr(license, "\n", "\r\n");
+    WriteDataToFile(license, L"LICENSE.txt");
 }
 
 #endif

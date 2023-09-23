@@ -554,19 +554,55 @@ inline void replaceSubStr(std::basic_string<T>& str, const T* query, const T* re
 template<typename T>
 inline void replaceAllSubStr(std::basic_string<T>& str, std::basic_string<T> query, std::basic_string<T> replacement)
 {
-    while (whereSubStr(str, query) != -1)
+    std::basic_string<T> currentFragment;
+    unsigned int fragmentIndex = 0;
+    for (int i = 0; i < str.size(); i++)
     {
-        replaceSubStr(str, query, replacement);
+        if (str[i] == query[fragmentIndex])
+        {
+            // got a fragment of the query
+            if (fragmentIndex + 1 == query.size())
+            {
+                // found the full query
+                
+
+                // str[72]: \n
+                // query.size(): 1
+                // replacement.size(): 2
+                // 
+                // i: 72 - 1 = 71
+                // i: 71 + 2 = 73
+                // 
+                // remove query
+                // replace
+                str.replace(i - fragmentIndex, query.size(), replacement);  // args: (first, count, replacement)
+                i -= query.size();                      // place the index back at start of the query
+                i += replacement.size();                // skip over the new replacement
+
+                // reset the current fragment for next finds
+                currentFragment.clear();
+                fragmentIndex = 0;
+                continue;   // instatly skip to condition check to make sure 'i' won't exceed str.size() even if code is added after the if
+            }
+            else
+            {
+                // still just a fragment of the query
+                fragmentIndex++;
+            }
+        }
+        else
+        {
+            // not a fragment of the query, reset the current fragment
+            fragmentIndex = 0;
+            currentFragment.clear();
+        }
     }
 }
 
 template<typename T>
 inline void replaceAllSubStr(std::basic_string<T>& str, const T* query, const T* replacement)
 {
-    while (whereSubStr(str, query) != -1)
-    {
-        replaceSubStr(str, query, replacement);
-    }
+    replaceAllSubStr(str, std::basic_string<T>(query), std::basic_string<T>(replacement));
 }
 
 template<typename T>
