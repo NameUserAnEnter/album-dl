@@ -7,6 +7,7 @@
 enum
 {
     ID_Frame = 1,
+    ID_Panel,
     ID_Save,
 
     ID_albumsDir_Field,
@@ -29,12 +30,43 @@ enum
 };
 
 
+
+void MainFrame::FindMaxDistanceFields()
+{
+    for (int i = 0; i < fields.size(); i++)
+    {
+        if (fields[i].pos.x + fields[i].size.x >= fields[horizontalMax].pos.x + fields[horizontalMax].size.x) horizontalMax = i;
+        if (fields[i].pos.y + fields[i].size.y >= fields[verticalMax].pos.y + fields[verticalMax].size.y) verticalMax = i;
+    }
+
+    horizontalMaxDistance = fields[horizontalMax].pos.x + fields[horizontalMax].size.x;
+    verticalMaxDistance = fields[verticalMax].pos.y + fields[verticalMax].size.y;
+}
+
+void MainFrame::SetFullSize()
+{
+    wxSize sizeFull = GetSize();
+    wxSize sizeClient = GetClientSize();
+
+    // WINDOW-SIZE - CLIENT-SIZE DIFFERENCE
+    int xDiff = sizeFull.x - sizeClient.x;
+    int yDiff = sizeFull.y - sizeClient.y;
+
+    FindMaxDistanceFields();
+    FullWidth = fields[horizontalMax].pos.x + fields[horizontalMax].size.x + clientMargin.right + xDiff;
+    FullHeight = fields[verticalMax].pos.y + fields[verticalMax].size.y + clientMargin.bottom + yDiff;
+}
+
+
+
+
+
+// -- INIT METHODS - CALLED BY CONSTRUCTOR
 void MainFrame::InitValues()
 {
     bDone = true;
     bResetFields = true;
 
-    initialOutput = L"";
     uMaxOutputLines = 150;
 
 
@@ -78,7 +110,39 @@ void MainFrame::InitValues()
     verticalMax = 0;
 }
 
-void MainFrame::SizeFields()
+void MainFrame::InitMenuAndStatusBar()
+{
+    // File:
+    //      Save settings
+    wxMenu* menuFile = new wxMenu;
+    // Characters preceded by an ampersand in menu item text are the mnemonic underlined-in-alt-mode acces-keys for these menu items
+    // The \tShortcut specify the item shortcuts
+    menuFile->Append(ID_Save, "&Save settings\tCtrl+S", "Save Albums directory, Working directory, window position & alert check box");
+    menuFile->AppendSeparator();
+    //      Exit
+    menuFile->Append(wxID_EXIT, "&Exit\tEsc");
+
+    // Help:
+    //      About
+    wxMenu* menuHelp = new wxMenu;
+    menuHelp->Append(wxID_ABOUT);
+
+
+
+    // File | Help
+    wxMenuBar* menuBar = new wxMenuBar;
+    menuBar->Append(menuFile, "&File");
+    menuBar->Append(menuHelp, "&Help");
+
+    SetMenuBar(menuBar);
+
+    CreateStatusBar();
+    SetStatusText("");
+}
+
+
+
+void MainFrame::InitFieldsSize()
 {
     wxSize TextBoxSize;
     wxSize OutputBoxSize;
@@ -113,60 +177,7 @@ void MainFrame::SizeFields()
     fields.push_back(Field(horizontalMaxDistance + 10, clientMargin.top, OutputBoxSize));
 }
 
-void MainFrame::FindMaxDistanceFields()
-{
-    for (int i = 0; i < fields.size(); i++)
-    {
-        if (fields[i].pos.x + fields[i].size.x >= fields[horizontalMax].pos.x + fields[horizontalMax].size.x) horizontalMax = i;
-        if (fields[i].pos.y + fields[i].size.y >= fields[verticalMax].pos.y + fields[verticalMax].size.y) verticalMax = i;
-    }
-
-    horizontalMaxDistance = fields[horizontalMax].pos.x + fields[horizontalMax].size.x;
-    verticalMaxDistance = fields[verticalMax].pos.y + fields[verticalMax].size.y;
-}
-
-void MainFrame::SetFullSize()
-{
-    wxSize sizeFull = GetSize();
-    wxSize sizeClient = GetClientSize();
-
-    // WINDOW-SIZE - CLIENT-SIZE DIFFERENCE
-    int xDiff = sizeFull.x - sizeClient.x;
-    int yDiff = sizeFull.y - sizeClient.y;
-
-    FindMaxDistanceFields();
-    FullWidth = fields[horizontalMax].pos.x + fields[horizontalMax].size.x + clientMargin.right + xDiff;
-    FullHeight = fields[verticalMax].pos.y + fields[verticalMax].size.y + clientMargin.bottom + yDiff;
-}
-
-void MainFrame::ComputeDimensionsInfo()
-{
-    // screen resolution
-    float screenX, screenY;
-    screenX = GetSystemMetrics(SM_CXSCREEN);
-    screenY = GetSystemMetrics(SM_CYSCREEN);
-
-    // available screen area
-    float areaX, areaY;
-    areaX = screenX;
-    areaY = screenY - taskbarHeight;
-
-    dimensionsInfo += L"screen res: " + NumToWstr((int)screenX) + L"x" + NumToWstr((int)screenY) + L"\n";
-    dimensionsInfo += L"available area: " + NumToWstr((int)areaX) + L"x" + NumToWstr((int)areaY) + L"\n\n";
-
-    for (int i = 0; i < fields.size(); i++)
-    {
-        dimensionsInfo += L"fields[" + NumToWstr(i, 10, 2, ' ') + L"]: (";
-        dimensionsInfo += NumToWstr(fields[i].pos.x, 10, 3, ' ') + L", " + NumToWstr(fields[i].pos.y, 10, 3, ' ') + L"), (";
-        dimensionsInfo += NumToWstr(fields[i].size.x, 10, 3, ' ') + L", " + NumToWstr(fields[i].size.y, 10, 3, ' ') + L")\n";
-    }
-    dimensionsInfo += L"\nFullSize: " + NumToWstr(FullWidth) + L"x" + NumToWstr(FullHeight) + L"\n";
-    dimensionsInfo += L"defaultPos: " + NumToWstr(defaultPos.x) + L", " + NumToWstr(defaultPos.y) + L"\n";
-    dimensionsInfo += L"bottom-right corner: " + NumToWstr(defaultPos.x + FullWidth) + L", " + NumToWstr(defaultPos.y + FullHeight) + L"\n";
-    dimensionsInfo += L"\n";
-}
-
-void MainFrame::AdjustFields()
+void MainFrame::InitFieldsAdjustment()
 {
     // screen resolution
     float screenX, screenY;
@@ -193,7 +204,7 @@ void MainFrame::InitFields()
 {
     // PANEL:
     // default sizes and pos because it's automatically stretched to the frame anyway
-    mainPanel.Create(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 2621440L, "Main Panel");
+    mainPanel.Create(this, ID_Panel, wxDefaultPosition, wxDefaultSize, 2621440L, "Main Panel");
 
     unsigned int index = 0;
 
@@ -218,6 +229,8 @@ void MainFrame::InitFields()
     fOutput.Init("Output:", ID_output_Field, fields[index].pos, fields[index].size, &mainPanel, wxTE_MULTILINE | wxTE_READONLY);    index++;
 }
 
+
+
 void MainFrame::InitConsole()
 {
     // pass the output mutex address
@@ -229,6 +242,8 @@ void MainFrame::InitConsole()
 
     if (bLog) mainConsole.OpenLog();
 }
+
+
 
 void MainFrame::InitThemes()
 {
@@ -291,10 +306,15 @@ void MainFrame::InitFonts()
     //mainConsole.PrintLogAndConsole(testNoLigature());
 }
 
+
+
 void MainFrame::InitBindings()
 {
     Bind(wxEVT_BUTTON, &MainFrame::OnButtonGet, this, ID_ButtonDownload);
     Bind(wxEVT_BUTTON, &MainFrame::OnButtonUpdate, this, ID_ButtonUpdate);
+
+    //Bind(wxEVT_SIZE, &MainFrame::OnResize, this, ID_Frame);
+    //Bind(wxEVT_SIZE, &MainFrame::OnResize, this, ID_Panel);
 
 
     Bind(wxEVT_MENU, &MainFrame::OnSave, this, ID_Save);
@@ -303,45 +323,11 @@ void MainFrame::InitBindings()
     Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose, this);
 }
 
-void MainFrame::InitMenuAndStatusBar()
-{
-    // File:
-    //      Save settings
-    wxMenu* menuFile = new wxMenu;
-    // Characters preceded by an ampersand in menu item text are the mnemonic underlined-in-alt-mode acces-keys for these menu items
-    // The \tShortcut specify the item shortcuts
-    menuFile->Append(ID_Save, "&Save settings\tCtrl+S", "Save Albums directory, Working directory, window position & alert check box");
-    menuFile->AppendSeparator();
-    //      Exit
-    menuFile->Append(wxID_EXIT, "&Exit\tEsc");
 
-    // Help:
-    //      About
-    wxMenu* menuHelp = new wxMenu;
-    menuHelp->Append(wxID_ABOUT);
-
-
-
-    // File | Help
-    wxMenuBar* menuBar = new wxMenuBar;
-    menuBar->Append(menuFile, "&File");
-    menuBar->Append(menuHelp, "&Help");
-
-    SetMenuBar(menuBar);
-
-    CreateStatusBar();
-    SetStatusText("");
-}
-
-void MainFrame::InitWindowSize()
-{
-    SetFullSize();
-    SetSize(FullWidth, FullHeight);
-}
 
 void MainFrame::InitTestValues()
 {
-    //bResetFields = false;
+    bResetFields = false;
     // SAMPLE TEST VALUES FOR CONVENIENCE:
 
     // SHORT PLAYLISTS
@@ -349,7 +335,7 @@ void MainFrame::InitTestValues()
     fAlbumName.SetText(L"Racer-X");
     fAlbumYear.SetText(L"1985");
     fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nrAFOfF6ITDAEJ-BuHYWpHYOwsKNTZ994");
-    
+
     //fArtist.SetText(L"Big Black");
     //fAlbumName.SetText(L"Lungs");
     //fAlbumYear.SetText(L"1982");
@@ -385,7 +371,68 @@ void MainFrame::InitTestValues()
     ////fArtworkURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
 }
 
-void MainFrame::VerifyExecutables()
+void MainFrame::InitBitrates()
+{
+    fBitrate.AppendItem("128 kbit/s");
+    fBitrate.AppendItem("144 kbit/s");
+    fBitrate.AppendItem("160 kbit/s");
+    fBitrate.AppendItem("192 kbit/s");
+    fBitrate.AppendItem("224 kbit/s");
+    fBitrate.AppendItem("256 kbit/s");
+    fBitrate.AppendItem("320 kbit/s");
+}
+
+
+
+void MainFrame::InitWindowSize()
+{
+    SetFullSize();
+    SetSize(FullWidth, FullHeight);
+}
+
+void MainFrame::InitPosition()
+{
+    SetPosition(wxPoint(defaultPos.x, defaultPos.y));   // SET WINDOW POS TO DEFAULT POS
+}
+
+void MainFrame::InitSettings()
+{
+    OpenSettings();                                     // LOAD SETTINGS (MAY REPOS WINDOW)
+    Show(true);                                         // SHOW WINDOW
+}
+
+
+
+void MainFrame::InitDimensionsInfo()
+{
+    dimensionsInfo = L"";
+
+    // screen resolution
+    float screenX, screenY;
+    screenX = GetSystemMetrics(SM_CXSCREEN);
+    screenY = GetSystemMetrics(SM_CYSCREEN);
+
+    // available screen area
+    float areaX, areaY;
+    areaX = screenX;
+    areaY = screenY - taskbarHeight;
+
+    dimensionsInfo += L"screen res: " + NumToWstr((int)screenX) + L"x" + NumToWstr((int)screenY) + L"\n";
+    dimensionsInfo += L"available area: " + NumToWstr((int)areaX) + L"x" + NumToWstr((int)areaY) + L"\n\n";
+
+    for (int i = 0; i < fields.size(); i++)
+    {
+        dimensionsInfo += L"fields[" + NumToWstr(i, 10, 2, ' ') + L"]: (";
+        dimensionsInfo += NumToWstr(fields[i].pos.x, 10, 3, ' ') + L", " + NumToWstr(fields[i].pos.y, 10, 3, ' ') + L"), (";
+        dimensionsInfo += NumToWstr(fields[i].size.x, 10, 3, ' ') + L", " + NumToWstr(fields[i].size.y, 10, 3, ' ') + L")\n";
+    }
+    dimensionsInfo += L"\nFullSize: " + NumToWstr(FullWidth) + L"x" + NumToWstr(FullHeight) + L"\n";
+    dimensionsInfo += L"defaultPos: " + NumToWstr(defaultPos.x) + L", " + NumToWstr(defaultPos.y) + L"\n";
+    dimensionsInfo += L"bottom-right corner: " + NumToWstr(defaultPos.x + FullWidth) + L", " + NumToWstr(defaultPos.y + FullHeight) + L"\n";
+    dimensionsInfo += L"\n";
+}
+
+void MainFrame::InitVerifyExecutables()
 {
     albumsDirectory = fAlbumsDir.GetText();
     workingDirectory = fWorkingDir.GetText();
@@ -393,45 +440,68 @@ void MainFrame::VerifyExecutables()
 
     if (!VerifyFile(workingDirectory, downloaderExec))
     {
-        if (!initialOutput.empty()) initialOutput += L"\n\n";
-        initialOutput +=    L"Failed to locate '" + downloaderExec + L"' in:\n";
+        execsInfo +=    L"Failed to locate '" + downloaderExec + L"' in:\n";
 
-        if (workingDirectory.empty()) initialOutput += L"<no directory provided>";
-        else initialOutput += workingDirectory;
+        if (workingDirectory.empty()) execsInfo += L"<no directory provided>";
+        else execsInfo += workingDirectory;
 
-        initialOutput += L"\n";
-        initialOutput += L"--------------------------------------------------------------------------\n\n";
+        execsInfo += L"\n";
+        execsInfo += L"--------------------------------------------------------------------------\n\n";
     }
 
     if (!VerifyFile(converterDirectory, converterExec))
     {
-        if (!initialOutput.empty()) initialOutput += L"\n\n";
-        initialOutput +=    L"Failed to locate '" + converterExec + L"' in:\n";
+        execsInfo +=    L"Failed to locate '" + converterExec + L"' in:\n";
 
-        if (converterDirectory.empty()) initialOutput += L"<no directory provided>";
-        else initialOutput += converterDirectory;
+        if (converterDirectory.empty()) execsInfo += L"<no directory provided>";
+        else execsInfo += converterDirectory;
 
-        initialOutput += L"\n";
+        execsInfo += L"\n";
 
 
-        initialOutput +=    L"\nAlbum-dl requires FFmpeg to work, if you don't have FFmpeg installed, visit:\n"
-                            L"https://ffmpeg.org/download.html\n\n";
+        execsInfo +=    L"\nAlbum-dl requires FFmpeg to work, if you don't have FFmpeg installed, visit:\n"
+            L"https://ffmpeg.org/download.html\n\n";
 
-        initialOutput += L"Remember to get 'ffmpeg.exe' and provide it's directory in the field above.\n";
-        initialOutput += L"If album-dl still can't locate 'ffmpeg.exe', try running as administrator.\n";
-        initialOutput += L"--------------------------------------------------------------------------\n\n";
+        execsInfo += L"Remember to get 'ffmpeg.exe' and provide it's directory in the field above.\n";
+        execsInfo += L"If album-dl still can't locate 'ffmpeg.exe', try running as administrator.\n";
+        execsInfo += L"--------------------------------------------------------------------------\n\n";
     }
 }
 
+void MainFrame::InitTerminalOutput()
+{
+    initialOutput = L"";
+    initialOutput += L"--------------------------------------------------------------------------\n";
+    initialOutput += L"|            Welcome to album-dl's output terminal, stand-by.            |\n";
+    initialOutput += L"--------------------------------------------------------------------------\n\n";
+
+    if (!dimensionsInfo.empty())    initialOutput += dimensionsInfo + L"\n\n";
+    if (!execsInfo.empty())         initialOutput += execsInfo + L"\n\n";
+
+    mainConsole.PrintLogAndConsole(initialOutput);
+    initialOutput.clear();
+}
+
+
+
+void MainFrame::InitFocus()
+{
+    bnRunScript.SetFocus();
+    //fArtist.SetFocus();
+}
+// --
+
+
+
 MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 {
+    // -- INIT METHODS
     InitValues();
     InitMenuAndStatusBar();
 
-    SizeFields();       // SET INITIAL FIELDS SIZE
-    AdjustFields();     // ADJUST FIELDS SIZE ACCORDING TO SCREEN RESOLUTION
-    InitFields();       // SET LABELS AND CONSTRUCT FIELDS
-
+    InitFieldsSize();           // SET INITIAL FIELDS SIZE
+    InitFieldsAdjustment();     // ADJUST FIELDS SIZE ACCORDING TO SCREEN RESOLUTION
+    InitFields();               // SET LABELS AND CONSTRUCT FIELDS
 
     InitConsole();
 
@@ -441,41 +511,18 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     InitBindings();
 
     InitTestValues();
+    InitBitrates();
 
     InitWindowSize();
-    ComputeDimensionsInfo();
+    InitPosition();
+    InitSettings();             // LAST METHOD TO ADJUST WINDOW PARAMETERS, SHOWS THE WINDOW
+    
+    InitDimensionsInfo();
+    InitVerifyExecutables();
+    InitTerminalOutput();
 
-
-    fBitrate.AppendItem("128 kbit/s");
-    fBitrate.AppendItem("144 kbit/s");
-    fBitrate.AppendItem("160 kbit/s");
-    fBitrate.AppendItem("192 kbit/s");
-    fBitrate.AppendItem("224 kbit/s");
-    fBitrate.AppendItem("256 kbit/s");
-    fBitrate.AppendItem("320 kbit/s");
-
-
-    initialOutput += L"--------------------------------------------------------------------------\n";
-    initialOutput += L"|            Welcome to album-dl's output terminal, stand-by.            |\n";
-    initialOutput += L"--------------------------------------------------------------------------\n\n";
-
-    SetPosition(wxPoint(defaultPos.x, defaultPos.y));   // SET WINDOW POS TO DEFAULT POS
-    OpenSettings();                                     // LOAD SETTINGS (MAY REPOS WINDOW)
-    Show(true);                                         // SHOW WINDOW
-
-
-
-    VerifyExecutables();
-
-    initialOutput += dimensionsInfo;
-
-
-    mainConsole.PrintLogAndConsole(initialOutput);
-    initialOutput.clear();
-
-    bResetFields = false;
-    bnRunScript.SetFocus();
-    //fArtist.SetFocus();
+    InitFocus();
+    // --
 }
 
 MainFrame::~MainFrame()
@@ -486,6 +533,7 @@ MainFrame::~MainFrame()
 
 
 
+// -- EVENT METHODS
 void MainFrame::OnClose(wxCloseEvent& event)
 {
     //SaveSettings();
@@ -538,6 +586,10 @@ void MainFrame::OnButtonUpdate(wxCommandEvent& event)
     workingThread = std::move(std::thread(&MainFrame::UpdateDownloader, this));
 }
 
+void MainFrame::OnResize(wxSizeEvent& event)
+{
+}
+// --
 
 
 

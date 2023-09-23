@@ -92,33 +92,54 @@ private:
 
 
 private:
+    // -- EVENT METHODS
     void OnButtonGet(wxCommandEvent& event);
     void OnButtonUpdate(wxCommandEvent& event);
+
+    void OnResize(wxSizeEvent& event);
 
     void OnSave(wxCommandEvent& event);
     void OnExit(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
 
     void OnClose(wxCloseEvent& event);
+    // --
 private:
+    // -- INIT METHODS - CALLED BY CONSTRUCTOR
     void InitValues();
     void InitMenuAndStatusBar();
+
+    void InitFieldsSize();
+    void InitFieldsAdjustment();
     void InitFields();
+
     void InitConsole();
+
     void InitThemes();
     void InitFonts();
+
     void InitBindings();
 
     void InitTestValues();
-    void InitWindowSize();
+    void InitBitrates();
 
-    void VerifyExecutables();
+    void InitWindowSize();
+    void InitPosition();
+    void InitSettings();
     
-    void SizeFields();
+    void InitDimensionsInfo();
+    void InitVerifyExecutables();
+    void InitTerminalOutput();
+
+    void InitFocus();
+    // --
+
+
+
+
+
     void FindMaxDistanceFields();
-    void AdjustFields();
     void SetFullSize();
-    void ComputeDimensionsInfo();
 
 
     void SaveSettings();
@@ -189,6 +210,7 @@ private:
 
     std::wstring initialOutput;
     std::wstring dimensionsInfo;
+    std::wstring execsInfo;
 private:
     std::wstring DownloadStage();
     std::vector<std::wstring> ConvertStage();
