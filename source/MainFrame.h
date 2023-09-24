@@ -138,7 +138,8 @@ private:
     void OnButtonGet(wxCommandEvent& event);
     void OnButtonUpdate(wxCommandEvent& event);
 
-    void OnResize(wxSizeEvent& event);
+    void OnPanelResize(wxSizeEvent& event);
+    void OnFrameResize(wxSizeEvent& event);
 
     void OnSave(wxCommandEvent& event);
     void OnExit(wxCommandEvent& event);
@@ -202,7 +203,7 @@ private:
     
     std::wstring albumsDirBackslashes;
     std::wstring workingDirBackslashes;
-
+    
     std::wstring albumPathBackslashes;
 
     std::wstring consoleLogFilepath;

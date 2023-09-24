@@ -226,6 +226,7 @@ void MainFrame::InitFields()
     bnUpdateDownloader.Create(parent, ID_ButtonUpdate, "Update YT-DLP", fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Update button"); index++;
 
     fOutput.Init("Output:", ID_output_Field, fields[index].pos, fields[index].size, parent, wxTE_MULTILINE | wxTE_READONLY);    index++;
+    fExtra.Init("Output:", -1, wxPoint(20, 20), wxSize(800, 320), &mainPanel, wxTE_MULTILINE | wxTE_READONLY);
 }
 
 
@@ -235,7 +236,10 @@ void MainFrame::InitBindings()
     Bind(wxEVT_BUTTON, &MainFrame::OnButtonGet, this, ID_ButtonDownload);
     Bind(wxEVT_BUTTON, &MainFrame::OnButtonUpdate, this, ID_ButtonUpdate);
 
-    mainPanel.Bind(wxEVT_SIZE, &MainFrame::OnResize, this, ID_Panel);
+    mainPanel.Bind(wxEVT_SIZE, &MainFrame::OnPanelResize, this, ID_Panel);
+    Bind(wxEVT_SIZE, &MainFrame::OnFrameResize, this, ID_Frame);
+
+    //if (GetParent() == NULL) MessageDialog("test");
 
     Bind(wxEVT_MENU, &MainFrame::OnSave, this, ID_Save);
     Bind(wxEVT_MENU, &MainFrame::OnAbout, this, wxID_ABOUT);
@@ -417,9 +421,10 @@ void MainFrame::InitDimensionsInfo()
     dimensionsInfo += L"screen res: " + NumToWstr((int)screenX) + L"x" + NumToWstr((int)screenY) + L"\n";
     dimensionsInfo += L"available area: " + NumToWstr((int)areaX) + L"x" + NumToWstr((int)areaY) + L"\n\n";
 
+    char whitespace = ' ';
     for (int i = 0; i < fields.size(); i++)
     {
-        dimensionsInfo += L"fields[" + NumToWstr(i, 10, 2, ' ') + L"]: (";
+        dimensionsInfo += L"fields[" + NumToWstr(i, 10, 2, whitespace) + L"]: (";
         dimensionsInfo += NumToWstr(fields[i].pos.x, 10, 3, ' ') + L", " + NumToWstr(fields[i].pos.y, 10, 3, ' ') + L"), (";
         dimensionsInfo += NumToWstr(fields[i].size.x, 10, 3, ' ') + L", " + NumToWstr(fields[i].size.y, 10, 3, ' ') + L")\n";
     }
@@ -497,45 +502,6 @@ void MainFrame::InitSizers()
     // ||buttons     |                  ||
     // ||____________|__________________||
     // |_____________|___________________|
-
-
-
-
-    // -- TESTING
-    
-    //wxBoxSizer* mainSizer = new wxBoxSizer(wxHORIZONTAL);
-    //wxBoxSizer* fieldsSizer = new wxBoxSizer(wxVERTICAL);
-
-    //wxBoxSizer* dirSizer = new wxBoxSizer(wxVERTICAL);
-    //wxBoxSizer* dataSizer = new wxBoxSizer(wxVERTICAL);
-    //wxBoxSizer* buttonSizer = new wxBoxSizer(wxVERTICAL);
-
-    //dirSizer->Add(&fAlbumsDir.textField, 0, wxEXPAND);
-    //dirSizer->Add(&fWorkingDir.textField, 0, wxEXPAND);
-    //dirSizer->Add(&fConverterDir.textField, 0, wxEXPAND);
-
-    //dataSizer->Add(&fArtist.textField, 0, wxEXPAND);
-    //dataSizer->Add(&fAlbumName.textField, 0, wxEXPAND);
-    //dataSizer->Add(&fAlbumYear.textField, 0, wxEXPAND);
-    //dataSizer->Add(&fURL.textField, 0, wxEXPAND);
-    //dataSizer->Add(&fArtworkURL.textField, 0, wxEXPAND);
-
-    //dirSizer->Add(&bnRunScript, 0, NULL);
-    //dirSizer->Add(&checkAlert, 0, NULL);
-    //dirSizer->Add(&fBitrate.listBox, 0, NULL);
-    //dirSizer->Add(&bnUpdateDownloader, 0, NULL);
-
-    //fieldsSizer->Add(dirSizer);
-    //fieldsSizer->Add(dataSizer);
-    //fieldsSizer->Add(buttonSizer);
-
-    //mainSizer->Add(fieldsSizer);
-    //mainSizer->Add(&fOutput.textField, 1, wxEXPAND);
-
-    //SetSizerAndFit(mainSizer);
-
-    //SetClientSize(GetClientSize().x, GetClientSize().y + 500);
-    fExtra.Init("Output:", -1, wxPoint(20, 20), wxSize(800, 320), &mainPanel, wxTE_MULTILINE | wxTE_READONLY);
 }
 
 void MainFrame::InitFocus()
@@ -641,14 +607,40 @@ void MainFrame::OnButtonUpdate(wxCommandEvent& event)
     workingThread = std::move(std::thread(&MainFrame::UpdateDownloader, this));
 }
 
-void MainFrame::OnResize(wxSizeEvent& event)
+void MainFrame::OnPanelResize(wxSizeEvent& event)
 {
-    event.Skip();
-    
     int x, y;
+
     x = event.GetSize().x;
     y = event.GetSize().y;
     fExtra.AddText(L"SizeEvent: " + NumToWstr(x) + L", " + NumToWstr(y) + L"\n");
+
+    event.Skip();
+}
+
+void MainFrame::OnFrameResize(wxSizeEvent& event)
+{
+    int x_in, y_in, x_out, y_out;
+
+    x_in = event.GetSize().x;
+    y_in = event.GetSize().y;
+
+    x_out = x_in;
+    y_out = y_in;
+
+    int minX = 1666;
+    int minY = 488;
+    if (x_out < minX) x_out = minX;
+    if (y_out < minY) y_out = minY;
+
+    if (x_out != x_in || y_out != y_in)
+    {
+        SetSize(x_out, y_out);
+        return;
+    }
+
+    event.SetSize(wxSize(x_out, y_out));
+    mainPanel.SetSize(x_out, y_out);
 }
 // --
 

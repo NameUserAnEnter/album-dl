@@ -51,7 +51,18 @@ inline double power(double base, unsigned int exponent)
 
 inline std::string NumToStr(unsigned long long num, unsigned long long base = 10, unsigned int min_digits = 1, char whitespace = '0')
 {
+    // 1, 10, 2, ' '
+
     std::string str = "";
+    if (num == 0)   // special case
+    {
+        str = "0";
+        for (int i = 0; i < min_digits - 1; i++)
+        {
+            str = whitespace + str;
+        }
+        return str;
+    }
 
     unsigned int count_digits = 0;
     // FFFFFFFF
@@ -60,7 +71,10 @@ inline std::string NumToStr(unsigned long long num, unsigned long long base = 10
     unsigned int size = count_digits;
     if (size < min_digits) size = min_digits;
 
-    for (int i = 0; i < size - count_digits; i++) str += whitespace;
+    for (int i = 0; i < size - count_digits; i++)
+    {
+        str += whitespace;
+    }
     for (int i = count_digits - 1; i >= 0; i--)
     {
         // 5248 % 10 = 8 -> 8 / 1 = 8
@@ -565,16 +579,6 @@ inline void replaceAllSubStr(std::basic_string<T>& str, std::basic_string<T> que
             {
                 // found the full query
                 
-
-                // str[72]: \n
-                // query.size(): 1
-                // replacement.size(): 2
-                // 
-                // i: 72 - 1 = 71
-                // i: 71 + 2 = 73
-                // 
-                // remove query
-                // replace
                 str.replace(i - fragmentIndex, query.size(), replacement);  // args: (first, count, replacement)
                 i -= query.size();                      // place the index back at start of the query
                 i += replacement.size();                // skip over the new replacement
