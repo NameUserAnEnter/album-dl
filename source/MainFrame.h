@@ -66,7 +66,6 @@ private:
     DropDown fBitrate;
 
     TextBox fOutput;
-    TextBox fExtra;
 
 private:
     unsigned int FullWidth, FullHeight;
@@ -128,7 +127,6 @@ private:
 
     void FindMaxDistanceFields();
     void SetFullSize();
-    void PrintClientSize();
 
 
     void SaveSettings();
@@ -139,7 +137,6 @@ private:
     void OnButtonUpdate(wxCommandEvent& event);
 
     void OnPanelResize(wxSizeEvent& event);
-    void OnFrameResize(wxSizeEvent& event);
 
     void OnSave(wxCommandEvent& event);
     void OnExit(wxCommandEvent& event);

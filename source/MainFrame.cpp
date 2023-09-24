@@ -148,7 +148,7 @@ void MainFrame::InitFieldsSize()
     wxSize OutputBoxSize;
     wxSize ButtonSize;
 
-    TextBoxSize = wxSize(800, 20);
+    TextBoxSize = wxSize(550, 20);
     ButtonSize = wxSize(100, 25);
 
     clientMargin = { 20, 20, 20, 20 };
@@ -173,7 +173,7 @@ void MainFrame::InitFieldsSize()
 
 
     FindMaxDistanceFields();
-    OutputBoxSize = wxSize(800, verticalMaxDistance - clientMargin.top);
+    OutputBoxSize = wxSize(700, verticalMaxDistance - clientMargin.top);
     fields.push_back(Field(horizontalMaxDistance + 10, clientMargin.top, OutputBoxSize));
 }
 
@@ -226,7 +226,6 @@ void MainFrame::InitFields()
     bnUpdateDownloader.Create(parent, ID_ButtonUpdate, "Update YT-DLP", fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Update button"); index++;
 
     fOutput.Init("Output:", ID_output_Field, fields[index].pos, fields[index].size, parent, wxTE_MULTILINE | wxTE_READONLY);    index++;
-    fExtra.Init("Output:", -1, wxPoint(20, 20), wxSize(800, 320), &mainPanel, wxTE_MULTILINE | wxTE_READONLY);
 }
 
 
@@ -237,9 +236,6 @@ void MainFrame::InitBindings()
     Bind(wxEVT_BUTTON, &MainFrame::OnButtonUpdate, this, ID_ButtonUpdate);
 
     mainPanel.Bind(wxEVT_SIZE, &MainFrame::OnPanelResize, this, ID_Panel);
-    Bind(wxEVT_SIZE, &MainFrame::OnFrameResize, this, ID_Frame);
-
-    //if (GetParent() == NULL) MessageDialog("test");
 
     Bind(wxEVT_MENU, &MainFrame::OnSave, this, ID_Save);
     Bind(wxEVT_MENU, &MainFrame::OnAbout, this, wxID_ABOUT);
@@ -389,6 +385,7 @@ void MainFrame::InitWindowSize()
 {
     SetFullSize();
     SetSize(FullWidth, FullHeight);
+    SetMinSize(wxSize(FullWidth, FullHeight));
 }
 
 void MainFrame::InitPosition()
@@ -613,46 +610,14 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
 
     x = event.GetSize().x;
     y = event.GetSize().y;
-    fExtra.AddText(L"SizeEvent: " + NumToWstr(x) + L", " + NumToWstr(y) + L"\n");
 
     event.Skip();
-}
-
-void MainFrame::OnFrameResize(wxSizeEvent& event)
-{
-    int x_in, y_in, x_out, y_out;
-
-    x_in = event.GetSize().x;
-    y_in = event.GetSize().y;
-
-    x_out = x_in;
-    y_out = y_in;
-
-    int minX = 1666;
-    int minY = 488;
-    if (x_out < minX) x_out = minX;
-    if (y_out < minY) y_out = minY;
-
-    if (x_out != x_in || y_out != y_in)
-    {
-        SetSize(x_out, y_out);
-        return;
-    }
-
-    event.SetSize(wxSize(x_out, y_out));
-    mainPanel.SetSize(x_out, y_out);
 }
 // --
 
 
 
-void MainFrame::PrintClientSize()
-{
-    int x, y;
-    x = GetClientSize().x;
-    y = GetClientSize().y;
-    fExtra.AddText(L"SizeEvent: " + NumToWstr(x) + L", " + NumToWstr(y) + L"\n");
-}
+
 
 
 
