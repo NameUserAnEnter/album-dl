@@ -15,10 +15,10 @@ TextBox::TextBox()
     labelOffset.bottom = 3;
 }
 
-void TextBox::Init(std::string label, wxWindowID textFieldID, wxPoint position, wxSize size, wxPanel* panel, long style)
+void TextBox::Init(std::string label, wxWindowID textFieldID, wxPoint position, wxSize size, wxWindow* parent, long style)
 {
     labelBox.Create(
-        panel, wxID_ANY, toWide(label),
+        parent, wxID_ANY, toWide(label),
         wxPoint(position.x - labelOffset.left, position.y - labelOffset.top),
         wxSize(labelOffset.left + size.x + labelOffset.right, labelOffset.top + size.y + labelOffset.bottom),
         0, wxString(label + " label"));

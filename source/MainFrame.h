@@ -131,6 +131,7 @@ private:
     void InitVerifyExecutables();
     void InitTerminalOutput();
 
+    void InitSizers();
     void InitFocus();
     // --
 

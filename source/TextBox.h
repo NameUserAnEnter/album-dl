@@ -24,19 +24,17 @@ private:
 
     RECT labelOffset;
 
-    wxStaticBox labelBox;
-
-    wxTextCtrl textField;
-    TEXT_ENCODING fieldEncoding;
-
     std::mutex* bufMutex;
     std::wstring outputBuf;
-
+    
+    TEXT_ENCODING fieldEncoding;
     std::wstring FormatText(std::wstring);
 public:
+    wxStaticBox labelBox;
+    wxTextCtrl textField;
     TextBox();
 
-    void Init(std::string, wxWindowID, wxPoint, wxSize, wxPanel*, long = NULL);
+    void Init(std::string, wxWindowID, wxPoint, wxSize, wxWindow*, long = NULL);
 
     std::wstring* GetBuf();
     void SetMutex(std::mutex*);

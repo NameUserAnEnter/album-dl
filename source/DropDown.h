@@ -11,19 +11,17 @@
 
 class DropDown
 {
-private:
-	wxStaticBox labelBox;
-	wxComboBox listBox;
-
 	bool bInit;
 
 	RECT labelOffset;
 
 	std::vector<std::string> items;
 public:
+	wxStaticBox labelBox;
+	wxComboBox listBox;
 	DropDown();
 
-	void Init(std::string, std::wstring, wxWindowID, wxPoint, wxSize, wxPanel*, long = NULL);
+	void Init(std::string, std::wstring, wxWindowID, wxPoint, wxSize, wxWindow*, long = NULL);
 
 	void AppendItem(std::string);
 	void SetItems(std::vector<std::string>);

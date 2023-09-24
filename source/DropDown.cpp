@@ -12,10 +12,10 @@ DropDown::DropDown()
     items.clear();
 }
 
-void DropDown::Init(std::string label, std::wstring initial_value, wxWindowID dropDownID, wxPoint position, wxSize size, wxPanel* panel, long style)
+void DropDown::Init(std::string label, std::wstring initial_value, wxWindowID dropDownID, wxPoint position, wxSize size, wxWindow* parent, long style)
 {
     labelBox.Create(
-        panel, wxID_ANY, label,
+        parent, wxID_ANY, label,
         wxPoint(position.x - labelOffset.left, position.y - labelOffset.top),
         wxSize(labelOffset.left + size.x + labelOffset.right, labelOffset.top + size.y + labelOffset.bottom),
         0, label + L" label");

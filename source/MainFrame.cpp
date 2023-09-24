@@ -219,10 +219,9 @@ void MainFrame::InitFields()
     fURL.Init(          "Playlist URL:",                        ID_URL_Field,           fields[index].pos, fields[index].size, &mainPanel);   index++;
     fArtworkURL.Init(   "Playlist URL with proper artwork:",    ID_URL_Artwork_Field,   fields[index].pos, fields[index].size, &mainPanel);   index++;
 
-    bnRunScript.Create( &mainPanel, ID_ButtonDownload, "Run",           fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Run button");     index++;
-    checkAlert.Create(  &mainPanel, ID_AlertOnDone, "Alert on done",    fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Alert checkbox"); index++;
-    //fBitrate.Create(&mainPanel, ID_Bitrate, "Bitrate", fields[index].pos, fields[index].size, 0, NULL, NULL, wxDefaultValidator, "Bitrate dropdown");  index++;
-    fBitrate.Init( "Bitrate:", L"----", ID_Bitrate, fields[index].pos, fields[index].size, &mainPanel);    index++;
+    bnRunScript.Create(&mainPanel, ID_ButtonDownload, "Run",           fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Run button");     index++;
+    checkAlert.Create( &mainPanel, ID_AlertOnDone, "Alert on done",    fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Alert checkbox"); index++;
+    fBitrate.Init( "Bitrate:", L"----", ID_Bitrate,                     fields[index].pos, fields[index].size, &mainPanel);    index++;
     bnUpdateDownloader.Create(&mainPanel, ID_ButtonUpdate, "Update YT-DLP", fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Update button");
     index++;
     // extra separation
@@ -313,9 +312,7 @@ void MainFrame::InitBindings()
     Bind(wxEVT_BUTTON, &MainFrame::OnButtonGet, this, ID_ButtonDownload);
     Bind(wxEVT_BUTTON, &MainFrame::OnButtonUpdate, this, ID_ButtonUpdate);
 
-    //Bind(wxEVT_SIZE, &MainFrame::OnResize, this, ID_Frame);
     //Bind(wxEVT_SIZE, &MainFrame::OnResize, this, ID_Panel);
-
 
     Bind(wxEVT_MENU, &MainFrame::OnSave, this, ID_Save);
     Bind(wxEVT_MENU, &MainFrame::OnAbout, this, wxID_ABOUT);
@@ -484,6 +481,30 @@ void MainFrame::InitTerminalOutput()
 
 
 
+void MainFrame::InitSizers()
+{
+    //  _________________________________
+    // | fields      |terminal           |
+    // | ____________|__________________ |
+    // ||directories |                  ||
+    // ||____________|                  ||
+    // ||data        |                  ||
+    // ||____________|                  ||
+    // ||buttons     |                  ||
+    // ||____________|__________________||
+    // |_____________|___________________|
+
+
+    // testing
+    SetClientSize(GetClientSize().x, GetClientSize().y + 500);
+
+    wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
+    //topSizer->Add(new wxTextCtrl(this, -1, "TextCtrl", wxPoint(20, 500), wxSize(500, 300)), 1, wxEXPAND | wxALL, 10);
+    topSizer->Add(&fOutput.textField, 1, wxEXPAND | wxALL, 10);
+
+    SetSizerAndFit(topSizer);
+}
+
 void MainFrame::InitFocus()
 {
     bnRunScript.SetFocus();
@@ -521,6 +542,7 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     InitVerifyExecutables();
     InitTerminalOutput();
 
+    //InitSizers();
     InitFocus();
     // --
 }
@@ -588,6 +610,7 @@ void MainFrame::OnButtonUpdate(wxCommandEvent& event)
 
 void MainFrame::OnResize(wxSizeEvent& event)
 {
+    //
 }
 // --
 
