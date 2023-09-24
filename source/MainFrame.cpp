@@ -534,8 +534,8 @@ void MainFrame::InitSizers()
 
     //SetSizerAndFit(mainSizer);
 
-    SetClientSize(GetClientSize().x, GetClientSize().y + 500);
-    fExtra.Init("Output:", -1, wxPoint(20, 460), wxSize(800, 400), &mainPanel, wxTE_MULTILINE | wxTE_READONLY);
+    //SetClientSize(GetClientSize().x, GetClientSize().y + 500);
+    fExtra.Init("Output:", -1, wxPoint(20, 20), wxSize(800, 320), &mainPanel, wxTE_MULTILINE | wxTE_READONLY);
 }
 
 void MainFrame::InitFocus()
