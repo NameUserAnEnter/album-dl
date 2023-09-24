@@ -16,9 +16,10 @@ class DropDown
 	RECT labelOffset;
 
 	std::vector<std::string> items;
-public:
+
 	wxStaticBox labelBox;
 	wxComboBox listBox;
+public:
 	DropDown();
 
 	void Init(std::string, std::wstring, wxWindowID, wxPoint, wxSize, wxWindow*, long = NULL);

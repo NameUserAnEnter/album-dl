@@ -205,27 +205,42 @@ void MainFrame::InitFields()
     // PANEL:
     // default sizes and pos because it's automatically stretched to the frame anyway
     mainPanel.Create(this, ID_Panel, wxDefaultPosition, wxDefaultSize, 2621440L, "Main Panel");
+    wxWindow* parent = &mainPanel;
 
     unsigned int index = 0;
 
     // FIELDS:
-    fAlbumsDir.Init(    "Albums directory:",    ID_albumsDir_Field,     fields[index].pos, fields[index].size, &mainPanel);   index++;
-    fWorkingDir.Init(   "Working directory:",   ID_workingDir_Field,    fields[index].pos, fields[index].size, &mainPanel);   index++;
-    fConverterDir.Init( "ffmpeg.exe directory:", ID_converterDir_Field, fields[index].pos, fields[index].size, &mainPanel);   index++;
+    fAlbumsDir.Init(    "Albums directory:",    ID_albumsDir_Field,     fields[index].pos, fields[index].size, parent);   index++;
+    fWorkingDir.Init(   "Working directory:",   ID_workingDir_Field,    fields[index].pos, fields[index].size, parent);   index++;
+    fConverterDir.Init( "ffmpeg.exe directory:", ID_converterDir_Field, fields[index].pos, fields[index].size, parent);   index++;
     // extra separation
-    fArtist.Init(   "Artist:",      ID_artist_Field,    fields[index].pos, fields[index].size, &mainPanel);   index++;
-    fAlbumName.Init("Album name:",  ID_albumName_Field, fields[index].pos, fields[index].size, &mainPanel);   index++;
-    fAlbumYear.Init("Album year:",  ID_albumYear_Field, fields[index].pos, fields[index].size, &mainPanel);   index++;
-    fURL.Init(          "Playlist URL:",                        ID_URL_Field,           fields[index].pos, fields[index].size, &mainPanel);   index++;
-    fArtworkURL.Init(   "Playlist URL with proper artwork:",    ID_URL_Artwork_Field,   fields[index].pos, fields[index].size, &mainPanel);   index++;
+    fArtist.Init(   "Artist:",      ID_artist_Field,    fields[index].pos, fields[index].size, parent);   index++;
+    fAlbumName.Init("Album name:",  ID_albumName_Field, fields[index].pos, fields[index].size, parent);   index++;
+    fAlbumYear.Init("Album year:",  ID_albumYear_Field, fields[index].pos, fields[index].size, parent);   index++;
+    fURL.Init(          "Playlist URL:",                        ID_URL_Field,           fields[index].pos, fields[index].size, parent);   index++;
+    fArtworkURL.Init(   "Playlist URL with proper artwork:",    ID_URL_Artwork_Field,   fields[index].pos, fields[index].size, parent);   index++;
 
-    bnRunScript.Create(&mainPanel, ID_ButtonDownload, "Run",           fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Run button");     index++;
-    checkAlert.Create( &mainPanel, ID_AlertOnDone, "Alert on done",    fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Alert checkbox"); index++;
-    fBitrate.Init( "Bitrate:", L"----", ID_Bitrate,                     fields[index].pos, fields[index].size, &mainPanel);    index++;
-    bnUpdateDownloader.Create(&mainPanel, ID_ButtonUpdate, "Update YT-DLP", fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Update button");
-    index++;
-    // extra separation
-    fOutput.Init("Output:", ID_output_Field, fields[index].pos, fields[index].size, &mainPanel, wxTE_MULTILINE | wxTE_READONLY);    index++;
+    bnRunScript.Create(parent, ID_ButtonDownload, "Run",           fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Run button");     index++;
+    checkAlert.Create (parent, ID_AlertOnDone, "Alert on done",    fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Alert checkbox"); index++;
+    fBitrate.Init( "Bitrate:", L"----", ID_Bitrate,                     fields[index].pos, fields[index].size, parent);    index++;
+    bnUpdateDownloader.Create(parent, ID_ButtonUpdate, "Update YT-DLP", fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Update button"); index++;
+
+    fOutput.Init("Output:", ID_output_Field, fields[index].pos, fields[index].size, parent, wxTE_MULTILINE | wxTE_READONLY);    index++;
+}
+
+
+
+void MainFrame::InitBindings()
+{
+    Bind(wxEVT_BUTTON, &MainFrame::OnButtonGet, this, ID_ButtonDownload);
+    Bind(wxEVT_BUTTON, &MainFrame::OnButtonUpdate, this, ID_ButtonUpdate);
+
+    mainPanel.Bind(wxEVT_SIZE, &MainFrame::OnResize, this, ID_Panel);
+
+    Bind(wxEVT_MENU, &MainFrame::OnSave, this, ID_Save);
+    Bind(wxEVT_MENU, &MainFrame::OnAbout, this, wxID_ABOUT);
+    Bind(wxEVT_MENU, &MainFrame::OnExit, this, wxID_EXIT);
+    Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose, this);
 }
 
 
@@ -303,21 +318,6 @@ void MainFrame::InitFonts()
 
     //mainConsole.PrintLogAndConsole(testUnicode(outputFaceName));
     //mainConsole.PrintLogAndConsole(testNoLigature());
-}
-
-
-
-void MainFrame::InitBindings()
-{
-    Bind(wxEVT_BUTTON, &MainFrame::OnButtonGet, this, ID_ButtonDownload);
-    Bind(wxEVT_BUTTON, &MainFrame::OnButtonUpdate, this, ID_ButtonUpdate);
-
-    //Bind(wxEVT_SIZE, &MainFrame::OnResize, this, ID_Panel);
-
-    Bind(wxEVT_MENU, &MainFrame::OnSave, this, ID_Save);
-    Bind(wxEVT_MENU, &MainFrame::OnAbout, this, wxID_ABOUT);
-    Bind(wxEVT_MENU, &MainFrame::OnExit, this, wxID_EXIT);
-    Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose, this);
 }
 
 
@@ -423,9 +423,13 @@ void MainFrame::InitDimensionsInfo()
         dimensionsInfo += NumToWstr(fields[i].pos.x, 10, 3, ' ') + L", " + NumToWstr(fields[i].pos.y, 10, 3, ' ') + L"), (";
         dimensionsInfo += NumToWstr(fields[i].size.x, 10, 3, ' ') + L", " + NumToWstr(fields[i].size.y, 10, 3, ' ') + L")\n";
     }
-    dimensionsInfo += L"\nFullSize: " + NumToWstr(FullWidth) + L"x" + NumToWstr(FullHeight) + L"\n";
-    dimensionsInfo += L"defaultPos: " + NumToWstr(defaultPos.x) + L", " + NumToWstr(defaultPos.y) + L"\n";
-    dimensionsInfo += L"bottom-right corner: " + NumToWstr(defaultPos.x + FullWidth) + L", " + NumToWstr(defaultPos.y + FullHeight) + L"\n";
+
+    dimensionsInfo += L"\n";
+    dimensionsInfo += L"GetClientSize():     " + NumToWstr(GetClientSize().x) + L"x" + NumToWstr(GetClientSize().y) + L"\n";
+    dimensionsInfo += L"GetSize():           " + NumToWstr(GetSize().x) + L"x" + NumToWstr(GetSize().y) + L"\n";
+    dimensionsInfo += L"FullSize:            " + NumToWstr(FullWidth) + L"x" + NumToWstr(FullHeight) + L"\n";
+    dimensionsInfo += L"bottom-right corner: " + NumToWstr(defaultPos.x + FullWidth) + L"x" + NumToWstr(defaultPos.y + FullHeight) + L"\n";
+    dimensionsInfo += L"defaultPos:          " + NumToWstr(defaultPos.x) + L"x" + NumToWstr(defaultPos.y) + L"\n";
     dimensionsInfo += L"\n";
 }
 
@@ -495,14 +499,43 @@ void MainFrame::InitSizers()
     // |_____________|___________________|
 
 
-    // testing
+
+
+    // -- TESTING
+    
+    //wxBoxSizer* mainSizer = new wxBoxSizer(wxHORIZONTAL);
+    //wxBoxSizer* fieldsSizer = new wxBoxSizer(wxVERTICAL);
+
+    //wxBoxSizer* dirSizer = new wxBoxSizer(wxVERTICAL);
+    //wxBoxSizer* dataSizer = new wxBoxSizer(wxVERTICAL);
+    //wxBoxSizer* buttonSizer = new wxBoxSizer(wxVERTICAL);
+
+    //dirSizer->Add(&fAlbumsDir.textField, 0, wxEXPAND);
+    //dirSizer->Add(&fWorkingDir.textField, 0, wxEXPAND);
+    //dirSizer->Add(&fConverterDir.textField, 0, wxEXPAND);
+
+    //dataSizer->Add(&fArtist.textField, 0, wxEXPAND);
+    //dataSizer->Add(&fAlbumName.textField, 0, wxEXPAND);
+    //dataSizer->Add(&fAlbumYear.textField, 0, wxEXPAND);
+    //dataSizer->Add(&fURL.textField, 0, wxEXPAND);
+    //dataSizer->Add(&fArtworkURL.textField, 0, wxEXPAND);
+
+    //dirSizer->Add(&bnRunScript, 0, NULL);
+    //dirSizer->Add(&checkAlert, 0, NULL);
+    //dirSizer->Add(&fBitrate.listBox, 0, NULL);
+    //dirSizer->Add(&bnUpdateDownloader, 0, NULL);
+
+    //fieldsSizer->Add(dirSizer);
+    //fieldsSizer->Add(dataSizer);
+    //fieldsSizer->Add(buttonSizer);
+
+    //mainSizer->Add(fieldsSizer);
+    //mainSizer->Add(&fOutput.textField, 1, wxEXPAND);
+
+    //SetSizerAndFit(mainSizer);
+
     SetClientSize(GetClientSize().x, GetClientSize().y + 500);
-
-    wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
-    //topSizer->Add(new wxTextCtrl(this, -1, "TextCtrl", wxPoint(20, 500), wxSize(500, 300)), 1, wxEXPAND | wxALL, 10);
-    topSizer->Add(&fOutput.textField, 1, wxEXPAND | wxALL, 10);
-
-    SetSizerAndFit(topSizer);
+    fExtra.Init("Output:", -1, wxPoint(20, 460), wxSize(800, 400), &mainPanel, wxTE_MULTILINE | wxTE_READONLY);
 }
 
 void MainFrame::InitFocus()
@@ -524,12 +557,12 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     InitFieldsAdjustment();     // ADJUST FIELDS SIZE ACCORDING TO SCREEN RESOLUTION
     InitFields();               // SET LABELS AND CONSTRUCT FIELDS
 
+    InitBindings();
+
     InitConsole();
 
     InitThemes();
     InitFonts();
-
-    InitBindings();
 
     InitTestValues();
     InitBitrates();
@@ -542,7 +575,7 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     InitVerifyExecutables();
     InitTerminalOutput();
 
-    //InitSizers();
+    InitSizers();
     InitFocus();
     // --
 }
@@ -610,10 +643,24 @@ void MainFrame::OnButtonUpdate(wxCommandEvent& event)
 
 void MainFrame::OnResize(wxSizeEvent& event)
 {
-    //
+    event.Skip();
+    
+    int x, y;
+    x = event.GetSize().x;
+    y = event.GetSize().y;
+    fExtra.AddText(L"SizeEvent: " + NumToWstr(x) + L", " + NumToWstr(y) + L"\n");
 }
 // --
 
+
+
+void MainFrame::PrintClientSize()
+{
+    int x, y;
+    x = GetClientSize().x;
+    y = GetClientSize().y;
+    fExtra.AddText(L"SizeEvent: " + NumToWstr(x) + L", " + NumToWstr(y) + L"\n");
+}
 
 
 

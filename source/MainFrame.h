@@ -66,6 +66,7 @@ private:
     DropDown fBitrate;
 
     TextBox fOutput;
+    TextBox fExtra;
 
 private:
     unsigned int FullWidth, FullHeight;
@@ -90,20 +91,6 @@ private:
     const bool bLog = true;
     unsigned int uMaxOutputLines;
 
-
-private:
-    // -- EVENT METHODS
-    void OnButtonGet(wxCommandEvent& event);
-    void OnButtonUpdate(wxCommandEvent& event);
-
-    void OnResize(wxSizeEvent& event);
-
-    void OnSave(wxCommandEvent& event);
-    void OnExit(wxCommandEvent& event);
-    void OnAbout(wxCommandEvent& event);
-
-    void OnClose(wxCloseEvent& event);
-    // --
 private:
     // -- INIT METHODS - CALLED BY CONSTRUCTOR
     void InitValues();
@@ -113,12 +100,12 @@ private:
     void InitFieldsAdjustment();
     void InitFields();
 
+    void InitBindings();
+
     void InitConsole();
 
     void InitThemes();
     void InitFonts();
-
-    void InitBindings();
 
     void InitTestValues();
     void InitBitrates();
@@ -141,10 +128,24 @@ private:
 
     void FindMaxDistanceFields();
     void SetFullSize();
+    void PrintClientSize();
 
 
     void SaveSettings();
     void OpenSettings();
+private:
+    // -- EVENT METHODS
+    void OnButtonGet(wxCommandEvent& event);
+    void OnButtonUpdate(wxCommandEvent& event);
+
+    void OnResize(wxSizeEvent& event);
+
+    void OnSave(wxCommandEvent& event);
+    void OnExit(wxCommandEvent& event);
+    void OnAbout(wxCommandEvent& event);
+
+    void OnClose(wxCloseEvent& event);
+    // --
 private:
     void GetAlbum();
     void UpdateDownloader();

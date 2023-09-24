@@ -64,6 +64,12 @@ void Console::InitConsole(std::wstring _logFilepath, std::wstring* _pOutputBuffe
 }
 
 
+bool Console::IsInit()
+{
+	return bInit;
+}
+
+
 std::mutex* Console::GetPrintMutex()
 {
 	return &printMutex;

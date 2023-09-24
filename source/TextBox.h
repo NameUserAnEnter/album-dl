@@ -29,9 +29,10 @@ private:
     
     TEXT_ENCODING fieldEncoding;
     std::wstring FormatText(std::wstring);
-public:
+
     wxStaticBox labelBox;
     wxTextCtrl textField;
+public:
     TextBox();
 
     void Init(std::string, wxWindowID, wxPoint, wxSize, wxWindow*, long = NULL);

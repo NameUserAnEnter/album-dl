@@ -42,6 +42,7 @@ public:
 	void TrashCmds();
 
 	std::mutex* GetPrintMutex();
+	bool IsInit();
 private:
 	std::mutex printMutex;
 	bool bDumpBytes;
