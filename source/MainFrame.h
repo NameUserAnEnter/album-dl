@@ -28,6 +28,11 @@ struct Field
         size = _size;
     }
 
+    Field(wxPoint _pos, wxSize _size) : pos(_pos), size(_size)
+    {
+        //
+    }
+
     Field()
     {
         pos = wxPoint(0, 0);
@@ -114,7 +119,6 @@ private:
     void InitVerifyExecutables();
     void InitTerminalOutput();
 
-    void InitSizers();
     void InitFocus();
     // --
 
@@ -134,6 +138,7 @@ private:
     void OnButtonUpdate(wxCommandEvent& event);
 
     void OnPanelResize(wxSizeEvent& event);
+    void OnFrameResize(wxSizeEvent& event);
 
     void OnSave(wxCommandEvent& event);
     void OnExit(wxCommandEvent& event);

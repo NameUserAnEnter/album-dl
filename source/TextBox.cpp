@@ -216,7 +216,6 @@ void TextBox::SetPosition(wxPoint newPos)
     if (!bInit) return;
 
     labelBox.SetPosition(ComputeLabelBoxPos(newPos));
-    textField.SetPosition(wxPoint(labelOffset.left, labelOffset.top));
 }
 
 wxPoint TextBox::GetPosition()
@@ -240,10 +239,18 @@ void TextBox::SetSize(wxSize attemptedSize)
     {
         newSize.x = attemptedSize.x;
     }
+    else if (attemptedSize.x < minSize.x) newSize.x = minSize.x;
+    else if (attemptedSize.x > maxSize.x && maxSize.x != -1) newSize.x = maxSize.x;
+
+
     if (attemptedSize.y >= minSize.y && (attemptedSize.y <= maxSize.y || maxSize.y == -1))
     {
         newSize.y = attemptedSize.y;
     }
+    else if (attemptedSize.y < minSize.y) newSize.y = minSize.y;
+    else if (attemptedSize.y > maxSize.y && maxSize.y != -1) newSize.y = maxSize.y;
+
+
 
     labelBox.SetSize(ComputeLabelBoxSize(newSize));
     textField.SetSize(newSize);
@@ -289,6 +296,22 @@ wxSize TextBox::GetMinSize()
 wxSize TextBox::GetMaxSize()
 {
     return maxSize;
+}
+
+
+
+void TextBox::Show()
+{
+    if (!bInit) return;
+    labelBox.Show();
+    textField.Show();
+}
+
+void TextBox::Hide()
+{
+    if (!bInit) return;
+    labelBox.Hide();
+    textField.Hide();
 }
 
 

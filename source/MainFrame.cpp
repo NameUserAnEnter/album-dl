@@ -137,6 +137,17 @@ void MainFrame::InitMenuAndStatusBar()
 
 void MainFrame::InitFieldsDimensions()
 {
+    //  _________________________________
+    // | fields      |terminal           |
+    // | ____________|__________________ |
+    // ||directories |                  ||
+    // ||____________|                  ||
+    // ||data        |                  ||
+    // ||____________|                  ||
+    // ||buttons     |                  ||
+    // ||____________|__________________||
+    // |_____________|___________________|
+
     wxSize TextBoxSize;
     wxSize OutputBoxSize;
     wxSize ButtonSize;
@@ -196,7 +207,17 @@ void MainFrame::InitFields()
     bnUpdateDownloader.Create(parent, ID_ButtonUpdate, "Update YT-DLP", fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Update button"); index++;
 
     fOutput.Init("Output:", ID_output_Field, fields[index].pos, fields[index].size, parent, wxTE_MULTILINE | wxTE_READONLY);    index++;
+
     fExtra.Init("Output:", -1, wxPoint(clientMargin.left, clientMargin.top), wxSize(fAlbumsDir.GetSize().x, 320), parent, wxTE_MULTILINE | wxTE_READONLY);
+    fAlbumsDir.Hide();
+    fWorkingDir.Hide();
+    fConverterDir.Hide();
+
+    fArtist.Hide();
+    fAlbumName.Hide();
+    fAlbumYear.Hide();
+    fURL.Hide();
+    fArtworkURL.Hide();
 }
 
 void MainFrame::InitFieldsDimensionRanges()
@@ -239,6 +260,7 @@ void MainFrame::InitBindings()
     Bind(wxEVT_BUTTON, &MainFrame::OnButtonUpdate, this, ID_ButtonUpdate);
 
     mainPanel.Bind(wxEVT_SIZE, &MainFrame::OnPanelResize, this, ID_Panel);
+    Bind(wxEVT_SIZE, &MainFrame::OnFrameResize, this, ID_Frame);
 
     Bind(wxEVT_MENU, &MainFrame::OnSave, this, ID_Save);
     Bind(wxEVT_MENU, &MainFrame::OnAbout, this, wxID_ABOUT);
@@ -389,6 +411,8 @@ void MainFrame::InitWindowSize()
 {
     SetFullSize();
     SetMinSize(GetSize());
+
+    SetClientSize(1600, 900);
 }
 
 void MainFrame::InitPosition()
@@ -482,20 +506,6 @@ void MainFrame::InitTerminalOutput()
 
 
 
-void MainFrame::InitSizers()
-{
-    //  _________________________________
-    // | fields      |terminal           |
-    // | ____________|__________________ |
-    // ||directories |                  ||
-    // ||____________|                  ||
-    // ||data        |                  ||
-    // ||____________|                  ||
-    // ||buttons     |                  ||
-    // ||____________|__________________||
-    // |_____________|___________________|
-}
-
 void MainFrame::InitFocus()
 {
     bnRunScript.SetFocus();
@@ -533,7 +543,6 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     InitVerifyExecutables();
     InitTerminalOutput();
 
-    InitSizers();
     InitFocus();
     // --
 }
@@ -601,50 +610,64 @@ void MainFrame::OnButtonUpdate(wxCommandEvent& event)
 
 void MainFrame::OnPanelResize(wxSizeEvent& event)
 {
-    event.Skip();
-    int newClientWidth, newClientHeight;
-    int minClientWidth, minClientHeight;
-
-    newClientWidth = event.GetSize().x;
-    newClientHeight = event.GetSize().y;
-
-    minClientWidth = GetMinClientSize().x;
-    minClientHeight = GetMinClientSize().y;
+    //event.Skip();
+    int newClientWidth = event.GetSize().x;
+    int newClientHeight = event.GetSize().y;
 
     static int oldClientWidth = 0;
     static int oldClientHeight = 0;
-
     if (oldClientWidth == 0 || oldClientHeight == 0)
     {
-        oldClientWidth = newClientWidth;
-        oldClientHeight = newClientHeight;
+        oldClientWidth = mainPanel.GetClientSize().x;
+        oldClientHeight = mainPanel.GetClientSize().y;
         return;
     }
 
 
 
 
-    int newX = fExtra.GetSize().x + newClientWidth - oldClientWidth;
-    int newY = fExtra.GetSize().y + newClientHeight - oldClientHeight;
 
-    fExtra.SetSize(newX, newY);
+    // direction doesn't matter
+    // fExtra.GetSize().x = fExtra.GetMinSize().x + <increase>
+    // fOutput.GetSize().x = fOutput.GetMinSize().x + <increase>
+    // | clientMargin.left | fExtra.GetMinSize().x + <increase> | 10 | fOutput.GetMinSize().x + <increase> | clientMargin.right |
+    int remainingIncrease = newClientWidth;
+    remainingIncrease -= clientMargin.right;
+    remainingIncrease -= fOutput.GetMinSize().x;
+    remainingIncrease -= 10;
+    remainingIncrease -= fExtra.GetMinSize().x;
+    remainingIncrease -= clientMargin.left;
 
-    fOutput.SetPosition(fExtra.GetPosition().x + fExtra.GetSize().x + 10, clientMargin.top);
-    fOutput.SetSize(fOutput.GetSize().x + newX - fExtra.GetSize().x, fOutput.GetSize().y + newY - fExtra.GetSize().y);
+    int fExtraIncrease = remainingIncrease;
+    int fOutputIncrease = 0;
+    if (fExtra.GetMinSize().x + fExtraIncrease > fExtra.GetMaxSize().x)
+    {
+        fExtraIncrease = fExtra.GetMaxSize().x - fExtra.GetMinSize().x;
+        fOutputIncrease = remainingIncrease - fExtraIncrease;
+    }
+
+    fExtra.SetSize(fExtra.GetMinSize().x + fExtraIncrease, fExtra.GetSize().y);
+    fOutput.SetPosition(fExtra.GetPosition().x + fExtra.GetSize().x + 10, fOutput.GetPosition().y);
+    fOutput.SetSize(fOutput.GetMinSize().x + fOutputIncrease, fOutput.GetSize().y + newClientHeight - oldClientHeight);
+
+    
 
 
-
-    std::wstring minClientSizeStr = std::to_wstring(minClientWidth) + L"x" + std::to_wstring(minClientHeight);
     std::wstring oldClientSizeStr = std::to_wstring(oldClientWidth) + L"x" + std::to_wstring(oldClientHeight);
     std::wstring newClientSizeStr = std::to_wstring(newClientWidth) + L"x" + std::to_wstring(newClientHeight);
-    
-    fExtra.AddText(L"PanelResize-minClientSizeStr: (" + minClientSizeStr + L")\n");
-    fExtra.AddText(L"PanelResize-oldClientSizeStr: (" + oldClientSizeStr + L")\n");
-    fExtra.AddText(L"PanelResize-newClientSizeStr: (" + newClientSizeStr + L")\n\n");
+
+    fExtra.AddText(L"PanelResize-oldClientSize: " + oldClientSizeStr + L"\n");
+    fExtra.AddText(L"PanelResize-newClientSize: " + newClientSizeStr + L"\n");
+    fExtra.AddText(L"PanelResize-remainingIncrease: " + std::to_wstring(remainingIncrease) + L"\n");
 
 
-    oldClientWidth = newClientWidth;
-    oldClientHeight = newClientHeight;
+    oldClientWidth = mainPanel.GetClientSize().x;
+    oldClientHeight = mainPanel.GetClientSize().y;
+}
+
+void MainFrame::OnFrameResize(wxSizeEvent& event)
+{
+    event.Skip();
 }
 // --
 

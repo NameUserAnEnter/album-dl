@@ -84,6 +84,10 @@ public:
     wxSize GetMaxSize();
 
 
+    void Show();
+    void Hide();
+
+
 
     void SetFont(wxFont);
     wxFont GetFont();
