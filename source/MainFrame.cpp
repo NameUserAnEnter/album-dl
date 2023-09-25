@@ -444,9 +444,22 @@ void MainFrame::InitBitrates()
 void MainFrame::InitWindowSize()
 {
     SetFullSize();
-    //SetMinSize(GetSize());
+    SetMinSize(GetSize());
 
-    SetClientSize(1600, 900);
+    int th = 80;    // assumed taskbar height
+
+    float devScreenResX = 1920;
+    float devScreenResY = 1080 - th;
+
+    //float userScreenResX = GetSystemMetrics(SM_CXSCREEN);
+    //float userScreenResY = GetSystemMetrics(SM_CYSCREEN) - th;
+    float userScreenResX = 1366;
+    float userScreenResY = 768 - th;
+
+    float devWindowResX = 1600;
+    float devWindowResY = 900;
+
+    SetClientSize((devWindowResX * userScreenResX) / devScreenResX, (devWindowResY * userScreenResY) / devScreenResY);
 }
 
 void MainFrame::InitPosition()
@@ -664,8 +677,6 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
 
 
     // direction doesn't matter
-    // fExtra.GetSize().x = fExtra.GetMinSize().x + <increase>
-    // fOutput.GetSize().x = fOutput.GetMinSize().x + <increase>
     // | clientMargin.left | fExtra.GetMinSize().x + <increase> | 10 | fOutput.GetMinSize().x + <increase> | clientMargin.right |
     int hIncreaseTotal = newClientWidth;
     hIncreaseTotal -= clientMargin.right;
@@ -684,12 +695,13 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
 
     
     int vIncreaseTotal = newClientHeight;
-    vIncreaseTotal -= clientMargin.bottom;
-    vIncreaseTotal -= fOutput.GetMinSize().y;
-    vIncreaseTotal -= clientMargin.top;
 
     int vIncreaseCell2 = vIncreaseTotal;
+    vIncreaseCell2 -= clientMargin.bottom;
+    vIncreaseCell2 -= fOutput.GetMinSize().y;
+    vIncreaseCell2 -= clientMargin.top;
 
+    int vIncreaseCell3 = newClientHeight - GetMinClientSize().y;
 
     
     
@@ -709,6 +721,7 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     fArtworkURL.SetSize(fArtworkURL.GetMinSize().x + hIncreaseCell1, fArtworkURL.GetSize().y);
 
     std::vector<TextBox*> textBoxesCell1;
+    //textBoxesCell1.push_back(&fExtra);
     textBoxesCell1.push_back(&fAlbumsDir);
     textBoxesCell1.push_back(&fWorkingDir);
     textBoxesCell1.push_back(&fConverterDir);
@@ -718,11 +731,39 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     textBoxesCell1.push_back(&fAlbumYear);
     textBoxesCell1.push_back(&fURL);
     textBoxesCell1.push_back(&fArtworkURL);
-    wxSize maxDistance = FindMaxDistance(std::vector<Field>(), textBoxesCell1);
+    wxSize maxDistance1 = FindMaxDistance(std::vector<Field>(), textBoxesCell1);
     
     // CELL 2
-    fOutput.SetPosition(maxDistance.x + 10, fOutput.GetPosition().y);
+    fOutput.SetPosition(maxDistance1.x + 10, fOutput.GetPosition().y);
     fOutput.SetSize(fOutput.GetMinSize().x + hIncreaseCell2, fOutput.GetMinSize().y + vIncreaseCell2);
+
+    // CELL 3
+    //fields.push_back(Field(clientMargin.left, 160, TextBoxSize));
+    //fields.push_back(Field(clientMargin.left, 200, TextBoxSize));
+    //fields.push_back(Field(clientMargin.left, 240, TextBoxSize));
+
+    //fields.push_back(Field(clientMargin.left, 280, TextBoxSize));
+    //fields.push_back(Field(clientMargin.left, 320, TextBoxSize));
+
+    //fields.push_back(Field(clientMargin.left, 360, ButtonSize));
+    //fields.push_back(Field(clientMargin.left + ButtonSize.x + 10, 360, ButtonSize));
+    //fields.push_back(Field(clientMargin.left + ButtonSize.x + 10 + ButtonSize.x + 10, 362, ButtonSize));
+    //fields.push_back(Field(clientMargin.left + ButtonSize.x + 10 + ButtonSize.x + 10 + ButtonSize.x + 10, 360, ButtonSize));
+
+    if (newClientHeight >= GetMinClientSize().y)
+    {
+        bnRunScript.SetPosition(wxPoint(bnRunScript.GetPosition().x, newClientHeight - clientMargin.bottom - bnRunScript.GetSize().y));
+        checkAlert.SetPosition(wxPoint(checkAlert.GetPosition().x, newClientHeight - clientMargin.bottom - checkAlert.GetSize().y));
+        fBitrate.SetPosition(fBitrate.GetPosition().x, newClientHeight - clientMargin.bottom - fBitrate.GetSize().y);
+        bnUpdateDownloader.SetPosition(wxPoint(bnUpdateDownloader.GetPosition().x, newClientHeight - clientMargin.bottom - bnUpdateDownloader.GetSize().y));
+
+        fArtworkURL.SetPosition(fArtworkURL.GetPosition().x, bnRunScript.GetPosition().y - 40);
+        fURL.SetPosition(fArtworkURL.GetPosition().x, fArtworkURL.GetPosition().y - 40);
+
+        fAlbumYear.SetPosition(fArtworkURL.GetPosition().x, fURL.GetPosition().y - 40);
+        fAlbumName.SetPosition(fArtworkURL.GetPosition().x, fAlbumYear.GetPosition().y - 40);
+        fArtist.SetPosition(fArtworkURL.GetPosition().x, fAlbumName.GetPosition().y - 40);
+    }
 
 
 
