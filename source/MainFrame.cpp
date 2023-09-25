@@ -624,9 +624,13 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
 
 
 
+    int newX = fExtra.GetSize().x + newClientWidth - oldClientWidth;
+    int newY = fExtra.GetSize().y + newClientHeight - oldClientHeight;
 
-    fExtra.SetSize(fExtra.GetSize().x + newClientWidth - oldClientWidth, fExtra.GetSize().y + newClientHeight - oldClientHeight);
+    fExtra.SetSize(newX, newY);
+
     fOutput.SetPosition(fExtra.GetPosition().x + fExtra.GetSize().x + 10, clientMargin.top);
+    fOutput.SetSize(fOutput.GetSize().x + newX - fExtra.GetSize().x, fOutput.GetSize().y + newY - fExtra.GetSize().y);
 
 
 
