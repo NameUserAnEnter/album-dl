@@ -25,8 +25,8 @@ void TextBox::Init(std::string label, wxWindowID textFieldID, wxPoint position, 
 {
     labelBox.Create(
         parent, wxID_ANY, toWide(label),
-        ComputeLabelPos(position),
-        ComputeLabelSize(size),
+        ComputeLabelBoxPos(position),
+        ComputeLabelBoxSize(size),
         0, wxString(label + " label"));
 
 
@@ -186,14 +186,24 @@ void TextBox::SetBackground(wxColour background)
 
 
 
-wxSize TextBox::ComputeLabelSize(wxSize textBoxSize)
+wxSize TextBox::ComputeLabelBoxSize(wxSize textBoxSize)
 {
     return wxSize(labelOffset.left + textBoxSize.x + labelOffset.right, labelOffset.top + textBoxSize.y + labelOffset.bottom);
 }
 
-wxPoint TextBox::ComputeLabelPos(wxPoint textBoxPos)
+wxPoint TextBox::ComputeLabelBoxPos(wxPoint textBoxPos)
 {
     return wxPoint(textBoxPos.x - labelOffset.left, textBoxPos.y - labelOffset.top);
+}
+
+wxSize TextBox::ComputeTextBoxSize(wxSize labelBoxSize)
+{
+    return wxSize(labelBoxSize.x - (labelOffset.left + labelOffset.right), labelBoxSize.y - (labelOffset.top + labelOffset.bottom));
+}
+
+wxPoint TextBox::ComputeTextBoxPos(wxPoint labelBoxPos)
+{
+    return wxPoint(labelBoxPos.x + labelOffset.left, labelBoxPos.y + labelOffset.top);
 }
 
 void TextBox::SetPosition(int x, int y)
@@ -205,33 +215,46 @@ void TextBox::SetPosition(wxPoint newPos)
 {
     if (!bInit) return;
 
-    textField.SetPosition(newPos);
-    labelBox.SetPosition(ComputeLabelPos(newPos));
+    labelBox.SetPosition(ComputeLabelBoxPos(newPos));
 }
 
 wxPoint TextBox::GetPosition()
 {
     if (!bInit) return wxPoint(-1, -1);
 
-    return textField.GetPosition();
+    return ComputeTextBoxPos(labelBox.GetPosition());
 }
 
 void TextBox::SetSize(int width, int height)
 {
+    SetSize(wxSize(width, height));
+}
+
+void TextBox::SetSize(wxSize attemptedSize)
+{
     if (!bInit) return;
     wxSize newSize = textField.GetSize();
-    if (width >= minSize.x && (width <= maxSize.x || maxSize.x == -1))
+
+    if (attemptedSize.x >= minSize.x && (attemptedSize.x <= maxSize.x || maxSize.x == -1))
     {
-        newSize.x = width;
+        newSize.x = attemptedSize.x;
     }
-    if (height >= minSize.y && (height <= maxSize.y || maxSize.y == -1))
+    if (attemptedSize.y >= minSize.y && (attemptedSize.y <= maxSize.y || maxSize.y == -1))
     {
-        newSize.y = height;
+        newSize.y = attemptedSize.y;
     }
 
+    labelBox.SetSize(ComputeLabelBoxSize(newSize));
     textField.SetSize(newSize);
-    labelBox.SetSize(ComputeLabelSize(newSize));
 }
+
+wxSize TextBox::GetSize()
+{
+    if (!bInit) return wxSize(0, 0);
+    return textField.GetSize();
+}
+
+
 
 void TextBox::SetMinSize(int width, int height)
 {
@@ -245,11 +268,6 @@ void TextBox::SetMaxSize(int width, int height)
     maxSize.y = height;
 }
 
-void TextBox::SetSize(wxSize size)
-{
-    SetSize(size.x, size.y);
-}
-
 void TextBox::SetMinSize(wxSize newMinSize)
 {
     minSize = newMinSize;
@@ -260,11 +278,7 @@ void TextBox::SetMaxSize(wxSize newMaxSize)
     maxSize = newMaxSize;
 }
 
-wxSize TextBox::GetSize()
-{
-    if (!bInit) return wxSize(0, 0);
-    return textField.GetSize();
-}
+
 
 wxSize TextBox::GetMinSize()
 {

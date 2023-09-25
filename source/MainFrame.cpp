@@ -196,7 +196,7 @@ void MainFrame::InitFields()
     bnUpdateDownloader.Create(parent, ID_ButtonUpdate, "Update YT-DLP", fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Update button"); index++;
 
     fOutput.Init("Output:", ID_output_Field, fields[index].pos, fields[index].size, parent, wxTE_MULTILINE | wxTE_READONLY);    index++;
-    //fExtra.Init("Output:", -1, wxPoint(clientMargin.left, clientMargin.top), wxSize(fAlbumsDir.GetSize().x, 320), parent, wxTE_MULTILINE | wxTE_READONLY);
+    fExtra.Init("Output:", -1, wxPoint(clientMargin.left, clientMargin.top), wxSize(fAlbumsDir.GetSize().x, 320), parent, wxTE_MULTILINE | wxTE_READONLY);
 }
 
 void MainFrame::InitFieldsDimensionRanges()
@@ -601,10 +601,9 @@ void MainFrame::OnButtonUpdate(wxCommandEvent& event)
 
 void MainFrame::OnPanelResize(wxSizeEvent& event)
 {
+    event.Skip();
     int newClientWidth, newClientHeight;
     int minClientWidth, minClientHeight;
-    static int oldClientWidth = 0;
-    static int oldClientHeight = 0;
 
     newClientWidth = event.GetSize().x;
     newClientHeight = event.GetSize().y;
@@ -612,8 +611,22 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     minClientWidth = GetMinClientSize().x;
     minClientHeight = GetMinClientSize().y;
 
-    fExtra.SetSize(fExtra.GetSize().x + newClientWidth - minClientWidth, fExtra.GetSize().y + newClientHeight - minClientHeight);
-    //fOutput.SetPosition(fExtra.GetSize().x + 10, clientMargin.top);
+    static int oldClientWidth = 0;
+    static int oldClientHeight = 0;
+
+    if (oldClientWidth == 0 || oldClientHeight == 0)
+    {
+        oldClientWidth = newClientWidth;
+        oldClientHeight = newClientHeight;
+        return;
+    }
+
+
+
+
+
+    fExtra.SetSize(fExtra.GetSize().x + newClientWidth - oldClientWidth, fExtra.GetSize().y + newClientHeight - oldClientHeight);
+    fOutput.SetPosition(fExtra.GetPosition().x + fExtra.GetSize().x + 10, clientMargin.top);
 
 
 
@@ -628,7 +641,6 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
 
     oldClientWidth = newClientWidth;
     oldClientHeight = newClientHeight;
-    event.Skip();
 }
 // --
 

@@ -60,8 +60,11 @@ public:
     void SetBackground(wxColour);
 
 private:
-    wxSize ComputeLabelSize(wxSize);
-    wxPoint ComputeLabelPos(wxPoint);
+    wxSize ComputeLabelBoxSize(wxSize);
+    wxPoint ComputeLabelBoxPos(wxPoint);
+
+    wxSize ComputeTextBoxSize(wxSize);
+    wxPoint ComputeTextBoxPos(wxPoint);
 public:
     void SetPosition(int, int);
     void SetPosition(wxPoint);
