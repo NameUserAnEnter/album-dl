@@ -150,7 +150,7 @@ void MainFrame::InitValues()
     clientMargin = { 20, 20, 20, 20 };
 
     minDataFieldSize = wxSize(550, 20);
-    maxDataFieldSize = wxSize(800, minDataFieldSize.y);
+    maxDataFieldSize = wxSize(700, minDataFieldSize.y);
 }
 
 void MainFrame::InitMenuAndStatusBar()
@@ -388,14 +388,14 @@ void MainFrame::InitFonts()
 
 void MainFrame::InitTestValues()
 {
-    bResetFields = false;
+    //bResetFields = false;
     // SAMPLE TEST VALUES FOR CONVENIENCE:
 
     // SHORT PLAYLISTS
-    fArtist.SetText(L"Big Black");
-    fAlbumName.SetText(L"Racer-X");
-    fAlbumYear.SetText(L"1985");
-    fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nrAFOfF6ITDAEJ-BuHYWpHYOwsKNTZ994");
+    //fArtist.SetText(L"Big Black");
+    //fAlbumName.SetText(L"Racer-X");
+    //fAlbumYear.SetText(L"1985");
+    //fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nrAFOfF6ITDAEJ-BuHYWpHYOwsKNTZ994");
 
     //fArtist.SetText(L"Big Black");
     //fAlbumName.SetText(L"Lungs");
@@ -468,8 +468,8 @@ void MainFrame::InitWindowSize()
         userScreenResY = 768;
     }
 
-    float devWindowResX = 1600;
-    float devWindowResY = 900;
+    float devWindowResX = 1200;
+    float devWindowResY = 600;
 
     SetClientSize((devWindowResX * userScreenResX) / devScreenResX, (devWindowResY * userScreenResY) / devScreenResY - th);
 }
@@ -556,7 +556,13 @@ void MainFrame::InitTerminalOutput()
     initialOutput += L"|            Welcome to album-dl's output terminal, stand-by.            |\n";
     initialOutput += L"--------------------------------------------------------------------------\n\n";
 
-    if (!dimensionsInfo.empty())    initialOutput += dimensionsInfo + L"\n\n";
+    initialOutput += L"Enter an album playlist URL and optional data.\n";
+    initialOutput += L"Press 'Run' to attempt downloading the album.\n\n";
+
+    initialOutput += L"Press 'Ctrl + S' to save directories, window position/size & preferred bitrate.\n";
+    initialOutput += L"--------------------------------------------------------------------------\n\n";
+
+    //if (!dimensionsInfo.empty())    initialOutput += dimensionsInfo + L"\n\n";
     if (!execsInfo.empty())         initialOutput += execsInfo + L"\n\n";
 
 
@@ -568,8 +574,9 @@ void MainFrame::InitTerminalOutput()
 
 void MainFrame::InitFocus()
 {
-    bnRunScript.SetFocus();
+    //bnRunScript.SetFocus();
     //fArtist.SetFocus();
+    fURL.SetFocus();
 }
 // --
 
