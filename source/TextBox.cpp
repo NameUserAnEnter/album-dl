@@ -216,6 +216,7 @@ void TextBox::SetPosition(wxPoint newPos)
     if (!bInit) return;
 
     labelBox.SetPosition(ComputeLabelBoxPos(newPos));
+    textField.SetPosition(wxPoint(labelOffset.left, labelOffset.top));
 }
 
 wxPoint TextBox::GetPosition()
