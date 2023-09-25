@@ -753,6 +753,7 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
 
 
     // CELL 4
+    wxButton* buttonPtr;
     Rect b1_1, b1_2, b2_1, b2_2;
     int buttonX;
     int hOffset4 = newClientWidth;
@@ -760,15 +761,19 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     hOffset4 -= fOutput.GetSize().x;
     hOffset4 -= fieldBreakH;
 
+    
+    
     hOffset4 -= (bnRunScript.GetSize().x);
     buttonX = hOffset4;
     if (hOffset4 <= clientMargin.left + minDataFieldSize.x - bnRunScript.GetSize().x)
     {
         buttonX = clientMargin.left + minDataFieldSize.x - bnRunScript.GetSize().x;
     }
-    b1_1 = Rect{ bnRunScript.GetPosition().x, bnRunScript.GetPosition().y, bnRunScript.GetSize().x, bnRunScript.GetSize().x };
-    bnRunScript.SetPosition(wxPoint(buttonX, bnRunScript.GetPosition().y));
-    b1_2 = Rect { bnRunScript.GetPosition().x, bnRunScript.GetPosition().y, bnRunScript.GetSize().x, bnRunScript.GetSize().x };
+    buttonPtr = &bnRunScript;
+    b1_1 = Rect{ buttonPtr->GetPosition().x - 1, buttonPtr->GetPosition().y - 1, buttonPtr->GetSize().x + 2, buttonPtr->GetSize().x + 2 };
+    buttonPtr->SetPosition(wxPoint(buttonX, buttonPtr->GetPosition().y));
+    b1_2 = Rect { buttonPtr->GetPosition().x - 1, buttonPtr->GetPosition().y - 1, buttonPtr->GetSize().x + 2, buttonPtr->GetSize().x + 2 };
+
 
     hOffset4 -= buttonBreak;
     hOffset4 -= bnUpdateDownloader.GetSize().x;
@@ -777,14 +782,24 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     {
         buttonX = clientMargin.left + minDataFieldSize.x - bnRunScript.GetSize().x - buttonBreak - bnUpdateDownloader.GetSize().x;
     }
-    b2_1 = Rect { bnUpdateDownloader.GetPosition().x, bnUpdateDownloader.GetPosition().y, bnUpdateDownloader.GetSize().x, bnUpdateDownloader.GetSize().x };
-    bnUpdateDownloader.SetPosition(wxPoint(buttonX, bnUpdateDownloader.GetPosition().y));
-    b2_2 = Rect { bnUpdateDownloader.GetPosition().x, bnUpdateDownloader.GetPosition().y, bnUpdateDownloader.GetSize().x, bnUpdateDownloader.GetSize().x };
+    buttonPtr = &bnUpdateDownloader;
+    b2_1 = Rect { buttonPtr->GetPosition().x - 1, buttonPtr->GetPosition().y - 1, buttonPtr->GetSize().x + 2, buttonPtr->GetSize().x + 2 };
+    buttonPtr->SetPosition(wxPoint(buttonX, buttonPtr->GetPosition().y));
+    b2_2 = Rect { buttonPtr->GetPosition().x - 1, buttonPtr->GetPosition().y - 1, buttonPtr->GetSize().x + 2, buttonPtr->GetSize().x + 2 };
 
 
-
-    wxButton* buttonPtr;
+    // Compare smoothness with this bool
+    bool bRefreshWholeClientArea = false;
+    if (bRefreshWholeClientArea)
+    {
+        // Refresh whole client area
+        Refresh();
+        return;
+    }
+    
+    // Refresh only dirty regions around the two buttons
     Rect reg;
+
 
     buttonPtr = &bnRunScript;
     reg = RectUnion(b1_1, b1_2);
