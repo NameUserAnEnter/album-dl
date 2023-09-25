@@ -45,16 +45,11 @@ void MainFrame::FindMaxDistanceFields()
 
 void MainFrame::SetFullSize()
 {
-    wxSize sizeFull = GetSize();
-    wxSize sizeClient = GetClientSize();
-
-    // WINDOW-SIZE - CLIENT-SIZE DIFFERENCE
-    int xDiff = sizeFull.x - sizeClient.x;
-    int yDiff = sizeFull.y - sizeClient.y;
-
     FindMaxDistanceFields();
-    FullWidth = fields[horizontalMax].pos.x + fields[horizontalMax].size.x + clientMargin.right + xDiff;
-    FullHeight = fields[verticalMax].pos.y + fields[verticalMax].size.y + clientMargin.bottom + yDiff;
+    int ClientWidth = horizontalMaxDistance + clientMargin.right;
+    int ClientHeight = verticalMaxDistance + clientMargin.bottom;
+
+    SetClientSize(ClientWidth, ClientHeight);
 }
 
 
@@ -104,8 +99,6 @@ void MainFrame::InitValues()
     defaultPos.x = 0;
     defaultPos.y = 0;
 
-    taskbarHeight = 44;
-
     horizontalMax = 0;
     verticalMax = 0;
 }
@@ -142,7 +135,7 @@ void MainFrame::InitMenuAndStatusBar()
 
 
 
-void MainFrame::InitFieldsSize()
+void MainFrame::InitFieldsDimensions()
 {
     wxSize TextBoxSize;
     wxSize OutputBoxSize;
@@ -177,29 +170,6 @@ void MainFrame::InitFieldsSize()
     fields.push_back(Field(horizontalMaxDistance + 10, clientMargin.top, OutputBoxSize));
 }
 
-void MainFrame::InitFieldsAdjustment()
-{
-    // screen resolution
-    float screenX, screenY;
-    screenX = GetSystemMetrics(SM_CXSCREEN);
-    screenY = GetSystemMetrics(SM_CYSCREEN);
-
-    // available screen area
-    float areaX, areaY;
-    areaX = screenX;
-    areaY = screenY - taskbarHeight;
-
-    wxSize sizeFull = GetSize();
-    wxSize sizeClient = GetClientSize();
-
-    // WINDOW-SIZE - CLIENT-SIZE DIFFERENCE
-    int xDiff = sizeFull.x - sizeClient.x;
-    int yDiff = sizeFull.y - sizeClient.y;
-
-    int minLastHeight = 400;
-    int minFieldWidth = 250;
-}
-
 void MainFrame::InitFields()
 {
     // PANEL:
@@ -226,6 +196,39 @@ void MainFrame::InitFields()
     bnUpdateDownloader.Create(parent, ID_ButtonUpdate, "Update YT-DLP", fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Update button"); index++;
 
     fOutput.Init("Output:", ID_output_Field, fields[index].pos, fields[index].size, parent, wxTE_MULTILINE | wxTE_READONLY);    index++;
+    //fExtra.Init("Output:", -1, wxPoint(clientMargin.left, clientMargin.top), wxSize(fAlbumsDir.GetSize().x, 320), parent, wxTE_MULTILINE | wxTE_READONLY);
+}
+
+void MainFrame::InitFieldsDimensionRanges()
+{
+    // FIELDS MIN SIZES
+    //fAlbumsDir.SetMinSize(fAlbumsDir.GetSize());
+    //fWorkingDir.SetMinSize(fAlbumsDir.GetSize());
+    //fConverterDir.SetMinSize(fAlbumsDir.GetSize());
+
+    //fArtist.SetMinSize(fAlbumsDir.GetSize());
+    //fAlbumName.SetMinSize(fAlbumsDir.GetSize());
+    //fAlbumYear.SetMinSize(fAlbumsDir.GetSize());
+    //fURL.SetMinSize(fAlbumsDir.GetSize());
+    //fArtworkURL.SetMinSize(fAlbumsDir.GetSize());
+    
+    fExtra.SetMinSize(fExtra.GetSize());
+    fOutput.SetMinSize(fOutput.GetSize());
+
+
+    // FIELDS MAX SIZES
+    //fAlbumsDir.SetMaxSize(800, fAlbumsDir.GetSize().y);
+    //fWorkingDir.SetMaxSize(800, fAlbumsDir.GetSize().y);
+    //fConverterDir.SetMaxSize(800, fAlbumsDir.GetSize().y);
+
+    //fArtist.SetMaxSize(800, fAlbumsDir.GetSize().y);
+    //fAlbumName.SetMaxSize(800, fAlbumsDir.GetSize().y);
+    //fAlbumYear.SetMaxSize(800, fAlbumsDir.GetSize().y);
+    //fURL.SetMaxSize(800, fAlbumsDir.GetSize().y);
+    //fArtworkURL.SetMaxSize(800, fAlbumsDir.GetSize().y);
+
+    fExtra.SetMaxSize(800, fExtra.GetSize().y);
+    fOutput.SetMaxSize(-1, -1);
 }
 
 
@@ -303,8 +306,9 @@ void MainFrame::InitFonts()
     //outputFont.AddPrivateFont("FSEX302-alt.ttf");
     //outputFont = wxFont(wxFontInfo(12).FaceName("Fixedsys Excelsior"));
 
-    
+
     fOutput.SetFont(outputFont);
+    fExtra.SetFont(wxFont(wxFontInfo(9).FaceName("Courier New")));
     
     
 
@@ -384,8 +388,7 @@ void MainFrame::InitBitrates()
 void MainFrame::InitWindowSize()
 {
     SetFullSize();
-    SetSize(FullWidth, FullHeight);
-    SetMinSize(wxSize(FullWidth, FullHeight));
+    SetMinSize(GetSize());
 }
 
 void MainFrame::InitPosition()
@@ -405,18 +408,11 @@ void MainFrame::InitDimensionsInfo()
 {
     dimensionsInfo = L"";
 
-    // screen resolution
     float screenX, screenY;
     screenX = GetSystemMetrics(SM_CXSCREEN);
     screenY = GetSystemMetrics(SM_CYSCREEN);
 
-    // available screen area
-    float areaX, areaY;
-    areaX = screenX;
-    areaY = screenY - taskbarHeight;
-
     dimensionsInfo += L"screen res: " + NumToWstr((int)screenX) + L"x" + NumToWstr((int)screenY) + L"\n";
-    dimensionsInfo += L"available area: " + NumToWstr((int)areaX) + L"x" + NumToWstr((int)areaY) + L"\n\n";
 
     char whitespace = ' ';
     for (int i = 0; i < fields.size(); i++)
@@ -428,10 +424,9 @@ void MainFrame::InitDimensionsInfo()
 
     dimensionsInfo += L"\n";
     dimensionsInfo += L"GetClientSize():     " + NumToWstr(GetClientSize().x) + L"x" + NumToWstr(GetClientSize().y) + L"\n";
+    dimensionsInfo += L"GetMinClientSize():  " + NumToWstr(GetMinClientSize().x) + L"x" + NumToWstr(GetMinClientSize().y) + L"\n";
     dimensionsInfo += L"GetSize():           " + NumToWstr(GetSize().x) + L"x" + NumToWstr(GetSize().y) + L"\n";
-    dimensionsInfo += L"FullSize:            " + NumToWstr(FullWidth) + L"x" + NumToWstr(FullHeight) + L"\n";
-    dimensionsInfo += L"bottom-right corner: " + NumToWstr(defaultPos.x + FullWidth) + L"x" + NumToWstr(defaultPos.y + FullHeight) + L"\n";
-    dimensionsInfo += L"defaultPos:          " + NumToWstr(defaultPos.x) + L"x" + NumToWstr(defaultPos.y) + L"\n";
+    dimensionsInfo += L"GetMinSize():        " + NumToWstr(GetMinSize().x) + L"x" + NumToWstr(GetMinSize().y) + L"\n";
     dimensionsInfo += L"\n";
 }
 
@@ -516,9 +511,9 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
     InitValues();
     InitMenuAndStatusBar();
 
-    InitFieldsSize();           // SET INITIAL FIELDS SIZE
-    InitFieldsAdjustment();     // ADJUST FIELDS SIZE ACCORDING TO SCREEN RESOLUTION
-    InitFields();               // SET LABELS AND CONSTRUCT FIELDS
+    InitFieldsDimensions();         // SET INITIAL FIELDS DIMENSIONS
+    InitFields();                   // SET LABELS AND CONSTRUCT FIELDS
+    InitFieldsDimensionRanges();
 
     InitBindings();
 
@@ -606,11 +601,33 @@ void MainFrame::OnButtonUpdate(wxCommandEvent& event)
 
 void MainFrame::OnPanelResize(wxSizeEvent& event)
 {
-    int x, y;
+    int newClientWidth, newClientHeight;
+    int minClientWidth, minClientHeight;
+    static int oldClientWidth = 0;
+    static int oldClientHeight = 0;
 
-    x = event.GetSize().x;
-    y = event.GetSize().y;
+    newClientWidth = event.GetSize().x;
+    newClientHeight = event.GetSize().y;
 
+    minClientWidth = GetMinClientSize().x;
+    minClientHeight = GetMinClientSize().y;
+
+    fExtra.SetSize(fExtra.GetSize().x + newClientWidth - minClientWidth, fExtra.GetSize().y + newClientHeight - minClientHeight);
+    //fOutput.SetPosition(fExtra.GetSize().x + 10, clientMargin.top);
+
+
+
+    std::wstring minClientSizeStr = std::to_wstring(minClientWidth) + L"x" + std::to_wstring(minClientHeight);
+    std::wstring oldClientSizeStr = std::to_wstring(oldClientWidth) + L"x" + std::to_wstring(oldClientHeight);
+    std::wstring newClientSizeStr = std::to_wstring(newClientWidth) + L"x" + std::to_wstring(newClientHeight);
+    
+    fExtra.AddText(L"PanelResize-minClientSizeStr: (" + minClientSizeStr + L")\n");
+    fExtra.AddText(L"PanelResize-oldClientSizeStr: (" + oldClientSizeStr + L")\n");
+    fExtra.AddText(L"PanelResize-newClientSizeStr: (" + newClientSizeStr + L")\n\n");
+
+
+    oldClientWidth = newClientWidth;
+    oldClientHeight = newClientHeight;
     event.Skip();
 }
 // --
@@ -1443,6 +1460,8 @@ void MainFrame::OpenSettings()
         converterDir,
         windowX,
         windowY,
+        windowWidth,
+        windowHeight,
         alertDone,
         bitrateValue,
         none
@@ -1464,6 +1483,9 @@ void MainFrame::OpenSettings()
 
                     if (currentId == windowX && isStrNum(currentWord)) SetPosition(wxPoint(std::stoi(currentWord), GetPosition().y));
                     if (currentId == windowY && isStrNum(currentWord)) SetPosition(wxPoint(GetPosition().x, std::stoi(currentWord)));
+
+                    if (currentId == windowWidth  && isStrNum(currentWord)) SetSize(std::stoi(currentWord), GetSize().y);
+                    if (currentId == windowHeight && isStrNum(currentWord)) SetSize(GetSize().x, std::stoi(currentWord));
 
                     if (currentId == alertDone)
                     {
@@ -1513,8 +1535,14 @@ void MainFrame::SaveSettings()
     decoded += fAlbumsDir.GetText() + L"\n";
     decoded += fWorkingDir.GetText() + L"\n";
     decoded += fConverterDir.GetText() + L"\n";
+
+
     decoded += toWide(NumToStr(GetPosition().x)) + L"\n";
     decoded += toWide(NumToStr(GetPosition().y)) + L"\n";
+
+    decoded += toWide(NumToStr(GetSize().x)) + L"\n";
+    decoded += toWide(NumToStr(GetSize().y)) + L"\n";
+
 
     decoded += NumToWstr(checkAlert.GetValue()) + L"\n";
 

@@ -66,11 +66,8 @@ private:
     DropDown fBitrate;
 
     TextBox fOutput;
-
+    TextBox fExtra;
 private:
-    unsigned int FullWidth, FullHeight;
-    unsigned int taskbarHeight;
-
     wxPoint defaultPos;
 
     std::vector<Field> fields;
@@ -95,9 +92,9 @@ private:
     void InitValues();
     void InitMenuAndStatusBar();
 
-    void InitFieldsSize();
-    void InitFieldsAdjustment();
+    void InitFieldsDimensions();
     void InitFields();
+    void InitFieldsDimensionRanges();
 
     void InitBindings();
 

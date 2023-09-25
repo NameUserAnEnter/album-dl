@@ -30,6 +30,9 @@ private:
     TEXT_ENCODING fieldEncoding;
     std::wstring FormatText(std::wstring);
 
+    wxSize minSize;
+    wxSize maxSize;
+
     wxStaticBox labelBox;
     wxTextCtrl textField;
 public:
@@ -55,6 +58,29 @@ public:
 
     void SetForeground(wxColour);
     void SetBackground(wxColour);
+
+private:
+    wxSize ComputeLabelSize(wxSize);
+    wxPoint ComputeLabelPos(wxPoint);
+public:
+    void SetPosition(int, int);
+    void SetPosition(wxPoint);
+
+    wxPoint GetPosition();
+
+    void SetSize(int, int);
+    void SetMinSize(int, int);
+    void SetMaxSize(int, int);
+
+    void SetSize(wxSize);
+    void SetMinSize(wxSize);
+    void SetMaxSize(wxSize);
+
+    wxSize GetSize();
+    wxSize GetMinSize();
+    wxSize GetMaxSize();
+
+
 
     void SetFont(wxFont);
     wxFont GetFont();
