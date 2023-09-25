@@ -223,8 +223,8 @@ void MainFrame::InitFieldsDimensions()
     int verticalButtonOffset = fields.back().pos.y + fieldHeight;
     fields.push_back(Field(clientMargin.left + (ButtonSize.x + buttonBreak) * 0, verticalButtonOffset + verticalDropDownOffset, ButtonSize));
     fields.push_back(Field(clientMargin.left + (ButtonSize.x + buttonBreak) * 1, verticalButtonOffset + verticalCheckBoxOffset, ButtonSize));
-    fields.push_back(Field(clientMargin.left + (ButtonSize.x + buttonBreak) * 2, verticalButtonOffset, ButtonSize));
-    fields.push_back(Field(clientMargin.left + (ButtonSize.x + buttonBreak) * 3, verticalButtonOffset, ButtonSize));
+    fields.push_back(Field(clientMargin.left + TextBoxSize.x - ButtonSize.x * 2 - buttonBreak * 1, verticalButtonOffset, ButtonSize));
+    fields.push_back(Field(clientMargin.left + TextBoxSize.x - ButtonSize.x * 1 - buttonBreak * 0, verticalButtonOffset, ButtonSize));
 
 
 
@@ -752,22 +752,36 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
         bnUpdateDownloader.SetPosition(wxPoint(bnUpdateDownloader.GetPosition().x, vOffset3 + fieldHeight * 5));
     }
 
+
+
+    //clientMargin.left + TextBoxSize.x - ButtonSize.x * 1 - buttonBreak * 0
+    //clientMargin.left + TextBoxSize.x - ButtonSize.x * 2 - buttonBreak * 1
+
+
+    int buttonX;
     int hOffset4 = newClientWidth;
     hOffset4 -= clientMargin.right;
     hOffset4 -= fOutput.GetSize().x;
     hOffset4 -= fieldBreakH;
 
     hOffset4 -= (bnRunScript.GetSize().x);
-    if (hOffset4 >= clientMargin.left + (bnRunScript.GetSize().x + buttonBreak) * 3)
+    buttonX = hOffset4;
+    if (hOffset4 <= clientMargin.left + minDataFieldSize.x - bnRunScript.GetSize().x)
     {
-        bnRunScript.SetPosition(wxPoint(hOffset4, bnRunScript.GetPosition().y));
+        buttonX = clientMargin.left + minDataFieldSize.x - bnRunScript.GetSize().x;
     }
+    bnRunScript.SetPosition(wxPoint(buttonX, bnRunScript.GetPosition().y));
+    bnRunScript.Refresh();
 
-    hOffset4 -= (bnRunScript.GetSize().x + buttonBreak);
-    if (hOffset4 >= clientMargin.left + (bnRunScript.GetSize().x + buttonBreak) * 2)
+    hOffset4 -= buttonBreak;
+    hOffset4 -= bnUpdateDownloader.GetSize().x;
+    buttonX = hOffset4;
+    if (hOffset4 <= clientMargin.left + minDataFieldSize.x - bnRunScript.GetSize().x - buttonBreak - bnUpdateDownloader.GetSize().x)
     {
-        bnUpdateDownloader.SetPosition(wxPoint(hOffset4, bnUpdateDownloader.GetPosition().y));
+        buttonX = clientMargin.left + minDataFieldSize.x - bnRunScript.GetSize().x - buttonBreak - bnUpdateDownloader.GetSize().x;
     }
+    bnUpdateDownloader.SetPosition(wxPoint(buttonX, bnUpdateDownloader.GetPosition().y));
+    bnUpdateDownloader.Refresh();
 }
 // --
 
