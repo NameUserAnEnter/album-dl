@@ -77,7 +77,8 @@ private:
     std::vector<Field> fields;
     
     int fieldHeight;
-    int fieldBreak;
+    int fieldBreakV;
+    int fieldBreakH;
 
     int buttonBreak;
 

@@ -58,13 +58,14 @@ wxSize MainFrame::FindMaxDistance(
         if (currentDistance.y > maxDistance.y) maxDistance.y = currentDistance.y;
     }
 
-    for (int i = 0; i < dropDowns.size(); i++)
-    {
-        wxSize currentDistance = dropDowns[i]->GetDistance();
+    //for (int i = 0; i < dropDowns.size(); i++)
+    //{
+    //    wxSize currentDistance = dropDowns[i]->GetDistance();
+    //    //currentDistance.y -= verticalDropDownOffset;
 
-        if (currentDistance.x > maxDistance.x) maxDistance.x = currentDistance.x;
-        if (currentDistance.y > maxDistance.y) maxDistance.y = currentDistance.y;
-    }
+    //    if (currentDistance.x > maxDistance.x) maxDistance.x = currentDistance.x;
+    //    if (currentDistance.y > maxDistance.y) maxDistance.y = currentDistance.y;
+    //}
 
     for (int i = 0; i < fieldTemplates.size(); i++)
     {
@@ -134,14 +135,17 @@ void MainFrame::InitValues()
     defaultPos.y = 0;
 
 
-    fieldHeight = 40;
-    fieldBreak = 80;
 
-    buttonBreak = -20;
+    fieldHeight = 40;
+
+    fieldBreakV = 80;
+    fieldBreakH = 10;
+
+    buttonBreak = 10;
 
     // offsets relative to a button, since some controls are not aligned evenly
     verticalCheckBoxOffset = 0;
-    verticalDropDownOffset = 2;
+    verticalDropDownOffset = 2;     // to do: fix distance impact of this offset
 
     clientMargin = { 20, 20, 20, 20 };
 
@@ -209,25 +213,25 @@ void MainFrame::InitFieldsDimensions()
     fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
     fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
 
-    fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight + fieldBreak, TextBoxSize));
+    fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight + fieldBreakV, TextBoxSize));
     fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
     fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
 
     fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
     fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
 
-    int buttonVerticalOffset = fields.back().pos.y + fieldHeight;
-    fields.push_back(Field(clientMargin.left + (ButtonSize.x + buttonBreak) * 0, buttonVerticalOffset + verticalDropDownOffset, ButtonSize));
-    fields.push_back(Field(clientMargin.left + (ButtonSize.x + buttonBreak) * 1, buttonVerticalOffset + verticalCheckBoxOffset, ButtonSize));
-    fields.push_back(Field(clientMargin.left + (ButtonSize.x + buttonBreak) * 2, buttonVerticalOffset, ButtonSize));
-    fields.push_back(Field(clientMargin.left + (ButtonSize.x + buttonBreak) * 3, buttonVerticalOffset, ButtonSize));
+    int verticalButtonOffset = fields.back().pos.y + fieldHeight;
+    fields.push_back(Field(clientMargin.left + (ButtonSize.x + buttonBreak) * 0, verticalButtonOffset + verticalDropDownOffset, ButtonSize));
+    fields.push_back(Field(clientMargin.left + (ButtonSize.x + buttonBreak) * 1, verticalButtonOffset + verticalCheckBoxOffset, ButtonSize));
+    fields.push_back(Field(clientMargin.left + (ButtonSize.x + buttonBreak) * 2, verticalButtonOffset, ButtonSize));
+    fields.push_back(Field(clientMargin.left + (ButtonSize.x + buttonBreak) * 3, verticalButtonOffset, ButtonSize));
 
 
 
     wxSize maxDistance = FindMaxDistance(fields);
 
     OutputBoxSize = wxSize(700, maxDistance.y - clientMargin.top);
-    fields.push_back(Field(maxDistance.x + 10, clientMargin.top, OutputBoxSize));
+    fields.push_back(Field(maxDistance.x + fieldBreakH, clientMargin.top, OutputBoxSize));
 }
 
 void MainFrame::InitFields()
@@ -254,7 +258,7 @@ void MainFrame::InitFields()
     checkAlert.Create(parent, ID_AlertOnDone, "Alert on done", fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Alert checkbox"); index++;
     bnUpdateDownloader.Create(parent, ID_ButtonUpdate, "Update YT-DLP", fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Update button"); index++;
     bnRunScript.Create(parent, ID_ButtonDownload, "Run", fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Run button");     index++;
-
+    
     fOutput.Init("Output:", ID_output_Field, fields[index].pos, fields[index].size, parent, wxTE_MULTILINE | wxTE_READONLY);    index++;
 }
 
@@ -662,11 +666,11 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
 
 
     // direction doesn't matter
-    // | clientMargin.left | fExtra.GetMinSize().x + <increase> | 10 | fOutput.GetMinSize().x + <increase> | clientMargin.right |
+    // | clientMargin.left | fExtra.GetMinSize().x + <increase> | fieldBreakHorizontal | fOutput.GetMinSize().x + <increase> | clientMargin.right |
     int hIncreaseTotal = newClientWidth;
     hIncreaseTotal -= clientMargin.right;
     hIncreaseTotal -= fOutput.GetMinSize().x;
-    hIncreaseTotal -= 10;
+    hIncreaseTotal -= fieldBreakH;
     hIncreaseTotal -= minDataFieldSize.x;
     hIncreaseTotal -= clientMargin.left;
 
@@ -717,7 +721,7 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
 
 
     // CELL 2
-    fOutput.SetPosition(maxDistance1.x + 10, fOutput.GetPosition().y);
+    fOutput.SetPosition(maxDistance1.x + fieldBreakH, fOutput.GetPosition().y);
     fOutput.SetSize(fOutput.GetMinSize().x + hIncreaseCell2, fOutput.GetMinSize().y + vIncreaseCell2);
 
 
@@ -733,7 +737,7 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     vOffset3 -= fieldHeight;
     vOffset3 -= fieldHeight;
     vOffset3 -= fieldHeight;
-    if (vOffset3 >= clientMargin.top + fieldHeight * 3 + fieldBreak)
+    if (vOffset3 >= clientMargin.top + fieldHeight * 3 + fieldBreakV)
     {
         fArtist.SetPosition(fArtist.GetPosition().x, vOffset3 + fieldHeight * 0);
         fAlbumName.SetPosition(fAlbumName.GetPosition().x, vOffset3 + fieldHeight * 1);
@@ -746,6 +750,23 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
         checkAlert.SetPosition(wxPoint(checkAlert.GetPosition().x, vOffset3 + fieldHeight * 5 + verticalCheckBoxOffset));
         fBitrate.SetPosition(fBitrate.GetPosition().x, vOffset3 + fieldHeight * 5 + verticalDropDownOffset);
         bnUpdateDownloader.SetPosition(wxPoint(bnUpdateDownloader.GetPosition().x, vOffset3 + fieldHeight * 5));
+    }
+
+    int hOffset4 = newClientWidth;
+    hOffset4 -= clientMargin.right;
+    hOffset4 -= fOutput.GetSize().x;
+    hOffset4 -= fieldBreakH;
+
+    hOffset4 -= (bnRunScript.GetSize().x);
+    if (hOffset4 >= clientMargin.left + (bnRunScript.GetSize().x + buttonBreak) * 3)
+    {
+        bnRunScript.SetPosition(wxPoint(hOffset4, bnRunScript.GetPosition().y));
+    }
+
+    hOffset4 -= (bnRunScript.GetSize().x + buttonBreak);
+    if (hOffset4 >= clientMargin.left + (bnRunScript.GetSize().x + buttonBreak) * 2)
+    {
+        bnUpdateDownloader.SetPosition(wxPoint(hOffset4, bnUpdateDownloader.GetPosition().y));
     }
 }
 // --
