@@ -21,15 +21,16 @@ TextBox::TextBox()
     maxSize.y = -1;
 }
 
-void TextBox::Init(std::string label, wxWindowID textFieldID, wxPoint position, wxSize size, wxWindow* parent, long style)
+void TextBox::Init(std::string label, wxWindowID textFieldID, wxWindowID labelBoxID, wxPoint position, wxSize size, wxWindow* parent, long style)
 {
     labelBox.Create(
-        parent, wxID_ANY, toWide(label),
+        parent, labelBoxID, toWide(label),
         ComputeLabelBoxPos(position),
         ComputeLabelBoxSize(size),
         0, wxString(label + " label"));
 
 
+    if (labelBoxID != wxID_ANY) labelBox.Bind(wxEVT_MOVE, &TextBox::OnLabelBoxMove, this, labelBoxID);
 
     textField.Create(
         &labelBox, textFieldID, "",
@@ -37,8 +38,30 @@ void TextBox::Init(std::string label, wxWindowID textFieldID, wxPoint position, 
         size,
         style, wxDefaultValidator, wxString(label + " text field"));
 
+    textField.Bind(wxEVT_MOVE, &TextBox::OnTextBoxMove, this, textFieldID);
+
     bInit = true;
 }
+
+void TextBox::Init(std::string label, wxWindowID textFieldID, wxPoint position, wxSize size, wxWindow* parent, long style)
+{
+    Init(label, textFieldID, wxID_ANY, position, size, parent, style);
+}
+
+void TextBox::OnTextBoxMove(wxMoveEvent& event)
+{
+    textField.SetPosition(wxPoint(labelOffset.left, labelOffset.top));
+    //MessageDialog("test");
+}
+
+void TextBox::OnLabelBoxMove(wxMoveEvent& event)
+{
+    textField.SetPosition(wxPoint(labelOffset.left, labelOffset.top));
+    //MessageDialog("test");
+}
+
+
+
 
 
 
@@ -186,6 +209,8 @@ void TextBox::SetBackground(wxColour background)
 
 
 
+
+
 wxSize TextBox::ComputeLabelBoxSize(wxSize textBoxSize)
 {
     return wxSize(labelOffset.left + textBoxSize.x + labelOffset.right, labelOffset.top + textBoxSize.y + labelOffset.bottom);
@@ -206,6 +231,9 @@ wxPoint TextBox::ComputeTextBoxPos(wxPoint labelBoxPos)
     return wxPoint(labelBoxPos.x + labelOffset.left, labelBoxPos.y + labelOffset.top);
 }
 
+
+
+
 void TextBox::SetPosition(int x, int y)
 {
     SetPosition(wxPoint(x, y));
@@ -224,6 +252,8 @@ wxPoint TextBox::GetPosition()
 
     return ComputeTextBoxPos(labelBox.GetPosition());
 }
+
+
 
 void TextBox::SetSize(int width, int height)
 {
@@ -297,6 +327,9 @@ wxSize TextBox::GetMaxSize()
 {
     return maxSize;
 }
+
+
+
 
 
 

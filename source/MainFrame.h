@@ -138,7 +138,6 @@ private:
     void OnButtonUpdate(wxCommandEvent& event);
 
     void OnPanelResize(wxSizeEvent& event);
-    void OnFrameResize(wxSizeEvent& event);
 
     void OnSave(wxCommandEvent& event);
     void OnExit(wxCommandEvent& event);

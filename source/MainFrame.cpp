@@ -26,7 +26,9 @@ enum
     ID_Bitrate,
     ID_ButtonUpdate,
 
-    ID_output_Field
+    ID_output_Field,
+    ID_output_Label,
+    ID_extra_Field
 };
 
 
@@ -206,9 +208,10 @@ void MainFrame::InitFields()
     fBitrate.Init( "Bitrate:", L"----", ID_Bitrate,                     fields[index].pos, fields[index].size, parent);    index++;
     bnUpdateDownloader.Create(parent, ID_ButtonUpdate, "Update YT-DLP", fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Update button"); index++;
 
-    fOutput.Init("Output:", ID_output_Field, fields[index].pos, fields[index].size, parent, wxTE_MULTILINE | wxTE_READONLY);    index++;
+    fOutput.Init("Output:", ID_output_Field, ID_output_Label, fields[index].pos, fields[index].size, parent, wxTE_MULTILINE | wxTE_READONLY);    index++;
 
-    fExtra.Init("Output:", -1, wxPoint(clientMargin.left, clientMargin.top), wxSize(fAlbumsDir.GetSize().x, 320), parent, wxTE_MULTILINE | wxTE_READONLY);
+    fExtra.Init(
+        "Output:", ID_extra_Field, wxPoint(clientMargin.left, clientMargin.top), wxSize(fAlbumsDir.GetSize().x, 320), parent, wxTE_MULTILINE | wxTE_READONLY);
     fAlbumsDir.Hide();
     fWorkingDir.Hide();
     fConverterDir.Hide();
@@ -260,7 +263,6 @@ void MainFrame::InitBindings()
     Bind(wxEVT_BUTTON, &MainFrame::OnButtonUpdate, this, ID_ButtonUpdate);
 
     mainPanel.Bind(wxEVT_SIZE, &MainFrame::OnPanelResize, this, ID_Panel);
-    Bind(wxEVT_SIZE, &MainFrame::OnFrameResize, this, ID_Frame);
 
     Bind(wxEVT_MENU, &MainFrame::OnSave, this, ID_Save);
     Bind(wxEVT_MENU, &MainFrame::OnAbout, this, wxID_ABOUT);
@@ -412,7 +414,7 @@ void MainFrame::InitWindowSize()
     SetFullSize();
     SetMinSize(GetSize());
 
-    SetClientSize(1600, 900);
+    SetClientSize(1600, 408);
 }
 
 void MainFrame::InitPosition()
@@ -620,6 +622,8 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     {
         oldClientWidth = mainPanel.GetClientSize().x;
         oldClientHeight = mainPanel.GetClientSize().y;
+
+        fExtra.AddText(L"PanelResize-oldClient: init\n\n");
         return;
     }
 
@@ -631,43 +635,47 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     // fExtra.GetSize().x = fExtra.GetMinSize().x + <increase>
     // fOutput.GetSize().x = fOutput.GetMinSize().x + <increase>
     // | clientMargin.left | fExtra.GetMinSize().x + <increase> | 10 | fOutput.GetMinSize().x + <increase> | clientMargin.right |
-    int remainingIncrease = newClientWidth;
-    remainingIncrease -= clientMargin.right;
-    remainingIncrease -= fOutput.GetMinSize().x;
-    remainingIncrease -= 10;
-    remainingIncrease -= fExtra.GetMinSize().x;
-    remainingIncrease -= clientMargin.left;
+    int totalIncrease = newClientWidth;
+    totalIncrease -= clientMargin.right;
+    totalIncrease -= fOutput.GetMinSize().x;
+    totalIncrease -= 10;
+    totalIncrease -= fExtra.GetMinSize().x;
+    totalIncrease -= clientMargin.left;
 
-    int fExtraIncrease = remainingIncrease;
+    int fExtraIncrease = totalIncrease;
     int fOutputIncrease = 0;
     if (fExtra.GetMinSize().x + fExtraIncrease > fExtra.GetMaxSize().x)
     {
         fExtraIncrease = fExtra.GetMaxSize().x - fExtra.GetMinSize().x;
-        fOutputIncrease = remainingIncrease - fExtraIncrease;
+        fOutputIncrease = totalIncrease - fExtraIncrease;
     }
 
-    fExtra.SetSize(fExtra.GetMinSize().x + fExtraIncrease, fExtra.GetSize().y);
-    fOutput.SetPosition(fExtra.GetPosition().x + fExtra.GetSize().x + 10, fOutput.GetPosition().y);
-    fOutput.SetSize(fOutput.GetMinSize().x + fOutputIncrease, fOutput.GetSize().y + newClientHeight - oldClientHeight);
 
+    std::wstring textFieldPosBeforeStr = std::to_wstring(fOutput.textField.GetPosition().x) + L"x" + std::to_wstring(fOutput.textField.GetPosition().y);
+    fExtra.SetSize(fExtra.GetMinSize().x + fExtraIncrease, fExtra.GetSize().y);
     
+    fOutput.SetPosition(fExtra.GetPosition().x + fExtra.GetSize().x + 10, fOutput.GetPosition().y);
+    fOutput.SetSize(fOutput.GetSize().x, fOutput.GetSize().y + newClientHeight - oldClientHeight);
+    fOutput.SetSize(fOutput.GetMinSize().x + fOutputIncrease, fOutput.GetSize().y);
+
+    //fOutput.textField.SetPosition(wxPoint(3, 15));
 
 
     std::wstring oldClientSizeStr = std::to_wstring(oldClientWidth) + L"x" + std::to_wstring(oldClientHeight);
     std::wstring newClientSizeStr = std::to_wstring(newClientWidth) + L"x" + std::to_wstring(newClientHeight);
+    std::wstring textFieldPosAfterStr = std::to_wstring(fOutput.textField.GetPosition().x) + L"x" + std::to_wstring(fOutput.textField.GetPosition().y);
 
     fExtra.AddText(L"PanelResize-oldClientSize: " + oldClientSizeStr + L"\n");
     fExtra.AddText(L"PanelResize-newClientSize: " + newClientSizeStr + L"\n");
-    fExtra.AddText(L"PanelResize-remainingIncrease: " + std::to_wstring(remainingIncrease) + L"\n");
-
+    fExtra.AddText(L"PanelResize-textFieldPosBeforeStr: " + textFieldPosBeforeStr + L"\n");
+    fExtra.AddText(L"PanelResize-textFieldPosAfterStr: " + textFieldPosAfterStr + L"\n");
+    fExtra.AddText(L"PanelResize-totalIncrease: " + std::to_wstring(totalIncrease) + L"\n");
+    fExtra.AddText(L"PanelResize-fExtraIncrease: " + std::to_wstring(fExtraIncrease) + L"\n");
+    fExtra.AddText(L"PanelResize-fOutputIncrease: " + std::to_wstring(fOutputIncrease) + L"\n");
+    fExtra.AddText(L"\n");
 
     oldClientWidth = mainPanel.GetClientSize().x;
     oldClientHeight = mainPanel.GetClientSize().y;
-}
-
-void MainFrame::OnFrameResize(wxSizeEvent& event)
-{
-    event.Skip();
 }
 // --
 

@@ -33,11 +33,12 @@ private:
     wxSize minSize;
     wxSize maxSize;
 
+public:
     wxStaticBox labelBox;
     wxTextCtrl textField;
-public:
     TextBox();
 
+    void Init(std::string, wxWindowID, wxWindowID, wxPoint, wxSize, wxWindow*, long = NULL);
     void Init(std::string, wxWindowID, wxPoint, wxSize, wxWindow*, long = NULL);
 
     std::wstring* GetBuf();
@@ -65,6 +66,9 @@ private:
 
     wxSize ComputeTextBoxSize(wxSize);
     wxPoint ComputeTextBoxPos(wxPoint);
+
+    void OnTextBoxMove(wxMoveEvent&);
+    void OnLabelBoxMove(wxMoveEvent&);
 public:
     void SetPosition(int, int);
     void SetPosition(wxPoint);
