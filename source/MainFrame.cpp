@@ -137,7 +137,11 @@ void MainFrame::InitValues()
     fieldHeight = 40;
     fieldBreak = 80;
 
-    buttonBreak = 10;
+    buttonBreak = -20;
+
+    // offsets relative to a button, since some controls are not aligned evenly
+    verticalCheckBoxOffset = 0;
+    verticalDropDownOffset = 2;
 
     clientMargin = { 20, 20, 20, 20 };
 
@@ -212,10 +216,11 @@ void MainFrame::InitFieldsDimensions()
     fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
     fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
 
-    fields.push_back(Field(clientMargin.left + (ButtonSize.x + buttonBreak) * 0, fields.back().pos.y + fieldHeight, ButtonSize));
-    fields.push_back(Field(clientMargin.left + (ButtonSize.x + buttonBreak) * 1, fields.back().pos.y, ButtonSize));
-    fields.push_back(Field(clientMargin.left + (ButtonSize.x + buttonBreak) * 2, fields.back().pos.y + 2, ButtonSize));
-    fields.push_back(Field(clientMargin.left + (ButtonSize.x + buttonBreak) * 3, fields.back().pos.y, ButtonSize));
+    int buttonVerticalOffset = fields.back().pos.y + fieldHeight;
+    fields.push_back(Field(clientMargin.left + (ButtonSize.x + buttonBreak) * 0, buttonVerticalOffset + verticalDropDownOffset, ButtonSize));
+    fields.push_back(Field(clientMargin.left + (ButtonSize.x + buttonBreak) * 1, buttonVerticalOffset + verticalCheckBoxOffset, ButtonSize));
+    fields.push_back(Field(clientMargin.left + (ButtonSize.x + buttonBreak) * 2, buttonVerticalOffset, ButtonSize));
+    fields.push_back(Field(clientMargin.left + (ButtonSize.x + buttonBreak) * 3, buttonVerticalOffset, ButtonSize));
 
 
 
@@ -245,10 +250,10 @@ void MainFrame::InitFields()
     fURL.Init(          "Playlist URL:",                        ID_URL_Field,           fields[index].pos, fields[index].size, parent);   index++;
     fArtworkURL.Init(   "Playlist URL with proper artwork:",    ID_URL_Artwork_Field,   fields[index].pos, fields[index].size, parent);   index++;
 
-    bnRunScript.Create(parent, ID_ButtonDownload, "Run",           fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Run button");     index++;
-    checkAlert.Create (parent, ID_AlertOnDone, "Alert on done",    fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Alert checkbox"); index++;
-    fBitrate.Init( "Bitrate:", L"----", ID_Bitrate,                     fields[index].pos, fields[index].size, parent);    index++;
+    fBitrate.Init("Bitrate:", L"----", ID_Bitrate, fields[index].pos, fields[index].size, parent);    index++;
+    checkAlert.Create(parent, ID_AlertOnDone, "Alert on done", fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Alert checkbox"); index++;
     bnUpdateDownloader.Create(parent, ID_ButtonUpdate, "Update YT-DLP", fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Update button"); index++;
+    bnRunScript.Create(parent, ID_ButtonDownload, "Run", fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Run button");     index++;
 
     fOutput.Init("Output:", ID_output_Field, fields[index].pos, fields[index].size, parent, wxTE_MULTILINE | wxTE_READONLY);    index++;
 }
@@ -738,8 +743,8 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
 
 
         bnRunScript.SetPosition(wxPoint(bnRunScript.GetPosition().x, vOffset3 + fieldHeight * 5));
-        checkAlert.SetPosition(wxPoint(checkAlert.GetPosition().x, vOffset3 + fieldHeight * 5));
-        fBitrate.SetPosition(fBitrate.GetPosition().x, vOffset3 + fieldHeight * 5 + 2);
+        checkAlert.SetPosition(wxPoint(checkAlert.GetPosition().x, vOffset3 + fieldHeight * 5 + verticalCheckBoxOffset));
+        fBitrate.SetPosition(fBitrate.GetPosition().x, vOffset3 + fieldHeight * 5 + verticalDropDownOffset);
         bnUpdateDownloader.SetPosition(wxPoint(bnUpdateDownloader.GetPosition().x, vOffset3 + fieldHeight * 5));
     }
 }

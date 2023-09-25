@@ -81,6 +81,9 @@ private:
 
     int buttonBreak;
 
+    int verticalCheckBoxOffset;
+    int verticalDropDownOffset;
+
     wxSize minDataFieldSize;
     wxSize maxDataFieldSize;
 
