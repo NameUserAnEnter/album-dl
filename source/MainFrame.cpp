@@ -551,26 +551,6 @@ void MainFrame::InitTerminalOutput()
     if (!dimensionsInfo.empty())    initialOutput += dimensionsInfo + L"\n\n";
     if (!execsInfo.empty())         initialOutput += execsInfo + L"\n\n";
 
-    
-    Rect Rect1 { 0, 0, 10, 10 };
-    Rect Rect2 { -5, 5, 10, 10 };
-    initialOutput += L"Rect1: ";
-    initialOutput += std::to_wstring(Rect1.x) + L", ";
-    initialOutput += std::to_wstring(Rect1.y) + L", ";
-    initialOutput += std::to_wstring(Rect1.x + Rect1.width) + L", ";
-    initialOutput += std::to_wstring(Rect1.y + Rect1.height) + L"\n";
-    initialOutput += L"Rect2: ";
-    initialOutput += std::to_wstring(Rect2.x) + L", ";
-    initialOutput += std::to_wstring(Rect2.y) + L", ";
-    initialOutput += std::to_wstring(Rect2.x + Rect2.width) + L", ";
-    initialOutput += std::to_wstring(Rect2.y + Rect2.height) + L"\n";
-
-    Rect test = RectUnion(Rect1, Rect2);
-    initialOutput += L"Test:    ";
-    initialOutput += std::to_wstring(test.x) + L", ";
-    initialOutput += std::to_wstring(test.y) + L", ";
-    initialOutput += std::to_wstring(test.x + test.width) + L", ";
-    initialOutput += std::to_wstring(test.y + test.height) + L"\n\n";
 
     mainConsole.PrintLogAndConsole(initialOutput);
     initialOutput.clear();
@@ -773,6 +753,7 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
 
 
     // CELL 4
+    Rect b1_1, b1_2, b2_1, b2_2;
     int buttonX;
     int hOffset4 = newClientWidth;
     hOffset4 -= clientMargin.right;
@@ -785,7 +766,9 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     {
         buttonX = clientMargin.left + minDataFieldSize.x - bnRunScript.GetSize().x;
     }
+    b1_1 = Rect{ bnRunScript.GetPosition().x, bnRunScript.GetPosition().y, bnRunScript.GetSize().x, bnRunScript.GetSize().x };
     bnRunScript.SetPosition(wxPoint(buttonX, bnRunScript.GetPosition().y));
+    b1_2 = Rect { bnRunScript.GetPosition().x, bnRunScript.GetPosition().y, bnRunScript.GetSize().x, bnRunScript.GetSize().x };
 
     hOffset4 -= buttonBreak;
     hOffset4 -= bnUpdateDownloader.GetSize().x;
@@ -794,28 +777,24 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     {
         buttonX = clientMargin.left + minDataFieldSize.x - bnRunScript.GetSize().x - buttonBreak - bnUpdateDownloader.GetSize().x;
     }
+    b2_1 = Rect { bnUpdateDownloader.GetPosition().x, bnUpdateDownloader.GetPosition().y, bnUpdateDownloader.GetSize().x, bnUpdateDownloader.GetSize().x };
     bnUpdateDownloader.SetPosition(wxPoint(buttonX, bnUpdateDownloader.GetPosition().y));
+    b2_2 = Rect { bnUpdateDownloader.GetPosition().x, bnUpdateDownloader.GetPosition().y, bnUpdateDownloader.GetSize().x, bnUpdateDownloader.GetSize().x };
 
 
 
     wxButton* buttonPtr;
-    wxRect rect;
+    Rect reg;
 
     buttonPtr = &bnRunScript;
-    rect = wxRect(buttonPtr->GetClientRect().x + buttonPtr->GetPosition().x,
-                  buttonPtr->GetClientRect().y + buttonPtr->GetPosition().y,
-                  buttonPtr->GetClientRect().width,
-                  buttonPtr->GetClientRect().height);
-    RefreshRect(wxRect(rect));
-    buttonPtr->SetLabel(std::to_wstring(rect.x) + L"x" + std::to_wstring(rect.y) + L" " + std::to_wstring(rect.width) + L"x" + std::to_wstring(rect.height));
+    reg = RectUnion(b1_1, b1_2);
+    RefreshRect(wxRect(reg.x, reg.y, reg.width, reg.height));
+    buttonPtr->SetLabel(std::to_wstring(reg.x) + L"x" + std::to_wstring(reg.y) + L" " + std::to_wstring(reg.width) + L"x" + std::to_wstring(reg.height));
 
     buttonPtr = &bnUpdateDownloader;
-    rect = wxRect(buttonPtr->GetClientRect().x + buttonPtr->GetPosition().x,
-                  buttonPtr->GetClientRect().y + buttonPtr->GetPosition().y,
-                  buttonPtr->GetClientRect().width,
-                  buttonPtr->GetClientRect().height);
-    RefreshRect(wxRect(rect));
-    buttonPtr->SetLabel(std::to_wstring(rect.x) + L"x" + std::to_wstring(rect.y) + L" " + std::to_wstring(rect.width) + L"x" + std::to_wstring(rect.height));
+    reg = RectUnion(b2_1, b2_2);
+    RefreshRect(wxRect(reg.x, reg.y, reg.width, reg.height));
+    buttonPtr->SetLabel(std::to_wstring(reg.x) + L"x" + std::to_wstring(reg.y) + L" " + std::to_wstring(reg.width) + L"x" + std::to_wstring(reg.height));
 }
 // --
 
