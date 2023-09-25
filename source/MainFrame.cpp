@@ -551,6 +551,27 @@ void MainFrame::InitTerminalOutput()
     if (!dimensionsInfo.empty())    initialOutput += dimensionsInfo + L"\n\n";
     if (!execsInfo.empty())         initialOutput += execsInfo + L"\n\n";
 
+    
+    Rect Rect1 { 0, 0, 10, 10 };
+    Rect Rect2 { -5, 5, 10, 10 };
+    initialOutput += L"Rect1: ";
+    initialOutput += std::to_wstring(Rect1.x) + L", ";
+    initialOutput += std::to_wstring(Rect1.y) + L", ";
+    initialOutput += std::to_wstring(Rect1.x + Rect1.width) + L", ";
+    initialOutput += std::to_wstring(Rect1.y + Rect1.height) + L"\n";
+    initialOutput += L"Rect2: ";
+    initialOutput += std::to_wstring(Rect2.x) + L", ";
+    initialOutput += std::to_wstring(Rect2.y) + L", ";
+    initialOutput += std::to_wstring(Rect2.x + Rect2.width) + L", ";
+    initialOutput += std::to_wstring(Rect2.y + Rect2.height) + L"\n";
+
+    Rect test = RectUnion(Rect1, Rect2);
+    initialOutput += L"Test:    ";
+    initialOutput += std::to_wstring(test.x) + L", ";
+    initialOutput += std::to_wstring(test.y) + L", ";
+    initialOutput += std::to_wstring(test.x + test.width) + L", ";
+    initialOutput += std::to_wstring(test.y + test.height) + L"\n\n";
+
     mainConsole.PrintLogAndConsole(initialOutput);
     initialOutput.clear();
 }
@@ -559,8 +580,8 @@ void MainFrame::InitTerminalOutput()
 
 void MainFrame::InitFocus()
 {
-    bnRunScript.SetFocus();
-    //fArtist.SetFocus();
+    //bnRunScript.SetFocus();
+    fArtist.SetFocus();
 }
 // --
 
@@ -661,11 +682,12 @@ void MainFrame::OnButtonUpdate(wxCommandEvent& event)
 
 void MainFrame::OnPanelResize(wxSizeEvent& event)
 {
+    // direction doesn't matter
     int newClientWidth = event.GetSize().x;
     int newClientHeight = event.GetSize().y;
 
-
-    // direction doesn't matter
+    
+    // CELL 1
     // | clientMargin.left | fExtra.GetMinSize().x + <increase> | fieldBreakHorizontal | fOutput.GetMinSize().x + <increase> | clientMargin.right |
     int hIncreaseTotal = newClientWidth;
     hIncreaseTotal -= clientMargin.right;
@@ -681,7 +703,6 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
         hIncreaseCell1 = maxDataFieldSize.x - minDataFieldSize.x;
         hIncreaseCell2 = hIncreaseTotal - hIncreaseCell1;
     }
-
     
     int vIncreaseTotal = newClientHeight;
 
@@ -689,13 +710,8 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     vIncreaseCell2 -= clientMargin.bottom;
     vIncreaseCell2 -= fOutput.GetMinSize().y;
     vIncreaseCell2 -= clientMargin.top;
-
-    int vIncreaseCell3 = newClientHeight - GetMinClientSize().y;
-
-    
     
 
-    // CELL 1
     fAlbumsDir.SetSize(fAlbumsDir.GetMinSize().x + hIncreaseCell1, fAlbumsDir.GetSize().y);
     fWorkingDir.SetSize(fWorkingDir.GetMinSize().x + hIncreaseCell1, fWorkingDir.GetSize().y);
     fConverterDir.SetSize(fConverterDir.GetMinSize().x + hIncreaseCell1, fConverterDir.GetSize().y);
@@ -754,10 +770,9 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
 
 
 
-    //clientMargin.left + TextBoxSize.x - ButtonSize.x * 1 - buttonBreak * 0
-    //clientMargin.left + TextBoxSize.x - ButtonSize.x * 2 - buttonBreak * 1
 
 
+    // CELL 4
     int buttonX;
     int hOffset4 = newClientWidth;
     hOffset4 -= clientMargin.right;
@@ -771,7 +786,6 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
         buttonX = clientMargin.left + minDataFieldSize.x - bnRunScript.GetSize().x;
     }
     bnRunScript.SetPosition(wxPoint(buttonX, bnRunScript.GetPosition().y));
-    bnRunScript.Refresh();
 
     hOffset4 -= buttonBreak;
     hOffset4 -= bnUpdateDownloader.GetSize().x;
@@ -781,7 +795,27 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
         buttonX = clientMargin.left + minDataFieldSize.x - bnRunScript.GetSize().x - buttonBreak - bnUpdateDownloader.GetSize().x;
     }
     bnUpdateDownloader.SetPosition(wxPoint(buttonX, bnUpdateDownloader.GetPosition().y));
-    bnUpdateDownloader.Refresh();
+
+
+
+    wxButton* buttonPtr;
+    wxRect rect;
+
+    buttonPtr = &bnRunScript;
+    rect = wxRect(buttonPtr->GetClientRect().x + buttonPtr->GetPosition().x,
+                  buttonPtr->GetClientRect().y + buttonPtr->GetPosition().y,
+                  buttonPtr->GetClientRect().width,
+                  buttonPtr->GetClientRect().height);
+    RefreshRect(wxRect(rect));
+    buttonPtr->SetLabel(std::to_wstring(rect.x) + L"x" + std::to_wstring(rect.y) + L" " + std::to_wstring(rect.width) + L"x" + std::to_wstring(rect.height));
+
+    buttonPtr = &bnUpdateDownloader;
+    rect = wxRect(buttonPtr->GetClientRect().x + buttonPtr->GetPosition().x,
+                  buttonPtr->GetClientRect().y + buttonPtr->GetPosition().y,
+                  buttonPtr->GetClientRect().width,
+                  buttonPtr->GetClientRect().height);
+    RefreshRect(wxRect(rect));
+    buttonPtr->SetLabel(std::to_wstring(rect.x) + L"x" + std::to_wstring(rect.y) + L" " + std::to_wstring(rect.width) + L"x" + std::to_wstring(rect.height));
 }
 // --
 

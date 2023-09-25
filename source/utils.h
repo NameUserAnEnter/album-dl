@@ -49,6 +49,67 @@ inline double power(double base, unsigned int exponent)
     return return_value;
 }
 
+inline double absolute_value(double num)
+{
+    if (num >= 0) return num;
+    else return num * (-1);
+}
+
+struct Rect
+{
+    int x, y, width, height;
+};
+
+inline Rect RectUnion(Rect r1, Rect r2)
+{
+    //        UNION
+    //     _____/\_____
+    //    /            \
+    //    ______________ 
+    //   | _______      |/_______ r1.y
+    //   ||       |     |\
+    //   ||  r1___|____ |/_________ r2.y
+    //   ||   |   |    ||\
+    //   ||___|___|    ||/___________ r1.y + r1.height
+    //   |    |    r2  ||\
+    //   |    |________||/____________ r2.y + r2.height
+    //   |______________|\
+    //    ^   ^   ^    ^
+    //    |   |   |    |
+    //  r1.x  |   |    |_
+    //        |   |      |
+    //      r2.x  | r2.x + r2.width
+    //            |
+    //       r1.x + r1.width
+    //
+
+    Rect result;
+
+    int leftmost;
+    if (r1.x <= r2.x) leftmost = r1.x;
+    else leftmost = r2.x;
+
+    int topmost;
+    if (r1.y <= r2.y) topmost = r1.y;
+    else topmost = r2.y;
+
+    int rightmost = r1.x + r1.width;
+    if (r1.x + r2.width > rightmost) rightmost = r1.x + r2.width;
+    if (r2.x + r2.width > rightmost) rightmost = r2.x + r2.width;
+    if (r2.x + r1.width > rightmost) rightmost = r2.x + r1.width;
+    result.x = leftmost;
+    result.width = rightmost - leftmost;
+
+    int bottommost = r1.y + r1.height;
+    if (r1.y + r2.height > bottommost) bottommost = r1.y + r2.height;
+    if (r2.y + r2.height > bottommost) bottommost = r2.y + r2.height;
+    if (r2.y + r1.height > bottommost) bottommost = r2.y + r1.height;
+    result.y = topmost;
+    result.height = bottommost - topmost;
+
+    return result;
+}
+
 inline std::string NumToStr(unsigned long long num, unsigned long long base = 10, unsigned int min_digits = 1, char whitespace = '0')
 {
     // 1, 10, 2, ' '
