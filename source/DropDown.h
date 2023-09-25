@@ -11,6 +11,7 @@
 
 class DropDown
 {
+private:
 	bool bInit;
 
 	RECT labelOffset;
@@ -19,6 +20,9 @@ class DropDown
 
 	wxStaticBox labelBox;
 	wxComboBox listBox;
+
+	wxSize minSize;
+	wxSize maxSize;
 public:
 	DropDown();
 
@@ -35,6 +39,38 @@ public:
 
 	void Disable();
 	void Enable();
+
+private:
+	wxSize ComputeLabelBoxSize(wxSize);
+	wxPoint ComputeLabelBoxPos(wxPoint);
+
+	wxSize ComputeListBoxSize(wxSize);
+	wxPoint ComputeListBoxPos(wxPoint);
+
+	void OnLabelBoxMove(wxMoveEvent&);
+public:
+	void SetPosition(int, int);
+	void SetPosition(wxPoint);
+
+	wxPoint GetPosition();
+
+	void SetSize(int, int);
+	void SetMinSize(int, int);
+	void SetMaxSize(int, int);
+
+	void SetSize(wxSize);
+	void SetMinSize(wxSize);
+	void SetMaxSize(wxSize);
+
+	wxSize GetSize();
+	wxSize GetMinSize();
+	wxSize GetMaxSize();
+
+	wxSize GetDistance();
+
+
+	void Show();
+	void Hide();
 };
 
 #endif

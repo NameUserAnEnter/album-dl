@@ -32,7 +32,6 @@ private:
 
     wxSize minSize;
     wxSize maxSize;
-
 public:
     wxStaticBox labelBox;
     wxTextCtrl textField;
@@ -84,6 +83,8 @@ public:
     wxSize GetSize();
     wxSize GetMinSize();
     wxSize GetMaxSize();
+
+    wxSize GetDistance();
 
 
     void Show();

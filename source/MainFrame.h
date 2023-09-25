@@ -76,10 +76,6 @@ private:
     wxPoint defaultPos;
 
     std::vector<Field> fields;
-    unsigned int horizontalMax;
-    unsigned int verticalMax;
-    unsigned int horizontalMaxDistance;
-    unsigned int verticalMaxDistance;
 
     Margin clientMargin;
 
@@ -126,7 +122,7 @@ private:
 
 
 
-    void FindMaxDistanceFields();
+    wxSize FindMaxDistance(std::vector<Field>, std::vector<TextBox*>, std::vector<DropDown*>, std::vector<wxWindow*>);
     void SetFullSize();
 
 

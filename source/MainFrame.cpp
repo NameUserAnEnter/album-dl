@@ -32,23 +32,56 @@ enum
 
 
 
-void MainFrame::FindMaxDistanceFields()
+wxSize MainFrame::FindMaxDistance(
+    std::vector<Field> fieldTemplates = std::vector<Field>(),
+    std::vector<TextBox*> textBoxes = std::vector<TextBox*>(),
+    std::vector<DropDown*> dropDowns = std::vector<DropDown*>(),
+    std::vector<wxWindow*> nativeControls = std::vector<wxWindow*>()
+)
 {
-    for (int i = 0; i < fields.size(); i++)
+    wxSize maxDistance(0, 0);
+
+    for (int i = 0; i < nativeControls.size(); i++)
     {
-        if (fields[i].pos.x + fields[i].size.x >= fields[horizontalMax].pos.x + fields[horizontalMax].size.x) horizontalMax = i;
-        if (fields[i].pos.y + fields[i].size.y >= fields[verticalMax].pos.y + fields[verticalMax].size.y) verticalMax = i;
+        wxPoint currentPos = nativeControls[i]->GetPosition();
+        wxSize currentSize = nativeControls[i]->GetSize();
+
+        if (currentPos.x + currentSize.x > maxDistance.x) maxDistance.x = currentPos.x + currentSize.x;
+        if (currentPos.y + currentSize.y > maxDistance.y) maxDistance.y = currentPos.y + currentSize.y;
     }
 
-    horizontalMaxDistance = fields[horizontalMax].pos.x + fields[horizontalMax].size.x;
-    verticalMaxDistance = fields[verticalMax].pos.y + fields[verticalMax].size.y;
+    for (int i = 0; i < textBoxes.size(); i++)
+    {
+        wxSize currentDistance = textBoxes[i]->GetDistance();
+
+        if (currentDistance.x > maxDistance.x) maxDistance.x = currentDistance.x;
+        if (currentDistance.y > maxDistance.y) maxDistance.y = currentDistance.y;
+    }
+
+    for (int i = 0; i < dropDowns.size(); i++)
+    {
+        wxSize currentDistance = dropDowns[i]->GetDistance();
+
+        if (currentDistance.x > maxDistance.x) maxDistance.x = currentDistance.x;
+        if (currentDistance.y > maxDistance.y) maxDistance.y = currentDistance.y;
+    }
+
+    for (int i = 0; i < fieldTemplates.size(); i++)
+    {
+        Field currentField = fieldTemplates[i];
+        if (currentField.pos.x + currentField.size.x > maxDistance.x) maxDistance.x = currentField.pos.x + currentField.size.x;
+        if (currentField.pos.y + currentField.size.y > maxDistance.y) maxDistance.y = currentField.pos.y + currentField.size.y;
+    }
+
+    return maxDistance;
 }
 
 void MainFrame::SetFullSize()
 {
-    FindMaxDistanceFields();
-    int ClientWidth = horizontalMaxDistance + clientMargin.right;
-    int ClientHeight = verticalMaxDistance + clientMargin.bottom;
+    wxSize maxDistance = FindMaxDistance(fields);
+
+    int ClientWidth = maxDistance.x + clientMargin.right;
+    int ClientHeight = maxDistance.y + clientMargin.bottom;
 
     SetClientSize(ClientWidth, ClientHeight);
 }
@@ -99,9 +132,6 @@ void MainFrame::InitValues()
 
     defaultPos.x = 0;
     defaultPos.y = 0;
-
-    horizontalMax = 0;
-    verticalMax = 0;
 }
 
 void MainFrame::InitMenuAndStatusBar()
@@ -177,9 +207,11 @@ void MainFrame::InitFieldsDimensions()
     fields.push_back(Field(clientMargin.left + ButtonSize.x + 10 + ButtonSize.x + 10 + ButtonSize.x + 10, 360, ButtonSize));
 
 
-    FindMaxDistanceFields();
-    OutputBoxSize = wxSize(700, verticalMaxDistance - clientMargin.top);
-    fields.push_back(Field(horizontalMaxDistance + 10, clientMargin.top, OutputBoxSize));
+
+    wxSize maxDistance = FindMaxDistance(fields);
+
+    OutputBoxSize = wxSize(700, maxDistance.y - clientMargin.top);
+    fields.push_back(Field(maxDistance.x + 10, clientMargin.top, OutputBoxSize));
 }
 
 void MainFrame::InitFields()
@@ -211,44 +243,45 @@ void MainFrame::InitFields()
 
     fExtra.Init(
         "Output:", ID_extra_Field, wxPoint(clientMargin.left, clientMargin.top), wxSize(fAlbumsDir.GetSize().x, 320), parent, wxTE_MULTILINE | wxTE_READONLY);
-    fAlbumsDir.Hide();
-    fWorkingDir.Hide();
-    fConverterDir.Hide();
+    //fAlbumsDir.Hide();
+    //fWorkingDir.Hide();
+    //fConverterDir.Hide();
 
-    fArtist.Hide();
-    fAlbumName.Hide();
-    fAlbumYear.Hide();
-    fURL.Hide();
-    fArtworkURL.Hide();
+    //fArtist.Hide();
+    //fAlbumName.Hide();
+    //fAlbumYear.Hide();
+    //fURL.Hide();
+    //fArtworkURL.Hide();
+    fExtra.Hide();
 }
 
 void MainFrame::InitFieldsDimensionRanges()
 {
     // FIELDS MIN SIZES
-    //fAlbumsDir.SetMinSize(fAlbumsDir.GetSize());
-    //fWorkingDir.SetMinSize(fAlbumsDir.GetSize());
-    //fConverterDir.SetMinSize(fAlbumsDir.GetSize());
+    fAlbumsDir.SetMinSize(fAlbumsDir.GetSize());
+    fWorkingDir.SetMinSize(fAlbumsDir.GetSize());
+    fConverterDir.SetMinSize(fAlbumsDir.GetSize());
 
-    //fArtist.SetMinSize(fAlbumsDir.GetSize());
-    //fAlbumName.SetMinSize(fAlbumsDir.GetSize());
-    //fAlbumYear.SetMinSize(fAlbumsDir.GetSize());
-    //fURL.SetMinSize(fAlbumsDir.GetSize());
-    //fArtworkURL.SetMinSize(fAlbumsDir.GetSize());
+    fArtist.SetMinSize(fAlbumsDir.GetSize());
+    fAlbumName.SetMinSize(fAlbumsDir.GetSize());
+    fAlbumYear.SetMinSize(fAlbumsDir.GetSize());
+    fURL.SetMinSize(fAlbumsDir.GetSize());
+    fArtworkURL.SetMinSize(fAlbumsDir.GetSize());
     
     fExtra.SetMinSize(fExtra.GetSize());
     fOutput.SetMinSize(fOutput.GetSize());
 
 
     // FIELDS MAX SIZES
-    //fAlbumsDir.SetMaxSize(800, fAlbumsDir.GetSize().y);
-    //fWorkingDir.SetMaxSize(800, fAlbumsDir.GetSize().y);
-    //fConverterDir.SetMaxSize(800, fAlbumsDir.GetSize().y);
+    fAlbumsDir.SetMaxSize(800, fAlbumsDir.GetSize().y);
+    fWorkingDir.SetMaxSize(800, fAlbumsDir.GetSize().y);
+    fConverterDir.SetMaxSize(800, fAlbumsDir.GetSize().y);
 
-    //fArtist.SetMaxSize(800, fAlbumsDir.GetSize().y);
-    //fAlbumName.SetMaxSize(800, fAlbumsDir.GetSize().y);
-    //fAlbumYear.SetMaxSize(800, fAlbumsDir.GetSize().y);
-    //fURL.SetMaxSize(800, fAlbumsDir.GetSize().y);
-    //fArtworkURL.SetMaxSize(800, fAlbumsDir.GetSize().y);
+    fArtist.SetMaxSize(800, fAlbumsDir.GetSize().y);
+    fAlbumName.SetMaxSize(800, fAlbumsDir.GetSize().y);
+    fAlbumYear.SetMaxSize(800, fAlbumsDir.GetSize().y);
+    fURL.SetMaxSize(800, fAlbumsDir.GetSize().y);
+    fArtworkURL.SetMaxSize(800, fAlbumsDir.GetSize().y);
 
     fExtra.SetMaxSize(800, fExtra.GetSize().y);
     fOutput.SetMaxSize(-1, -1);
@@ -411,9 +444,9 @@ void MainFrame::InitBitrates()
 void MainFrame::InitWindowSize()
 {
     SetFullSize();
-    SetMinSize(GetSize());
+    //SetMinSize(GetSize());
 
-    SetClientSize(1600, 408);
+    SetClientSize(1600, 900);
 }
 
 void MainFrame::InitPosition()
@@ -634,28 +667,62 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     // fExtra.GetSize().x = fExtra.GetMinSize().x + <increase>
     // fOutput.GetSize().x = fOutput.GetMinSize().x + <increase>
     // | clientMargin.left | fExtra.GetMinSize().x + <increase> | 10 | fOutput.GetMinSize().x + <increase> | clientMargin.right |
-    int totalIncrease = newClientWidth;
-    totalIncrease -= clientMargin.right;
-    totalIncrease -= fOutput.GetMinSize().x;
-    totalIncrease -= 10;
-    totalIncrease -= fExtra.GetMinSize().x;
-    totalIncrease -= clientMargin.left;
+    int hIncreaseTotal = newClientWidth;
+    hIncreaseTotal -= clientMargin.right;
+    hIncreaseTotal -= fOutput.GetMinSize().x;
+    hIncreaseTotal -= 10;
+    hIncreaseTotal -= fExtra.GetMinSize().x;
+    hIncreaseTotal -= clientMargin.left;
 
-    int fExtraIncrease = totalIncrease;
-    int fOutputIncrease = 0;
-    if (fExtra.GetMinSize().x + fExtraIncrease > fExtra.GetMaxSize().x)
+    int hIncreaseCell1 = hIncreaseTotal;
+    int hIncreaseCell2 = 0;
+    if (fExtra.GetMinSize().x + hIncreaseCell1 > fExtra.GetMaxSize().x)
     {
-        fExtraIncrease = fExtra.GetMaxSize().x - fExtra.GetMinSize().x;
-        fOutputIncrease = totalIncrease - fExtraIncrease;
+        hIncreaseCell1 = fExtra.GetMaxSize().x - fExtra.GetMinSize().x;
+        hIncreaseCell2 = hIncreaseTotal - hIncreaseCell1;
     }
 
-
-    std::wstring textFieldPosBeforeStr = std::to_wstring(fOutput.textField.GetPosition().x) + L"x" + std::to_wstring(fOutput.textField.GetPosition().y);
-    fExtra.SetSize(fExtra.GetMinSize().x + fExtraIncrease, fExtra.GetSize().y);
     
-    fOutput.SetPosition(fExtra.GetPosition().x + fExtra.GetSize().x + 10, fOutput.GetPosition().y);
-    fOutput.SetSize(fOutput.GetSize().x, fOutput.GetSize().y + newClientHeight - oldClientHeight);
-    fOutput.SetSize(fOutput.GetMinSize().x + fOutputIncrease, fOutput.GetSize().y);
+    int vIncreaseTotal = newClientHeight;
+    vIncreaseTotal -= clientMargin.bottom;
+    vIncreaseTotal -= fOutput.GetMinSize().y;
+    vIncreaseTotal -= clientMargin.top;
+
+    int vIncreaseCell2 = vIncreaseTotal;
+
+
+    
+    
+    std::wstring textFieldPosBeforeStr = std::to_wstring(fOutput.textField.GetPosition().x) + L"x" + std::to_wstring(fOutput.textField.GetPosition().y);
+
+    // CELL 1
+    fExtra.SetSize(fExtra.GetMinSize().x + hIncreaseCell1, fExtra.GetSize().y);
+
+    fAlbumsDir.SetSize(fAlbumsDir.GetMinSize().x + hIncreaseCell1, fAlbumsDir.GetSize().y);
+    fWorkingDir.SetSize(fWorkingDir.GetMinSize().x + hIncreaseCell1, fWorkingDir.GetSize().y);
+    fConverterDir.SetSize(fConverterDir.GetMinSize().x + hIncreaseCell1, fConverterDir.GetSize().y);
+
+    fArtist.SetSize(fArtist.GetMinSize().x + hIncreaseCell1, fArtist.GetSize().y);
+    fAlbumName.SetSize(fAlbumName.GetMinSize().x + hIncreaseCell1, fAlbumName.GetSize().y);
+    fAlbumYear.SetSize(fAlbumYear.GetMinSize().x + hIncreaseCell1, fAlbumYear.GetSize().y);
+    fURL.SetSize(fURL.GetMinSize().x + hIncreaseCell1, fURL.GetSize().y);
+    fArtworkURL.SetSize(fArtworkURL.GetMinSize().x + hIncreaseCell1, fArtworkURL.GetSize().y);
+
+    std::vector<TextBox*> textBoxesCell1;
+    textBoxesCell1.push_back(&fAlbumsDir);
+    textBoxesCell1.push_back(&fWorkingDir);
+    textBoxesCell1.push_back(&fConverterDir);
+
+    textBoxesCell1.push_back(&fArtist);
+    textBoxesCell1.push_back(&fAlbumName);
+    textBoxesCell1.push_back(&fAlbumYear);
+    textBoxesCell1.push_back(&fURL);
+    textBoxesCell1.push_back(&fArtworkURL);
+    wxSize maxDistance = FindMaxDistance(std::vector<Field>(), textBoxesCell1);
+    
+    // CELL 2
+    fOutput.SetPosition(maxDistance.x + 10, fOutput.GetPosition().y);
+    fOutput.SetSize(fOutput.GetMinSize().x + hIncreaseCell2, fOutput.GetMinSize().y + vIncreaseCell2);
 
 
 
@@ -667,9 +734,9 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     fExtra.AddText(L"PanelResize-newClientSize: " + newClientSizeStr + L"\n");
     fExtra.AddText(L"PanelResize-textFieldPosBeforeStr: " + textFieldPosBeforeStr + L"\n");
     fExtra.AddText(L"PanelResize-textFieldPosAfterStr: " + textFieldPosAfterStr + L"\n");
-    fExtra.AddText(L"PanelResize-totalIncrease: " + std::to_wstring(totalIncrease) + L"\n");
-    fExtra.AddText(L"PanelResize-fExtraIncrease: " + std::to_wstring(fExtraIncrease) + L"\n");
-    fExtra.AddText(L"PanelResize-fOutputIncrease: " + std::to_wstring(fOutputIncrease) + L"\n");
+    fExtra.AddText(L"PanelResize-hIncreaseTotal: " + std::to_wstring(hIncreaseTotal) + L"\n");
+    fExtra.AddText(L"PanelResize-hIncreaseCell1: " + std::to_wstring(hIncreaseCell1) + L"\n");
+    fExtra.AddText(L"PanelResize-hIncreaseCell2: " + std::to_wstring(hIncreaseCell2) + L"\n");
     fExtra.AddText(L"\n");
 
     oldClientWidth = mainPanel.GetClientSize().x;
