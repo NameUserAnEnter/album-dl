@@ -27,7 +27,6 @@ enum
     ID_ButtonUpdate,
 
     ID_output_Field,
-    ID_output_Label,
     ID_extra_Field
 };
 
@@ -208,7 +207,7 @@ void MainFrame::InitFields()
     fBitrate.Init( "Bitrate:", L"----", ID_Bitrate,                     fields[index].pos, fields[index].size, parent);    index++;
     bnUpdateDownloader.Create(parent, ID_ButtonUpdate, "Update YT-DLP", fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Update button"); index++;
 
-    fOutput.Init("Output:", ID_output_Field, ID_output_Label, fields[index].pos, fields[index].size, parent, wxTE_MULTILINE | wxTE_READONLY);    index++;
+    fOutput.Init("Output:", ID_output_Field, fields[index].pos, fields[index].size, parent, wxTE_MULTILINE | wxTE_READONLY);    index++;
 
     fExtra.Init(
         "Output:", ID_extra_Field, wxPoint(clientMargin.left, clientMargin.top), wxSize(fAlbumsDir.GetSize().x, 320), parent, wxTE_MULTILINE | wxTE_READONLY);
@@ -658,7 +657,6 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     fOutput.SetSize(fOutput.GetSize().x, fOutput.GetSize().y + newClientHeight - oldClientHeight);
     fOutput.SetSize(fOutput.GetMinSize().x + fOutputIncrease, fOutput.GetSize().y);
 
-    //fOutput.textField.SetPosition(wxPoint(3, 15));
 
 
     std::wstring oldClientSizeStr = std::to_wstring(oldClientWidth) + L"x" + std::to_wstring(oldClientHeight);
