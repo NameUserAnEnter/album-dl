@@ -132,6 +132,9 @@ void MainFrame::InitValues()
 
     defaultPos.x = 0;
     defaultPos.y = 0;
+
+    fieldHeight = 40;
+    fieldBreak = 20;
 }
 
 void MainFrame::InitMenuAndStatusBar()
@@ -191,20 +194,20 @@ void MainFrame::InitFieldsDimensions()
     fields.clear();
 
     fields.push_back(Field(clientMargin.left, clientMargin.top, TextBoxSize));
-    fields.push_back(Field(clientMargin.left, 60, TextBoxSize));
-    fields.push_back(Field(clientMargin.left, 100, TextBoxSize));
+    fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
+    fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
 
-    fields.push_back(Field(clientMargin.left, 160, TextBoxSize));
-    fields.push_back(Field(clientMargin.left, 200, TextBoxSize));
-    fields.push_back(Field(clientMargin.left, 240, TextBoxSize));
+    fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight + fieldBreak, TextBoxSize));
+    fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
+    fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
 
-    fields.push_back(Field(clientMargin.left, 280, TextBoxSize));
-    fields.push_back(Field(clientMargin.left, 320, TextBoxSize));
+    fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
+    fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
 
-    fields.push_back(Field(clientMargin.left, 360, ButtonSize));
-    fields.push_back(Field(clientMargin.left + ButtonSize.x + 10, 360, ButtonSize));
-    fields.push_back(Field(clientMargin.left + ButtonSize.x + 10 + ButtonSize.x + 10, 362, ButtonSize));
-    fields.push_back(Field(clientMargin.left + ButtonSize.x + 10 + ButtonSize.x + 10 + ButtonSize.x + 10, 360, ButtonSize));
+    fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, ButtonSize));
+    fields.push_back(Field(clientMargin.left + ButtonSize.x + 10, fields.back().pos.y, ButtonSize));
+    fields.push_back(Field(clientMargin.left + ButtonSize.x + 10 + ButtonSize.x + 10, fields.back().pos.y + 2, ButtonSize));
+    fields.push_back(Field(clientMargin.left + ButtonSize.x + 10 + ButtonSize.x + 10 + ButtonSize.x + 10, fields.back().pos.y, ButtonSize));
 
 
 
@@ -741,25 +744,25 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     int vOffset3 = newClientHeight;
     vOffset3 -= clientMargin.bottom;
     vOffset3 -= bnRunScript.GetSize().y;
-    vOffset3 -= 40;
-    vOffset3 -= 40;
+    vOffset3 -= fieldHeight;
+    vOffset3 -= fieldHeight;
 
-    vOffset3 -= 40;
-    vOffset3 -= 40;
-    vOffset3 -= 40;
-    if (vOffset3 >= 160)
+    vOffset3 -= fieldHeight;
+    vOffset3 -= fieldHeight;
+    vOffset3 -= fieldHeight;
+    if (vOffset3 >= clientMargin.top + fieldHeight * 3 + fieldBreak)
     {
-        fArtist.SetPosition(fArtist.GetPosition().x, vOffset3);
-        fAlbumName.SetPosition(fAlbumName.GetPosition().x, vOffset3 + 40);
-        fAlbumYear.SetPosition(fAlbumYear.GetPosition().x, vOffset3 + 40 + 40);
-        fURL.SetPosition(fURL.GetPosition().x, vOffset3 + 40 + 40 + 40);
-        fArtworkURL.SetPosition(fArtworkURL.GetPosition().x, vOffset3 + 40 + 40 + 40 + 40);
+        fArtist.SetPosition(fArtist.GetPosition().x, vOffset3 + fieldHeight * 0);
+        fAlbumName.SetPosition(fAlbumName.GetPosition().x, vOffset3 + fieldHeight * 1);
+        fAlbumYear.SetPosition(fAlbumYear.GetPosition().x, vOffset3 + fieldHeight * 2);
+        fURL.SetPosition(fURL.GetPosition().x, vOffset3 + fieldHeight * 3);
+        fArtworkURL.SetPosition(fArtworkURL.GetPosition().x, vOffset3 + fieldHeight * 4);
 
 
-        bnRunScript.SetPosition(wxPoint(bnRunScript.GetPosition().x, vOffset3 + 40 + 40 + 40 + 40 + 40));
-        checkAlert.SetPosition(wxPoint(checkAlert.GetPosition().x, vOffset3 + 40 + 40 + 40 + 40 + 40));
-        fBitrate.SetPosition(fBitrate.GetPosition().x, vOffset3 + 40 + 40 + 40 + 40 + 40 + 2);
-        bnUpdateDownloader.SetPosition(wxPoint(bnUpdateDownloader.GetPosition().x, vOffset3 + 40 + 40 + 40 + 40 + 40));
+        bnRunScript.SetPosition(wxPoint(bnRunScript.GetPosition().x, vOffset3 + fieldHeight * 5));
+        checkAlert.SetPosition(wxPoint(checkAlert.GetPosition().x, vOffset3 + fieldHeight * 5));
+        fBitrate.SetPosition(fBitrate.GetPosition().x, vOffset3 + fieldHeight * 5 + 2);
+        bnUpdateDownloader.SetPosition(wxPoint(bnUpdateDownloader.GetPosition().x, vOffset3 + fieldHeight * 5));
     }
 
 

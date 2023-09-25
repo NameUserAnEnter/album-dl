@@ -42,7 +42,7 @@ struct Field
 
 struct Margin
 {
-    unsigned int top, left, bottom, right;
+    int top, left, bottom, right;
 };
 
 class MainFrame : public wxFrame
@@ -76,6 +76,8 @@ private:
     wxPoint defaultPos;
 
     std::vector<Field> fields;
+    int fieldHeight;
+    int fieldBreak;
 
     Margin clientMargin;
 
