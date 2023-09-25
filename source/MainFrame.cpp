@@ -448,22 +448,30 @@ void MainFrame::InitBitrates()
 void MainFrame::InitWindowSize()
 {
     SetFullSize();
-    //SetMinSize(GetSize());
+    SetMinSize(GetSize());
 
     int th = 80;    // assumed taskbar height
 
     float devScreenResX = 1920;
-    float devScreenResY = 1080 - th;
+    float devScreenResY = 1080;
 
-    float userScreenResX = GetSystemMetrics(SM_CXSCREEN);
-    float userScreenResY = GetSystemMetrics(SM_CYSCREEN) - th;
-    //float userScreenResX = 1366;
-    //float userScreenResY = 768 - th;
+    bool bTestEndUser = false;
+    float userScreenResX, userScreenResY;
+    if (!bTestEndUser)
+    {
+        userScreenResX = GetSystemMetrics(SM_CXSCREEN);
+        userScreenResY = GetSystemMetrics(SM_CYSCREEN);
+    }
+    else
+    {
+        userScreenResX = 1366;
+        userScreenResY = 768;
+    }
 
     float devWindowResX = 1600;
     float devWindowResY = 900;
 
-    //SetClientSize((devWindowResX * userScreenResX) / devScreenResX, (devWindowResY * userScreenResY) / devScreenResY);
+    SetClientSize((devWindowResX * userScreenResX) / devScreenResX, (devWindowResY * userScreenResY) / devScreenResY - th);
 }
 
 void MainFrame::InitPosition()
@@ -560,8 +568,8 @@ void MainFrame::InitTerminalOutput()
 
 void MainFrame::InitFocus()
 {
-    //bnRunScript.SetFocus();
-    fArtist.SetFocus();
+    bnRunScript.SetFocus();
+    //fArtist.SetFocus();
 }
 // --
 
@@ -754,7 +762,10 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
 
     // CELL 4
     wxButton* buttonPtr;
+    
     Rect b1_1, b1_2, b2_1, b2_2;
+    wxSize refreshMargin(0, 0);
+
     int buttonX;
     int hOffset4 = newClientWidth;
     hOffset4 -= clientMargin.right;
@@ -770,9 +781,15 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
         buttonX = clientMargin.left + minDataFieldSize.x - bnRunScript.GetSize().x;
     }
     buttonPtr = &bnRunScript;
-    b1_1 = Rect{ buttonPtr->GetPosition().x - 1, buttonPtr->GetPosition().y - 1, buttonPtr->GetSize().x + 2, buttonPtr->GetSize().x + 2 };
+    b1_1 = Rect{    buttonPtr->GetPosition().x - refreshMargin.x,
+                    buttonPtr->GetPosition().y - refreshMargin.y,
+                    buttonPtr->GetSize().x + refreshMargin.x * 2,
+                    buttonPtr->GetSize().y + refreshMargin.y * 2 };
     buttonPtr->SetPosition(wxPoint(buttonX, buttonPtr->GetPosition().y));
-    b1_2 = Rect { buttonPtr->GetPosition().x - 1, buttonPtr->GetPosition().y - 1, buttonPtr->GetSize().x + 2, buttonPtr->GetSize().x + 2 };
+    b1_2 = Rect { buttonPtr->GetPosition().x - refreshMargin.x,
+                    buttonPtr->GetPosition().y - refreshMargin.y,
+                    buttonPtr->GetSize().x + refreshMargin.x * 2,
+                    buttonPtr->GetSize().y + refreshMargin.y * 2 };
 
 
     hOffset4 -= buttonBreak;
@@ -783,19 +800,27 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
         buttonX = clientMargin.left + minDataFieldSize.x - bnRunScript.GetSize().x - buttonBreak - bnUpdateDownloader.GetSize().x;
     }
     buttonPtr = &bnUpdateDownloader;
-    b2_1 = Rect { buttonPtr->GetPosition().x - 1, buttonPtr->GetPosition().y - 1, buttonPtr->GetSize().x + 2, buttonPtr->GetSize().x + 2 };
+    b2_1 = Rect { buttonPtr->GetPosition().x - refreshMargin.x,
+                    buttonPtr->GetPosition().y - refreshMargin.y,
+                    buttonPtr->GetSize().x + refreshMargin.x * 2,
+                    buttonPtr->GetSize().y + refreshMargin.y * 2 };
     buttonPtr->SetPosition(wxPoint(buttonX, buttonPtr->GetPosition().y));
-    b2_2 = Rect { buttonPtr->GetPosition().x - 1, buttonPtr->GetPosition().y - 1, buttonPtr->GetSize().x + 2, buttonPtr->GetSize().x + 2 };
-
+    b2_2 = Rect { buttonPtr->GetPosition().x - refreshMargin.x,
+                    buttonPtr->GetPosition().y - refreshMargin.y,
+                    buttonPtr->GetSize().x + refreshMargin.x * 2,
+                    buttonPtr->GetSize().y + refreshMargin.y * 2 };
 
     // Compare smoothness with this bool
-    bool bRefreshWholeClientArea = false;
+    bool bRefreshWholeClientArea = true;
     if (bRefreshWholeClientArea)
     {
         // Refresh whole client area
         Refresh();
         return;
     }
+    //bnRunScript.Refresh();
+    //bnUpdateDownloader.Refresh();
+    //return;
     
     // Refresh only dirty regions around the two buttons
     Rect reg;
@@ -804,12 +829,10 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     buttonPtr = &bnRunScript;
     reg = RectUnion(b1_1, b1_2);
     RefreshRect(wxRect(reg.x, reg.y, reg.width, reg.height));
-    buttonPtr->SetLabel(std::to_wstring(reg.x) + L"x" + std::to_wstring(reg.y) + L" " + std::to_wstring(reg.width) + L"x" + std::to_wstring(reg.height));
 
     buttonPtr = &bnUpdateDownloader;
     reg = RectUnion(b2_1, b2_2);
     RefreshRect(wxRect(reg.x, reg.y, reg.width, reg.height));
-    buttonPtr->SetLabel(std::to_wstring(reg.x) + L"x" + std::to_wstring(reg.y) + L" " + std::to_wstring(reg.width) + L"x" + std::to_wstring(reg.height));
 }
 // --
 
@@ -856,12 +879,12 @@ void MainFrame::GetAlbum()
 
 
     //--------------------------------------------------
-    //mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
-    //ExecuteBatchSession();
+    mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
+    ExecuteBatchSession();
 
-    //
-    ////--------------------------------------------------
-    //GetArtworkStage();
+    
+    //--------------------------------------------------
+    GetArtworkStage();
 
 
 
@@ -869,26 +892,26 @@ void MainFrame::GetAlbum()
     ResetTracksFile();
     GetTrackTitles();
 
-    //LoadTrackTitles();
-    //ValidateTrackTitles();
-    //ResetTracksFile();
-    //
-    //
-    ////--------------------------------------------------
-    //mainConsole.AddCmd(ConvertStage(), UTF8);
-    //mainConsole.AddCmd(CreateTrashDirStage());
-    //mainConsole.AddCmd(RemoveLeftoverStage());
-    //mainConsole.AddCmd(RenameFilesStage());
-    //ExecuteBatchSession();
+    LoadTrackTitles();
+    ValidateTrackTitles();
+    ResetTracksFile();
+    
+    
+    //--------------------------------------------------
+    mainConsole.AddCmd(ConvertStage(), UTF8);
+    mainConsole.AddCmd(CreateTrashDirStage());
+    mainConsole.AddCmd(RemoveLeftoverStage());
+    mainConsole.AddCmd(RenameFilesStage());
+    ExecuteBatchSession();
 
 
-    ////--------------------------------------------------
-    //AttachArtworkToAll();
+    //--------------------------------------------------
+    AttachArtworkToAll();
 
-    //mainConsole.AddCmd(CreateAlbumDirectoryStage());
-    //mainConsole.AddCmd(MoveAudioStage());
-    //mainConsole.AddCmd(MoveArtworkStage());
-    //ExecuteBatchSession();
+    mainConsole.AddCmd(CreateAlbumDirectoryStage());
+    mainConsole.AddCmd(MoveAudioStage());
+    mainConsole.AddCmd(MoveArtworkStage());
+    ExecuteBatchSession();
 
     
     // FIELDS VALUE RESET
