@@ -444,17 +444,17 @@ void MainFrame::InitBitrates()
 void MainFrame::InitWindowSize()
 {
     SetFullSize();
-    SetMinSize(GetSize());
+    //SetMinSize(GetSize());
 
     int th = 80;    // assumed taskbar height
 
     float devScreenResX = 1920;
     float devScreenResY = 1080 - th;
 
-    //float userScreenResX = GetSystemMetrics(SM_CXSCREEN);
-    //float userScreenResY = GetSystemMetrics(SM_CYSCREEN) - th;
-    float userScreenResX = 1366;
-    float userScreenResY = 768 - th;
+    float userScreenResX = GetSystemMetrics(SM_CXSCREEN);
+    float userScreenResY = GetSystemMetrics(SM_CYSCREEN) - th;
+    //float userScreenResX = 1366;
+    //float userScreenResY = 768 - th;
 
     float devWindowResX = 1600;
     float devWindowResY = 900;
@@ -708,7 +708,7 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     std::wstring textFieldPosBeforeStr = std::to_wstring(fOutput.textField.GetPosition().x) + L"x" + std::to_wstring(fOutput.textField.GetPosition().y);
 
     // CELL 1
-    fExtra.SetSize(fExtra.GetMinSize().x + hIncreaseCell1, fExtra.GetSize().y);
+    //fExtra.SetSize(fExtra.GetMinSize().x + hIncreaseCell1, fExtra.GetSize().y);
 
     fAlbumsDir.SetSize(fAlbumsDir.GetMinSize().x + hIncreaseCell1, fAlbumsDir.GetSize().y);
     fWorkingDir.SetSize(fWorkingDir.GetMinSize().x + hIncreaseCell1, fWorkingDir.GetSize().y);
@@ -738,31 +738,28 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     fOutput.SetSize(fOutput.GetMinSize().x + hIncreaseCell2, fOutput.GetMinSize().y + vIncreaseCell2);
 
     // CELL 3
-    //fields.push_back(Field(clientMargin.left, 160, TextBoxSize));
-    //fields.push_back(Field(clientMargin.left, 200, TextBoxSize));
-    //fields.push_back(Field(clientMargin.left, 240, TextBoxSize));
+    int vOffset3 = newClientHeight;
+    vOffset3 -= clientMargin.bottom;
+    vOffset3 -= bnRunScript.GetSize().y;
+    vOffset3 -= 40;
+    vOffset3 -= 40;
 
-    //fields.push_back(Field(clientMargin.left, 280, TextBoxSize));
-    //fields.push_back(Field(clientMargin.left, 320, TextBoxSize));
-
-    //fields.push_back(Field(clientMargin.left, 360, ButtonSize));
-    //fields.push_back(Field(clientMargin.left + ButtonSize.x + 10, 360, ButtonSize));
-    //fields.push_back(Field(clientMargin.left + ButtonSize.x + 10 + ButtonSize.x + 10, 362, ButtonSize));
-    //fields.push_back(Field(clientMargin.left + ButtonSize.x + 10 + ButtonSize.x + 10 + ButtonSize.x + 10, 360, ButtonSize));
-
-    if (newClientHeight >= GetMinClientSize().y)
+    vOffset3 -= 40;
+    vOffset3 -= 40;
+    vOffset3 -= 40;
+    if (vOffset3 >= 160)
     {
-        bnRunScript.SetPosition(wxPoint(bnRunScript.GetPosition().x, newClientHeight - clientMargin.bottom - bnRunScript.GetSize().y));
-        checkAlert.SetPosition(wxPoint(checkAlert.GetPosition().x, newClientHeight - clientMargin.bottom - checkAlert.GetSize().y));
-        fBitrate.SetPosition(fBitrate.GetPosition().x, newClientHeight - clientMargin.bottom - fBitrate.GetSize().y);
-        bnUpdateDownloader.SetPosition(wxPoint(bnUpdateDownloader.GetPosition().x, newClientHeight - clientMargin.bottom - bnUpdateDownloader.GetSize().y));
+        fArtist.SetPosition(fArtist.GetPosition().x, vOffset3);
+        fAlbumName.SetPosition(fAlbumName.GetPosition().x, vOffset3 + 40);
+        fAlbumYear.SetPosition(fAlbumYear.GetPosition().x, vOffset3 + 40 + 40);
+        fURL.SetPosition(fURL.GetPosition().x, vOffset3 + 40 + 40 + 40);
+        fArtworkURL.SetPosition(fArtworkURL.GetPosition().x, vOffset3 + 40 + 40 + 40 + 40);
 
-        fArtworkURL.SetPosition(fArtworkURL.GetPosition().x, bnRunScript.GetPosition().y - 40);
-        fURL.SetPosition(fArtworkURL.GetPosition().x, fArtworkURL.GetPosition().y - 40);
 
-        fAlbumYear.SetPosition(fArtworkURL.GetPosition().x, fURL.GetPosition().y - 40);
-        fAlbumName.SetPosition(fArtworkURL.GetPosition().x, fAlbumYear.GetPosition().y - 40);
-        fArtist.SetPosition(fArtworkURL.GetPosition().x, fAlbumName.GetPosition().y - 40);
+        bnRunScript.SetPosition(wxPoint(bnRunScript.GetPosition().x, vOffset3 + 40 + 40 + 40 + 40 + 40));
+        checkAlert.SetPosition(wxPoint(checkAlert.GetPosition().x, vOffset3 + 40 + 40 + 40 + 40 + 40));
+        fBitrate.SetPosition(fBitrate.GetPosition().x, vOffset3 + 40 + 40 + 40 + 40 + 40 + 2);
+        bnUpdateDownloader.SetPosition(wxPoint(bnUpdateDownloader.GetPosition().x, vOffset3 + 40 + 40 + 40 + 40 + 40));
     }
 
 
