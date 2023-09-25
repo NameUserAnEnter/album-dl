@@ -71,13 +71,21 @@ private:
     DropDown fBitrate;
 
     TextBox fOutput;
-    TextBox fExtra;
 private:
     wxPoint defaultPos;
 
     std::vector<Field> fields;
+    
     int fieldHeight;
     int fieldBreak;
+
+    int buttonBreak;
+
+    wxSize minDataFieldSize;
+    wxSize maxDataFieldSize;
+
+    wxSize minOutputFieldSize;
+    wxSize maxOutputFieldSize;
 
     Margin clientMargin;
 

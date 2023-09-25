@@ -133,8 +133,16 @@ void MainFrame::InitValues()
     defaultPos.x = 0;
     defaultPos.y = 0;
 
+
     fieldHeight = 40;
-    fieldBreak = 20;
+    fieldBreak = 80;
+
+    buttonBreak = 10;
+
+    clientMargin = { 20, 20, 20, 20 };
+
+    minDataFieldSize = wxSize(550, 20);
+    maxDataFieldSize = wxSize(800, minDataFieldSize.y);
 }
 
 void MainFrame::InitMenuAndStatusBar()
@@ -182,14 +190,14 @@ void MainFrame::InitFieldsDimensions()
     // ||____________|__________________||
     // |_____________|___________________|
 
+
+    // Data field dimensions are set here to minimal sizes and positions
     wxSize TextBoxSize;
     wxSize OutputBoxSize;
     wxSize ButtonSize;
 
-    TextBoxSize = wxSize(550, 20);
+    TextBoxSize = minDataFieldSize;
     ButtonSize = wxSize(100, 25);
-
-    clientMargin = { 20, 20, 20, 20 };
 
     fields.clear();
 
@@ -204,10 +212,10 @@ void MainFrame::InitFieldsDimensions()
     fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
     fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
 
-    fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, ButtonSize));
-    fields.push_back(Field(clientMargin.left + ButtonSize.x + 10, fields.back().pos.y, ButtonSize));
-    fields.push_back(Field(clientMargin.left + ButtonSize.x + 10 + ButtonSize.x + 10, fields.back().pos.y + 2, ButtonSize));
-    fields.push_back(Field(clientMargin.left + ButtonSize.x + 10 + ButtonSize.x + 10 + ButtonSize.x + 10, fields.back().pos.y, ButtonSize));
+    fields.push_back(Field(clientMargin.left + (ButtonSize.x + buttonBreak) * 0, fields.back().pos.y + fieldHeight, ButtonSize));
+    fields.push_back(Field(clientMargin.left + (ButtonSize.x + buttonBreak) * 1, fields.back().pos.y, ButtonSize));
+    fields.push_back(Field(clientMargin.left + (ButtonSize.x + buttonBreak) * 2, fields.back().pos.y + 2, ButtonSize));
+    fields.push_back(Field(clientMargin.left + (ButtonSize.x + buttonBreak) * 3, fields.back().pos.y, ButtonSize));
 
 
 
@@ -243,50 +251,35 @@ void MainFrame::InitFields()
     bnUpdateDownloader.Create(parent, ID_ButtonUpdate, "Update YT-DLP", fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Update button"); index++;
 
     fOutput.Init("Output:", ID_output_Field, fields[index].pos, fields[index].size, parent, wxTE_MULTILINE | wxTE_READONLY);    index++;
-
-    fExtra.Init(
-        "Output:", ID_extra_Field, wxPoint(clientMargin.left, clientMargin.top), wxSize(fAlbumsDir.GetSize().x, 320), parent, wxTE_MULTILINE | wxTE_READONLY);
-    //fAlbumsDir.Hide();
-    //fWorkingDir.Hide();
-    //fConverterDir.Hide();
-
-    //fArtist.Hide();
-    //fAlbumName.Hide();
-    //fAlbumYear.Hide();
-    //fURL.Hide();
-    //fArtworkURL.Hide();
-    fExtra.Hide();
 }
 
 void MainFrame::InitFieldsDimensionRanges()
 {
     // FIELDS MIN SIZES
-    fAlbumsDir.SetMinSize(fAlbumsDir.GetSize());
-    fWorkingDir.SetMinSize(fAlbumsDir.GetSize());
-    fConverterDir.SetMinSize(fAlbumsDir.GetSize());
+    fAlbumsDir.SetMinSize(minDataFieldSize);
+    fWorkingDir.SetMinSize(minDataFieldSize);
+    fConverterDir.SetMinSize(minDataFieldSize);
 
-    fArtist.SetMinSize(fAlbumsDir.GetSize());
-    fAlbumName.SetMinSize(fAlbumsDir.GetSize());
-    fAlbumYear.SetMinSize(fAlbumsDir.GetSize());
-    fURL.SetMinSize(fAlbumsDir.GetSize());
-    fArtworkURL.SetMinSize(fAlbumsDir.GetSize());
+    fArtist.SetMinSize(minDataFieldSize);
+    fAlbumName.SetMinSize(minDataFieldSize);
+    fAlbumYear.SetMinSize(minDataFieldSize);
+    fURL.SetMinSize(minDataFieldSize);
+    fArtworkURL.SetMinSize(minDataFieldSize);
     
-    fExtra.SetMinSize(fExtra.GetSize());
     fOutput.SetMinSize(fOutput.GetSize());
 
 
     // FIELDS MAX SIZES
-    fAlbumsDir.SetMaxSize(800, fAlbumsDir.GetSize().y);
-    fWorkingDir.SetMaxSize(800, fAlbumsDir.GetSize().y);
-    fConverterDir.SetMaxSize(800, fAlbumsDir.GetSize().y);
+    fAlbumsDir.SetMaxSize(maxDataFieldSize);
+    fWorkingDir.SetMaxSize(maxDataFieldSize);
+    fConverterDir.SetMaxSize(maxDataFieldSize);
 
-    fArtist.SetMaxSize(800, fAlbumsDir.GetSize().y);
-    fAlbumName.SetMaxSize(800, fAlbumsDir.GetSize().y);
-    fAlbumYear.SetMaxSize(800, fAlbumsDir.GetSize().y);
-    fURL.SetMaxSize(800, fAlbumsDir.GetSize().y);
-    fArtworkURL.SetMaxSize(800, fAlbumsDir.GetSize().y);
+    fArtist.SetMaxSize(maxDataFieldSize);
+    fAlbumName.SetMaxSize(maxDataFieldSize);
+    fAlbumYear.SetMaxSize(maxDataFieldSize);
+    fURL.SetMaxSize(maxDataFieldSize);
+    fArtworkURL.SetMaxSize(maxDataFieldSize);
 
-    fExtra.SetMaxSize(800, fExtra.GetSize().y);
     fOutput.SetMaxSize(-1, -1);
 }
 
@@ -367,7 +360,6 @@ void MainFrame::InitFonts()
 
 
     fOutput.SetFont(outputFont);
-    fExtra.SetFont(wxFont(wxFontInfo(9).FaceName("Courier New")));
     
     
 
@@ -462,7 +454,7 @@ void MainFrame::InitWindowSize()
     float devWindowResX = 1600;
     float devWindowResY = 900;
 
-    SetClientSize((devWindowResX * userScreenResX) / devScreenResX, (devWindowResY * userScreenResY) / devScreenResY);
+    //SetClientSize((devWindowResX * userScreenResX) / devScreenResX, (devWindowResY * userScreenResY) / devScreenResY);
 }
 
 void MainFrame::InitPosition()
@@ -660,23 +652,8 @@ void MainFrame::OnButtonUpdate(wxCommandEvent& event)
 
 void MainFrame::OnPanelResize(wxSizeEvent& event)
 {
-    //event.Skip();
     int newClientWidth = event.GetSize().x;
     int newClientHeight = event.GetSize().y;
-
-    static int oldClientWidth = 0;
-    static int oldClientHeight = 0;
-    if (oldClientWidth == 0 || oldClientHeight == 0)
-    {
-        oldClientWidth = mainPanel.GetClientSize().x;
-        oldClientHeight = mainPanel.GetClientSize().y;
-
-        fExtra.AddText(L"PanelResize-oldClient: init\n\n");
-        return;
-    }
-
-
-
 
 
     // direction doesn't matter
@@ -685,14 +662,14 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     hIncreaseTotal -= clientMargin.right;
     hIncreaseTotal -= fOutput.GetMinSize().x;
     hIncreaseTotal -= 10;
-    hIncreaseTotal -= fExtra.GetMinSize().x;
+    hIncreaseTotal -= minDataFieldSize.x;
     hIncreaseTotal -= clientMargin.left;
 
     int hIncreaseCell1 = hIncreaseTotal;
     int hIncreaseCell2 = 0;
-    if (fExtra.GetMinSize().x + hIncreaseCell1 > fExtra.GetMaxSize().x)
+    if (minDataFieldSize.x + hIncreaseCell1 > maxDataFieldSize.x)
     {
-        hIncreaseCell1 = fExtra.GetMaxSize().x - fExtra.GetMinSize().x;
+        hIncreaseCell1 = maxDataFieldSize.x - minDataFieldSize.x;
         hIncreaseCell2 = hIncreaseTotal - hIncreaseCell1;
     }
 
@@ -708,11 +685,8 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
 
     
     
-    std::wstring textFieldPosBeforeStr = std::to_wstring(fOutput.textField.GetPosition().x) + L"x" + std::to_wstring(fOutput.textField.GetPosition().y);
 
     // CELL 1
-    //fExtra.SetSize(fExtra.GetMinSize().x + hIncreaseCell1, fExtra.GetSize().y);
-
     fAlbumsDir.SetSize(fAlbumsDir.GetMinSize().x + hIncreaseCell1, fAlbumsDir.GetSize().y);
     fWorkingDir.SetSize(fWorkingDir.GetMinSize().x + hIncreaseCell1, fWorkingDir.GetSize().y);
     fConverterDir.SetSize(fConverterDir.GetMinSize().x + hIncreaseCell1, fConverterDir.GetSize().y);
@@ -724,7 +698,6 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     fArtworkURL.SetSize(fArtworkURL.GetMinSize().x + hIncreaseCell1, fArtworkURL.GetSize().y);
 
     std::vector<TextBox*> textBoxesCell1;
-    //textBoxesCell1.push_back(&fExtra);
     textBoxesCell1.push_back(&fAlbumsDir);
     textBoxesCell1.push_back(&fWorkingDir);
     textBoxesCell1.push_back(&fConverterDir);
@@ -736,9 +709,14 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     textBoxesCell1.push_back(&fArtworkURL);
     wxSize maxDistance1 = FindMaxDistance(std::vector<Field>(), textBoxesCell1);
     
+
+
     // CELL 2
     fOutput.SetPosition(maxDistance1.x + 10, fOutput.GetPosition().y);
     fOutput.SetSize(fOutput.GetMinSize().x + hIncreaseCell2, fOutput.GetMinSize().y + vIncreaseCell2);
+
+
+
 
     // CELL 3
     int vOffset3 = newClientHeight;
@@ -764,24 +742,6 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
         fBitrate.SetPosition(fBitrate.GetPosition().x, vOffset3 + fieldHeight * 5 + 2);
         bnUpdateDownloader.SetPosition(wxPoint(bnUpdateDownloader.GetPosition().x, vOffset3 + fieldHeight * 5));
     }
-
-
-
-    std::wstring oldClientSizeStr = std::to_wstring(oldClientWidth) + L"x" + std::to_wstring(oldClientHeight);
-    std::wstring newClientSizeStr = std::to_wstring(newClientWidth) + L"x" + std::to_wstring(newClientHeight);
-    std::wstring textFieldPosAfterStr = std::to_wstring(fOutput.textField.GetPosition().x) + L"x" + std::to_wstring(fOutput.textField.GetPosition().y);
-
-    fExtra.AddText(L"PanelResize-oldClientSize: " + oldClientSizeStr + L"\n");
-    fExtra.AddText(L"PanelResize-newClientSize: " + newClientSizeStr + L"\n");
-    fExtra.AddText(L"PanelResize-textFieldPosBeforeStr: " + textFieldPosBeforeStr + L"\n");
-    fExtra.AddText(L"PanelResize-textFieldPosAfterStr: " + textFieldPosAfterStr + L"\n");
-    fExtra.AddText(L"PanelResize-hIncreaseTotal: " + std::to_wstring(hIncreaseTotal) + L"\n");
-    fExtra.AddText(L"PanelResize-hIncreaseCell1: " + std::to_wstring(hIncreaseCell1) + L"\n");
-    fExtra.AddText(L"PanelResize-hIncreaseCell2: " + std::to_wstring(hIncreaseCell2) + L"\n");
-    fExtra.AddText(L"\n");
-
-    oldClientWidth = mainPanel.GetClientSize().x;
-    oldClientHeight = mainPanel.GetClientSize().y;
 }
 // --
 
