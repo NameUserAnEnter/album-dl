@@ -833,6 +833,17 @@ inline std::vector<std::basic_string<T>> splitByStr(std::basic_string<T> str, co
     return splitByStr(str, std::basic_string<T>(query), leaveQueried);
 }
 
+template<typename T>
+inline std::basic_string<T> trimTrailingNewlines(std::basic_string<T> str)
+{
+    while (str.size() > 0)
+    {
+        if (str.back() == '\n') str.pop_back();
+        else break;
+    }
+    return str;
+}
+
 
 
 

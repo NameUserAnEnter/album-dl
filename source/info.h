@@ -106,10 +106,10 @@ inline std::string GetAbout()
         "https://ffmpeg.org/download.html\n"
 
         "\n# SHORTCUTS:\n"
-        "'Ctrl + S':        Save settings\n"
-        "'Esc':             Exit the program\n"
-        "'Tab':             Next field\n"
-        "'Shift + Tab':     Previous field\n"
+        "'Ctrl + S':      Save settings\n"
+        "'Esc':           Exit the program\n"
+        "'Tab':           Next field\n"
+        "'Shift + Tab':   Previous field"
         ;
 
     return output;
