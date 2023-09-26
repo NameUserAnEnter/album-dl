@@ -37,7 +37,8 @@ public:
     wxTextCtrl textField;
     TextBox();
 
-    void Init(std::string, wxWindowID, wxPoint, wxSize, wxWindow*, long = NULL);
+    void Init(std::wstring, wxWindowID, wxPoint, wxSize, wxWindow*, long = NULL);
+    void Init(wxWindowID, wxPoint, wxSize, wxWindow*, long = NULL);
 
     std::wstring* GetBuf();
     void SetMutex(std::mutex*);

@@ -14,6 +14,7 @@
 #include "info.h"
 #include "DropDown.h"
 #include "MainDialog.h"
+#include "id_enum.h"
 #include <thread>
 #include <mutex>
 #include <chrono>
@@ -61,8 +62,8 @@ private:
     TextBox fURL;
     TextBox fArtworkURL;
     
-    wxButton bnRunScript;
-    wxButton bnUpdateDownloader;
+    wxButton buttonDownload;
+    wxButton buttonUpdateYtDlp;
     wxCheckBox checkAlert;
     DropDown fBitrate;
 
@@ -108,6 +109,7 @@ private:
 
     void InitFieldsDimensions();
     void InitFields();
+    void InitFieldsLabels();
     void InitFieldsDimensionRanges();
 
     void InitBindings();

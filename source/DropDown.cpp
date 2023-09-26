@@ -18,7 +18,7 @@ DropDown::DropDown()
     maxSize.y = -1;
 }
 
-void DropDown::Init(std::string label, std::wstring initial_value, wxWindowID dropDownID, wxPoint position, wxSize size, wxWindow* parent, long style)
+void DropDown::Init(std::wstring label, std::wstring initial_value, wxWindowID dropDownID, wxPoint position, wxSize size, wxWindow* parent, long style)
 {
     labelBox.Create(
         parent, wxID_ANY, label,
@@ -38,6 +38,14 @@ void DropDown::Init(std::string label, std::wstring initial_value, wxWindowID dr
 
 	bInit = true;
 }
+
+void DropDown::Init(std::wstring initial_value, wxWindowID dropDownID, wxPoint position, wxSize size, wxWindow* parent, long style)
+{
+    Init(L"", initial_value, dropDownID, position, size, parent, style);
+}
+
+
+
 
 void DropDown::OnLabelBoxMove(wxMoveEvent& event)
 {

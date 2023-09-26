@@ -3,40 +3,6 @@
 #include "tag_utils.h"
 
 
-// ID's for GUI-elements
-enum
-{
-    ID_Frame = 1,
-    ID_Panel,
-
-    ID_Save,
-    ID_Exit,
-    ID_About,
-    ID_License,
-
-    ID_albumsDir_Field,
-    ID_workingDir_Field,
-    ID_converterDir_Field,
-   
-    ID_artist_Field,
-    ID_albumName_Field,
-    ID_albumYear_Field,
-    
-    ID_URL_Field,
-    ID_URL_Artwork_Field,
-
-    ID_ButtonDownload,
-    ID_AlertOnDone,
-    ID_Bitrate,
-    ID_ButtonUpdate,
-
-    ID_output_Field,
-    ID_extra_Field,
-
-    ID_about_Dialog,
-
-    ID_unused
-};
 
 
 
@@ -166,25 +132,28 @@ void MainFrame::InitValues()
 
 void MainFrame::InitMenuAndStatusBar()
 {
-    // File:
-    //      Save settings
+    // Characters preceeded by an ampersand in the menu item text are the mnemonics underlined in alt-mode/acces-keys for these menu items
+    // The \t<Shortcut> specify the item shortcuts
+    // The third arg is the status bar text displayed on hovering the item
+
+    
+    // File          | Info
+    // -----------------------
+    // Save settings | About
+    // Exit          | License
+
+    
     wxMenu* menuFile = new wxMenu;
-    // Characters preceded by an ampersand in menu item text are the mnemonic underlined-in-alt-mode acces-keys for these menu items
-    // The \tShortcut specify the item shortcuts
-    menuFile->Append(ID_Save, "&Save settings\tCtrl+S", "Save Albums directory, Working directory, window position & alert check box");
+    menuFile->Append(ID_menuSave, "&Save settings\tCtrl+S", "Saves: directories, window position/size, alert-on-done and bitrate.");
     menuFile->AppendSeparator();
-    //      Exit
-    menuFile->Append(ID_Exit, "&Exit\tEsc");
+    menuFile->Append(ID_menuExit, "&Exit\tEsc", "Close this program.");
 
-    // Info:
-    //      About
     wxMenu* menuInfo = new wxMenu;
-    menuInfo->Append(ID_About, "&About");
-    menuInfo->Append(ID_License, "&License");
+    menuInfo->Append(ID_menuAbout, "&About", "About this program.");
+    menuInfo->Append(ID_menuLicense, "&License", "See the program's license.");
 
 
 
-    // File | Info
     wxMenuBar* menuBar = new wxMenuBar;
     menuBar->Append(menuFile, "&File");
     menuBar->Append(menuInfo, "&Info");
@@ -250,36 +219,56 @@ void MainFrame::InitFields()
 {
     // PANEL:
     // default sizes and pos because it's automatically stretched to the frame anyway
-    mainPanel.Create(this, ID_Panel, wxDefaultPosition, wxDefaultSize, 2621440L, "Main Panel");
+    mainPanel.Create(this, ID_framePanel, wxDefaultPosition, wxDefaultSize, 2621440L, "Main Panel");
     wxWindow* parent = &mainPanel;
 
     unsigned int index = 0;
 
     // FIELDS:
-    fAlbumsDir.Init(    "Albums directory:",    ID_albumsDir_Field,     fields[index].pos, fields[index].size, parent);   index++;
-    fWorkingDir.Init(   "Working directory:",   ID_workingDir_Field,    fields[index].pos, fields[index].size, parent);   index++;
-    fConverterDir.Init( "ffmpeg.exe directory:", ID_converterDir_Field, fields[index].pos, fields[index].size, parent);   index++;
+    fAlbumsDir.Init(    ID_fAlbumsDir,      fields[index].pos, fields[index].size, parent); index++;
+    fWorkingDir.Init(   ID_fWorkingDir,     fields[index].pos, fields[index].size, parent); index++;
+    fConverterDir.Init( ID_fConverterDir,   fields[index].pos, fields[index].size, parent); index++;
     // extra separation
-    fArtist.Init(   "Artist:",      ID_artist_Field,    fields[index].pos, fields[index].size, parent);   index++;
-    fAlbumName.Init("Album name:",  ID_albumName_Field, fields[index].pos, fields[index].size, parent);   index++;
-    fAlbumYear.Init("Album year:",  ID_albumYear_Field, fields[index].pos, fields[index].size, parent);   index++;
-    fURL.Init(          "Playlist URL:",                        ID_URL_Field,           fields[index].pos, fields[index].size, parent);   index++;
-    fArtworkURL.Init(   "Playlist URL with proper artwork:",    ID_URL_Artwork_Field,   fields[index].pos, fields[index].size, parent);   index++;
+    fArtist.Init(   ID_fArtist,    fields[index].pos, fields[index].size, parent); index++;
+    fAlbumName.Init(ID_fAlbumName, fields[index].pos, fields[index].size, parent); index++;
+    fAlbumYear.Init(ID_fAlbumYear, fields[index].pos, fields[index].size, parent); index++;
+    fURL.Init(          ID_fURL,        fields[index].pos, fields[index].size, parent); index++;
+    fArtworkURL.Init(   ID_fArtworkURL, fields[index].pos, fields[index].size, parent); index++;
 
-    fBitrate.Init("Bitrate:", L"----", ID_Bitrate, fields[index].pos, fields[index].size, parent);    index++;
-    checkAlert.Create(parent, ID_AlertOnDone, "Alert on done", fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Alert checkbox"); index++;
-    bnUpdateDownloader.Create(parent, ID_ButtonUpdate, "Update YT-DLP", fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Update button"); index++;
-    bnRunScript.Create(parent, ID_ButtonDownload, "Run", fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Run button");     index++;
+    fBitrate.Init(L"----", ID_fBitrate,                     fields[index].pos, fields[index].size, parent); index++;
+    checkAlert.Create(parent,        ID_checkAlert,     "", fields[index].pos, fields[index].size);         index++;
+    buttonUpdateYtDlp.Create(parent, ID_buttonUpdate,   "", fields[index].pos, fields[index].size);         index++;
+    buttonDownload.Create(parent,    ID_buttonDownload, "", fields[index].pos, fields[index].size);         index++;
     
-    fOutput.Init("Output:", ID_output_Field, fields[index].pos, fields[index].size, parent, wxTE_MULTILINE | wxTE_READONLY);    index++;
+    fOutput.Init(ID_fOutput, fields[index].pos, fields[index].size, parent, wxTE_MULTILINE | wxTE_READONLY); index++;
+}
 
-    
+void MainFrame::InitFieldsLabels()
+{
+    fAlbumsDir.SetLabel(L"Albums directory:");
+    fWorkingDir.SetLabel(L"Working directory:");
+    fConverterDir.SetLabel(L"ffmpe.exe directory:");
+
+    fArtist.SetLabel(L"Artist");
+    fAlbumName.SetLabel(L"Album name:");
+    fAlbumYear.SetLabel(L"Album year:");
+    fURL.SetLabel(L"Playlist URL:");
+    fArtworkURL.SetLabel(L"Playlist URL with artwork:");
+
+    fBitrate.SetLabel(L"Bitrate:");
+    checkAlert.SetLabel(L"Alert on done");
+    buttonUpdateYtDlp.SetLabel(L"Update YT-DLP");
+    buttonDownload.SetLabel(L"Download");
+
+    fOutput.SetLabel(L"Output:");
+
+
 
     // appending -(optional) suffixes:
-    fArtist.AppendLabel(L" (optional):");
-    fAlbumName.AppendLabel(L" (optional):");
-    fAlbumYear.AppendLabel(L" (optional):");
-    fArtworkURL.AppendLabel(L" (optional):");
+    //fArtist.AppendLabel(L" (optional, used for folder-name and file-names):");
+    //fAlbumName.AppendLabel(L" (optional, used for folder-name):");
+    //fAlbumYear.AppendLabel(L" (optional, used for folder-name):");
+    //fArtworkURL.AppendLabel(L" (optional, use if the other URL is a normal playlist):");
 }
 
 void MainFrame::InitFieldsDimensionRanges()
@@ -316,15 +305,15 @@ void MainFrame::InitFieldsDimensionRanges()
 
 void MainFrame::InitBindings()
 {
-    Bind(wxEVT_BUTTON, &MainFrame::OnButtonGet, this, ID_ButtonDownload);
-    Bind(wxEVT_BUTTON, &MainFrame::OnButtonUpdate, this, ID_ButtonUpdate);
+    Bind(wxEVT_BUTTON, &MainFrame::OnButtonGet, this, ID_buttonDownload);
+    Bind(wxEVT_BUTTON, &MainFrame::OnButtonUpdate, this, ID_buttonUpdate);
 
-    mainPanel.Bind(wxEVT_SIZE, &MainFrame::OnPanelResize, this, ID_Panel);
+    mainPanel.Bind(wxEVT_SIZE, &MainFrame::OnPanelResize, this, ID_framePanel);
 
-    Bind(wxEVT_MENU, &MainFrame::OnSave, this, ID_Save);
-    Bind(wxEVT_MENU, &MainFrame::OnExit, this, ID_Exit);
-    Bind(wxEVT_MENU, &MainFrame::OnAbout, this, ID_About);
-    Bind(wxEVT_MENU, &MainFrame::OnLicense, this, ID_License);
+    Bind(wxEVT_MENU, &MainFrame::OnSave, this, ID_menuSave);
+    Bind(wxEVT_MENU, &MainFrame::OnExit, this, ID_menuExit);
+    Bind(wxEVT_MENU, &MainFrame::OnAbout, this, ID_menuAbout);
+    Bind(wxEVT_MENU, &MainFrame::OnLicense, this, ID_menuLicense);
     Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose, this);
 }
 
@@ -368,31 +357,34 @@ void MainFrame::InitFonts()
     
 
     wxFont outputFont;
+    // Some monospace fonts:
     //outputFont = wxFont(wxFontInfo(wxSize(8, 16)).FaceName("Courier New").Bold());
     //outputFont = wxFont(wxFontInfo(wxSize(8, 12)).FaceName("Consolas").Bold());
     //outputFont = wxFont(wxFontInfo(wxSize(8, 12)).FaceName("The One True Font (System 8x12)"));
-
-    //outputFont = wxFont(wxFontInfo(wxSize(8, 12)).FaceName("Terminal"));
+    //
+    //outputFont = wxFont(wxFontInfo(wxSize(8, 12)).FaceName("Terminal"));      // requires code-page 852 encoding
     //fOutput.SetEncoding(CP852);
 
     // FIXEDSYS VARIANTS:
     // no ligatures
     outputFont = wxFont(wxFontInfo(12).FaceName("Fixedsys"));
 
-    // few ligatures
+    // a few ligatures
     //outputFont.AddPrivateFont("FSEX300.ttf");
     //outputFont = wxFont(wxFontInfo(12).FaceName("Fixedsys Excelsior 3.01"));
 
-    // most ligatures
+    // the most ligatures
     //outputFont.AddPrivateFont("FSEX302.ttf");
     //outputFont.AddPrivateFont("FSEX302-alt.ttf");
     //outputFont = wxFont(wxFontInfo(12).FaceName("Fixedsys Excelsior"));
 
 
+    
+    
+    // Attempt to set the primary font
     fOutput.SetFont(outputFont);
     
-    
-
+    // Set alternative font in case of failure to set the primary font
     std::wstring outputFaceName = fOutput.GetFontFaceName();
     if (outputFaceName != "Fixedsys")
     {
@@ -400,7 +392,7 @@ void MainFrame::InitFonts()
         fOutput.SetFont(outputFont);
     }
     
-
+    // Font testing:
     //mainConsole.PrintLogAndConsole(testUnicode(outputFaceName));
     //mainConsole.PrintLogAndConsole(testNoLigature());
 }
@@ -595,15 +587,15 @@ void MainFrame::InitTerminalOutput()
 
 void MainFrame::InitFocus()
 {
-    //bnRunScript.SetFocus();
-    fArtist.SetFocus();
-    //fURL.SetFocus();
+    //buttonDownload.SetFocus();
+    //fArtist.SetFocus();
+    fURL.SetFocus();
 }
 // --
 
 
 
-MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
+MainFrame::MainFrame() : wxFrame(NULL, ID_mainFrame, "album-dl")
 {
     // -- INIT METHODS
     InitValues();
@@ -611,6 +603,7 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 
     InitFieldsDimensions();         // SET INITIAL FIELDS DIMENSIONS
     InitFields();                   // SET LABELS AND CONSTRUCT FIELDS
+    //InitFieldsLabels();
     InitFieldsDimensionRanges();
 
     InitBindings();
@@ -664,14 +657,19 @@ void MainFrame::OnExit(wxCommandEvent& event)
 
 void MainFrame::OnAbout(wxCommandEvent& event)
 {
-    // Info / About
-    MainDialog* aboutDialog = new MainDialog(L"About", toWide(GetAbout()));
+    MainDialog* newDialog = new MainDialog(L"About", toWide(GetAbout()), ID_dialogAbout);
+    // Center the dialog, relative to the main-frame
+    newDialog->SetPosition(wxPoint(GetPosition().x + GetSize().x / 2.f - newDialog->GetSize().x / 2.f,
+                                   GetPosition().y + GetSize().y / 2.f - newDialog->GetSize().y / 2.f));
+    newDialog->Show(true);
 }
 
 void MainFrame::OnLicense(wxCommandEvent& event)
 {
-    // Info / License...
-    MainDialog* aboutDialog = new MainDialog(L"License", toWide(GetLicense()));
+    MainDialog* newDialog = new MainDialog(L"License", toWide(GetLicense()), ID_dialogLicense);
+    newDialog->SetPosition(wxPoint(GetPosition().x + GetSize().x / 2.f - newDialog->GetSize().x / 2.f,
+                                   GetPosition().y + GetSize().y / 2.f - newDialog->GetSize().y / 2.f));
+    newDialog->Show(true);
 }
 
 void MainFrame::OnSave(wxCommandEvent& event)
@@ -772,7 +770,7 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     // CELL 3
     int vOffset3 = newClientHeight;
     vOffset3 -= clientMargin.bottom;
-    vOffset3 -= bnRunScript.GetSize().y;
+    vOffset3 -= buttonDownload.GetSize().y;
     vOffset3 -= fieldHeight;
     vOffset3 -= fieldHeight;
 
@@ -788,10 +786,10 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
         fArtworkURL.SetPosition(fArtworkURL.GetPosition().x, vOffset3 + fieldHeight * 4);
 
 
-        bnRunScript.SetPosition(wxPoint(bnRunScript.GetPosition().x, vOffset3 + fieldHeight * 5));
+        buttonDownload.SetPosition(wxPoint(buttonDownload.GetPosition().x, vOffset3 + fieldHeight * 5));
         checkAlert.SetPosition(wxPoint(checkAlert.GetPosition().x, vOffset3 + fieldHeight * 5 + verticalCheckBoxOffset));
         fBitrate.SetPosition(fBitrate.GetPosition().x, vOffset3 + fieldHeight * 5 + verticalDropDownOffset);
-        bnUpdateDownloader.SetPosition(wxPoint(bnUpdateDownloader.GetPosition().x, vOffset3 + fieldHeight * 5));
+        buttonUpdateYtDlp.SetPosition(wxPoint(buttonUpdateYtDlp.GetPosition().x, vOffset3 + fieldHeight * 5));
     }
 
 
@@ -812,13 +810,13 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
 
     
     
-    hOffset4 -= (bnRunScript.GetSize().x);
+    hOffset4 -= (buttonDownload.GetSize().x);
     buttonX = hOffset4;
-    if (hOffset4 <= clientMargin.left + minDataFieldSize.x - bnRunScript.GetSize().x)
+    if (hOffset4 <= clientMargin.left + minDataFieldSize.x - buttonDownload.GetSize().x)
     {
-        buttonX = clientMargin.left + minDataFieldSize.x - bnRunScript.GetSize().x;
+        buttonX = clientMargin.left + minDataFieldSize.x - buttonDownload.GetSize().x;
     }
-    buttonPtr = &bnRunScript;
+    buttonPtr = &buttonDownload;
     b1_1 = Rect{    buttonPtr->GetPosition().x - refreshMargin.x,
                     buttonPtr->GetPosition().y - refreshMargin.y,
                     buttonPtr->GetSize().x + refreshMargin.x * 2,
@@ -831,13 +829,13 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
 
 
     hOffset4 -= buttonBreak;
-    hOffset4 -= bnUpdateDownloader.GetSize().x;
+    hOffset4 -= buttonUpdateYtDlp.GetSize().x;
     buttonX = hOffset4;
-    if (hOffset4 <= clientMargin.left + minDataFieldSize.x - bnRunScript.GetSize().x - buttonBreak - bnUpdateDownloader.GetSize().x)
+    if (hOffset4 <= clientMargin.left + minDataFieldSize.x - buttonDownload.GetSize().x - buttonBreak - buttonUpdateYtDlp.GetSize().x)
     {
-        buttonX = clientMargin.left + minDataFieldSize.x - bnRunScript.GetSize().x - buttonBreak - bnUpdateDownloader.GetSize().x;
+        buttonX = clientMargin.left + minDataFieldSize.x - buttonDownload.GetSize().x - buttonBreak - buttonUpdateYtDlp.GetSize().x;
     }
-    buttonPtr = &bnUpdateDownloader;
+    buttonPtr = &buttonUpdateYtDlp;
     b2_1 = Rect { buttonPtr->GetPosition().x - refreshMargin.x,
                     buttonPtr->GetPosition().y - refreshMargin.y,
                     buttonPtr->GetSize().x + refreshMargin.x * 2,
@@ -856,19 +854,19 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
         Refresh();
         return;
     }
-    //bnRunScript.Refresh();
-    //bnUpdateDownloader.Refresh();
+    //buttonDownload.Refresh();
+    //buttonUpdateYtDlp.Refresh();
     //return;
     
     // Refresh only dirty regions around the two buttons
     Rect reg;
 
 
-    buttonPtr = &bnRunScript;
+    buttonPtr = &buttonDownload;
     reg = RectUnion(b1_1, b1_2);
     RefreshRect(wxRect(reg.x, reg.y, reg.width, reg.height));
 
-    buttonPtr = &bnUpdateDownloader;
+    buttonPtr = &buttonUpdateYtDlp;
     reg = RectUnion(b2_1, b2_2);
     RefreshRect(wxRect(reg.x, reg.y, reg.width, reg.height));
 }

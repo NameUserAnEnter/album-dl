@@ -26,7 +26,8 @@ private:
 public:
 	DropDown();
 
-	void Init(std::string, std::wstring, wxWindowID, wxPoint, wxSize, wxWindow*, long = NULL);
+	void Init(std::wstring, std::wstring, wxWindowID, wxPoint, wxSize, wxWindow*, long = NULL);
+	void Init(std::wstring, wxWindowID, wxPoint, wxSize, wxWindow*, long = NULL);
 
 	void AppendItem(std::string);
 	void SetItems(std::vector<std::string>);

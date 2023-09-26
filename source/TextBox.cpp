@@ -21,13 +21,12 @@ TextBox::TextBox()
     maxSize.y = -1;
 }
 
-void TextBox::Init(std::string label, wxWindowID textFieldID, wxPoint position, wxSize size, wxWindow* parent, long style)
+void TextBox::Init(std::wstring label, wxWindowID textFieldID, wxPoint position, wxSize size, wxWindow* parent, long style)
 {
     labelBox.Create(
-        parent, wxID_ANY, toWide(label),
+        parent, wxID_ANY, label,
         ComputeLabelBoxPos(position),
-        ComputeLabelBoxSize(size),
-        0, wxString(label + " label"));
+        ComputeLabelBoxSize(size));
 
 
     labelBox.Bind(wxEVT_MOVE, &TextBox::OnLabelBoxMove, this, labelBox.GetId());
@@ -36,11 +35,19 @@ void TextBox::Init(std::string label, wxWindowID textFieldID, wxPoint position, 
         &labelBox, textFieldID, "",
         wxPoint(labelOffset.left, labelOffset.top),
         size,
-        style, wxDefaultValidator, wxString(label + " text field"));
+        style);
 
 
     bInit = true;
 }
+
+void TextBox::Init(wxWindowID textFieldID, wxPoint position, wxSize size, wxWindow* parent, long style)
+{
+    Init(L"", textFieldID, position, size, parent, style);
+}
+
+
+
 
 void TextBox::OnLabelBoxMove(wxMoveEvent& event)
 {
