@@ -8,7 +8,11 @@ enum
 {
     ID_Frame = 1,
     ID_Panel,
+
     ID_Save,
+    ID_Exit,
+    ID_About,
+    ID_License,
 
     ID_albumsDir_Field,
     ID_workingDir_Field,
@@ -170,19 +174,20 @@ void MainFrame::InitMenuAndStatusBar()
     menuFile->Append(ID_Save, "&Save settings\tCtrl+S", "Save Albums directory, Working directory, window position & alert check box");
     menuFile->AppendSeparator();
     //      Exit
-    menuFile->Append(wxID_EXIT, "&Exit\tEsc");
+    menuFile->Append(ID_Exit, "&Exit\tEsc");
 
-    // Help:
+    // Info:
     //      About
-    wxMenu* menuHelp = new wxMenu;
-    menuHelp->Append(wxID_ABOUT);
+    wxMenu* menuInfo = new wxMenu;
+    menuInfo->Append(ID_About, "&About");
+    menuInfo->Append(ID_License, "&License");
 
 
 
-    // File | Help
+    // File | Info
     wxMenuBar* menuBar = new wxMenuBar;
     menuBar->Append(menuFile, "&File");
-    menuBar->Append(menuHelp, "&Help");
+    menuBar->Append(menuInfo, "&Info");
 
     SetMenuBar(menuBar);
 
@@ -317,8 +322,9 @@ void MainFrame::InitBindings()
     mainPanel.Bind(wxEVT_SIZE, &MainFrame::OnPanelResize, this, ID_Panel);
 
     Bind(wxEVT_MENU, &MainFrame::OnSave, this, ID_Save);
-    Bind(wxEVT_MENU, &MainFrame::OnAbout, this, wxID_ABOUT);
-    Bind(wxEVT_MENU, &MainFrame::OnExit, this, wxID_EXIT);
+    Bind(wxEVT_MENU, &MainFrame::OnExit, this, ID_Exit);
+    Bind(wxEVT_MENU, &MainFrame::OnAbout, this, ID_About);
+    Bind(wxEVT_MENU, &MainFrame::OnLicense, this, ID_License);
     Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose, this);
 }
 
@@ -658,13 +664,14 @@ void MainFrame::OnExit(wxCommandEvent& event)
 
 void MainFrame::OnAbout(wxCommandEvent& event)
 {
-    // Help / About
-    
-    
-    // to do: use a monospace font
-    // outputFont, secondaryFont
+    // Info / About
+    MainDialog* aboutDialog = new MainDialog(L"About", toWide(GetAbout()));
+}
 
-    //MainDialog helpDialog();
+void MainFrame::OnLicense(wxCommandEvent& event)
+{
+    // Info / License...
+    MainDialog* aboutDialog = new MainDialog(L"License", toWide(GetLicense()));
 }
 
 void MainFrame::OnSave(wxCommandEvent& event)

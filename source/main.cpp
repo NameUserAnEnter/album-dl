@@ -19,14 +19,13 @@ wxIMPLEMENT_APP(MainApp);
 
 bool MainApp::OnInit()
 {
-    //DumpLicense();
-    //DumpReadMe();
+    DumpLicense();
+    DumpReadMe();
 
 
-    //MainFrame* frame = new MainFrame();
-    //frame->StartOutputUpdate();  // starts a new thread that updates the output box
+    MainFrame* frame = new MainFrame();
+    frame->StartOutputUpdate();  // starts a new thread that updates the output box
 
-    MainDialog* aboutDialog = new MainDialog(L"About", toWide(GetAbout()));
 
 
     
