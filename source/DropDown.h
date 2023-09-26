@@ -71,6 +71,10 @@ public:
 
 	void Show();
 	void Hide();
+
+	void SetLabel(std::wstring);
+	void AppendLabel(std::wstring, bool = true);
+	std::wstring  GetLabel();
 };
 
 #endif

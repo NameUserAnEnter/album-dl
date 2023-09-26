@@ -27,7 +27,11 @@ enum
     ID_ButtonUpdate,
 
     ID_output_Field,
-    ID_extra_Field
+    ID_extra_Field,
+
+    ID_about_Dialog,
+
+    ID_unused
 };
 
 
@@ -138,7 +142,7 @@ void MainFrame::InitValues()
 
     fieldHeight = 40;
 
-    fieldBreakV = 80;
+    fieldBreakV = 20;
     fieldBreakH = 10;
 
     buttonBreak = 10;
@@ -147,10 +151,13 @@ void MainFrame::InitValues()
     verticalCheckBoxOffset = 0;
     verticalDropDownOffset = 2;     // to do: fix distance impact of this offset
 
-    clientMargin = { 20, 20, 20, 20 };
+    //clientMargin = { 28, 20, 20, 20 };
+    clientMargin = { 18, 10, 10, 10 };
 
-    minDataFieldSize = wxSize(550, 20);
+    minDataFieldSize = wxSize(420, 20);
     maxDataFieldSize = wxSize(700, minDataFieldSize.y);
+
+    minButtonSize = wxSize(100, 25);
 }
 
 void MainFrame::InitMenuAndStatusBar()
@@ -205,7 +212,7 @@ void MainFrame::InitFieldsDimensions()
     wxSize ButtonSize;
 
     TextBoxSize = minDataFieldSize;
-    ButtonSize = wxSize(100, 25);
+    ButtonSize = minButtonSize;
 
     fields.clear();
 
@@ -260,6 +267,14 @@ void MainFrame::InitFields()
     bnRunScript.Create(parent, ID_ButtonDownload, "Run", fields[index].pos, fields[index].size, NULL, wxDefaultValidator, "Run button");     index++;
     
     fOutput.Init("Output:", ID_output_Field, fields[index].pos, fields[index].size, parent, wxTE_MULTILINE | wxTE_READONLY);    index++;
+
+    
+
+    // appending -(optional) suffixes:
+    fArtist.AppendLabel(L" (optional):");
+    fAlbumName.AppendLabel(L" (optional):");
+    fAlbumYear.AppendLabel(L" (optional):");
+    fArtworkURL.AppendLabel(L" (optional):");
 }
 
 void MainFrame::InitFieldsDimensionRanges()
@@ -468,10 +483,10 @@ void MainFrame::InitWindowSize()
         userScreenResY = 768;
     }
 
-    float devWindowResX = 1200;
-    float devWindowResY = 600;
+    float devClientResX = GetMinClientSize().x;
+    float devClientResY = 600;
 
-    SetClientSize((devWindowResX * userScreenResX) / devScreenResX, (devWindowResY * userScreenResY) / devScreenResY - th);
+    SetClientSize((devClientResX * userScreenResX) / devScreenResX, (devClientResY * userScreenResY) / devScreenResY - th);
 }
 
 void MainFrame::InitPosition()
@@ -481,8 +496,8 @@ void MainFrame::InitPosition()
 
 void MainFrame::InitSettings()
 {
-    OpenSettings();                                     // LOAD SETTINGS (MAY REPOS WINDOW)
-    Show(true);                                         // SHOW WINDOW
+    // Load settings from file, may repos & resize window.
+    OpenSettings();
 }
 
 
@@ -575,8 +590,8 @@ void MainFrame::InitTerminalOutput()
 void MainFrame::InitFocus()
 {
     //bnRunScript.SetFocus();
-    //fArtist.SetFocus();
-    fURL.SetFocus();
+    fArtist.SetFocus();
+    //fURL.SetFocus();
 }
 // --
 
@@ -604,7 +619,7 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 
     InitWindowSize();
     InitPosition();
-    InitSettings();             // LAST METHOD TO ADJUST WINDOW PARAMETERS, SHOWS THE WINDOW
+    InitSettings();
     
     InitDimensionsInfo();
     InitVerifyExecutables();
@@ -612,6 +627,10 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_Frame, "album-dl")
 
     InitFocus();
     // --
+
+
+    // Window is ready to be shown.
+    Show(true);
 }
 
 MainFrame::~MainFrame()
@@ -640,7 +659,12 @@ void MainFrame::OnExit(wxCommandEvent& event)
 void MainFrame::OnAbout(wxCommandEvent& event)
 {
     // Help / About
-    MessageDialog(GetAbout(), "About");
+    
+    
+    // to do: use a monospace font
+    // outputFont, secondaryFont
+
+    //MainDialog helpDialog();
 }
 
 void MainFrame::OnSave(wxCommandEvent& event)

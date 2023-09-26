@@ -13,6 +13,7 @@
 #include "Console.h"
 #include "info.h"
 #include "DropDown.h"
+#include "MainDialog.h"
 #include <thread>
 #include <mutex>
 #include <chrono>
@@ -38,11 +39,6 @@ struct Field
         pos = wxPoint(0, 0);
         size = wxSize(0, 0);
     }
-};
-
-struct Margin
-{
-    int top, left, bottom, right;
 };
 
 class MainFrame : public wxFrame
@@ -91,9 +87,12 @@ private:
     wxSize minOutputFieldSize;
     wxSize maxOutputFieldSize;
 
+    wxSize minButtonSize;
+
     Margin clientMargin;
 
-
+    wxFont outputFont;
+    wxFont secondaryFont;
 private:
     std::thread workingThread;
     std::thread outputThread;
@@ -144,16 +143,16 @@ private:
     void OpenSettings();
 private:
     // -- EVENT METHODS
-    void OnButtonGet(wxCommandEvent& event);
-    void OnButtonUpdate(wxCommandEvent& event);
+    void OnButtonGet(wxCommandEvent&);
+    void OnButtonUpdate(wxCommandEvent&);
 
-    void OnPanelResize(wxSizeEvent& event);
+    void OnPanelResize(wxSizeEvent&);
 
-    void OnSave(wxCommandEvent& event);
-    void OnExit(wxCommandEvent& event);
-    void OnAbout(wxCommandEvent& event);
+    void OnSave(wxCommandEvent&);
+    void OnExit(wxCommandEvent&);
+    void OnAbout(wxCommandEvent&);
 
-    void OnClose(wxCloseEvent& event);
+    void OnClose(wxCloseEvent&);
     // --
 private:
     void GetAlbum();

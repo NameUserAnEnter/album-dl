@@ -46,6 +46,32 @@ void DropDown::OnLabelBoxMove(wxMoveEvent& event)
 
 
 
+
+void DropDown::SetLabel(std::wstring label)
+{
+    if (!bInit) return;
+    labelBox.SetLabel(label);
+}
+
+void DropDown::AppendLabel(std::wstring suffix, bool popLast)
+{
+    if (!bInit) return;
+
+    std::wstring label = GetLabel();
+    if (popLast && label.size() > 0) label.pop_back();
+
+    labelBox.SetLabel(label + suffix);
+}
+
+std::wstring DropDown::GetLabel()
+{
+    if (!bInit) return L"";
+    return labelBox.GetLabel().ToStdWstring();
+}
+
+
+
+
 void DropDown::AppendItem(std::string item)
 {
     if (!bInit) return;
