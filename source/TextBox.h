@@ -114,6 +114,9 @@ public:
     void SetLabel(std::wstring);
     void AppendLabel(std::wstring, bool = true);
     std::wstring  GetLabel();
+
+    void SetHint(std::wstring);
+    std::wstring GetHint();
 };
 
 

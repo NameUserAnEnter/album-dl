@@ -57,6 +57,20 @@ void TextBox::OnLabelBoxMove(wxMoveEvent& event)
 
 
 
+void TextBox::SetHint(std::wstring hint)
+{
+    if (!bInit) return;
+
+    textField.SetHint(hint);
+}
+
+std::wstring TextBox::GetHint()
+{
+    if (!bInit) return L"";
+
+    return textField.GetHint().ToStdWstring();
+}
+
 void TextBox::SetLabel(std::wstring label)
 {
     if (!bInit) return;

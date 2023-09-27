@@ -117,7 +117,7 @@ void MainFrame::InitValues()
     clientMargin = { 18, 10, 10, 10 };
 
     minDataFieldSize = wxSize(420, 20);
-    maxDataFieldSize = wxSize(700, minDataFieldSize.y);
+    maxDataFieldSize = wxSize(600, minDataFieldSize.y);
 
     minButtonSize = wxSize(100, 25);
 }
@@ -247,7 +247,7 @@ void MainFrame::InitFieldsLabels()
     fURL.SetLabel(L"Playlist URL:");
     fArtworkURL.SetLabel(L"Playlist URL with artwork:");
 
-    fBitrate.SetLabel(L"Bitrate:");
+    fBitrate.SetLabel(L"Audio bitrate:");
     checkAlert.SetLabel(L"Alert on done");
     buttonUpdateYtDlp.SetLabel(L"Update YT-DLP");
     buttonDownload.SetLabel(L"Download");
@@ -256,11 +256,11 @@ void MainFrame::InitFieldsLabels()
 
 
 
-    // appending -(optional) suffixes:
-    //fArtist.AppendLabel(L" (optional, used for folder-name and file-names):");
-    //fAlbumName.AppendLabel(L" (optional, used for folder-name):");
-    //fAlbumYear.AppendLabel(L" (optional, used for folder-name):");
-    //fArtworkURL.AppendLabel(L" (optional, use if the other URL is a normal playlist):");
+    // Set hints:
+    fArtist.SetHint(L"(optional, used for album-folder name and filenames)");
+    fAlbumName.SetHint(L"(optional, used for album-folder name)");
+    fAlbumYear.SetHint(L"(optional, used for album-folder name)");
+    fArtworkURL.SetHint(L"(optional, use if the other URL is a normal playlist with no artwork thumbnail)");
 }
 
 void MainFrame::InitFieldsDimensionRanges()
@@ -393,14 +393,17 @@ void MainFrame::InitFonts()
 
 void MainFrame::InitTestValues()
 {
-    //bResetFields = false;
-    // SAMPLE TEST VALUES FOR CONVENIENCE:
+    bResetFields = false;
 
+
+    
+    // -- SAMPLE TEST VALUES FOR CONVENIENCE:
+    
     // SHORT PLAYLISTS
-    //fArtist.SetText(L"Big Black");
-    //fAlbumName.SetText(L"Racer-X");
-    //fAlbumYear.SetText(L"1985");
-    //fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nrAFOfF6ITDAEJ-BuHYWpHYOwsKNTZ994");
+    fArtist.SetText(L"Big Black");
+    fAlbumName.SetText(L"Racer-X");
+    fAlbumYear.SetText(L"1985");
+    fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nrAFOfF6ITDAEJ-BuHYWpHYOwsKNTZ994");
 
     //fArtist.SetText(L"Big Black");
     //fAlbumName.SetText(L"Lungs");
@@ -455,7 +458,6 @@ void MainFrame::InitWindowSize()
     SetFullSize();
     SetMinSize(GetSize());
 
-    int th = 80;    // assumed taskbar height
 
     float devScreenResX = 1920;
     float devScreenResY = 1080;
@@ -474,9 +476,9 @@ void MainFrame::InitWindowSize()
     }
 
     float devClientResX = GetMinClientSize().x;
-    float devClientResY = 600;
+    float devClientResY = 500;
 
-    SetClientSize((devClientResX * userScreenResX) / devScreenResX, (devClientResY * userScreenResY) / devScreenResY - th);
+    SetClientSize((devClientResX * userScreenResX) / devScreenResX, (devClientResY * userScreenResY) / devScreenResY);
 }
 
 void MainFrame::InitPosition()
@@ -618,7 +620,7 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_mainFrame, "album-dl")
     InitThemes();
     InitFonts();
 
-    InitTestValues();
+    //InitTestValues();
     InitBitrates();
 
     InitWindowSize();
@@ -958,7 +960,7 @@ void MainFrame::GetAlbum()
     // FIELDS VALUE RESET
     if (bResetFields)
     {
-        SetStatusText("Resetting");
+        SetStatusText("Resetting...");
     
         // Reset fields & set focus
         fURL.SetText(L"");
@@ -987,7 +989,7 @@ void MainFrame::UpdateDownloader()
     //--------------------------------------------------
     if (!fOutput.IsEmpty()) mainConsole.PrintLogAndConsoleNarrow("\n\n");
 
-    SetStatusText("Running the program...");
+    SetStatusText("Checking for YT-DLP updates...");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Program start.      ----------------------------\n");
     //--------------------------------------------------
 
@@ -1225,7 +1227,7 @@ void MainFrame::AttachArtworkToAll()
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "AttachArtworkToAll()" "\n");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
     
-    SetStatusText("Attaching cover metadata");
+    SetStatusText("Attaching cover metadata.");
     mainConsole.PrintLogAndConsoleNarrow("Attaching cover metadata\n");
 
     for (int i = 0; i < trackTitles.size(); i++)
@@ -1234,7 +1236,7 @@ void MainFrame::AttachArtworkToAll()
         AttachArtwork(trackFilepath, artworkFilename);
     }
 
-    SetStatusText("Finished attaching cover metadata");
+    SetStatusText("Finished attaching cover metadata.");
     mainConsole.PrintLogAndConsoleNarrow("Finished ataching cover metadata\n");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
@@ -1303,11 +1305,11 @@ void MainFrame::ValidateTrackTitles()
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "ValidateTrackTitles()" "\n");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Start of function.  ----------------------------\n\n");
 
-    SetStatusText("Analysing track titles in terms of forbidden & unwanted characters...");
+    SetStatusText("Checking for unwanted and forbidden characters in track-titles...");
     for (int i = 0; i < trackTitles.size(); i++) ValidateFilenameStr(trackTitles[i]);
 
     PrintTracks();
-    SetStatusText("Track titles validated");
+    SetStatusText("Track-titles validated.");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
     mainConsole.PrintLogAndConsoleNarrow("\n\n");
@@ -1404,7 +1406,7 @@ void MainFrame::LoadTrackTitles()
     std::string data = "";
     if (GetFileData(tracksPath, &data))
     {
-        SetStatusText("Failed to load track titles from file");
+        SetStatusText("Failed to load track-titles from file.");
     }
     else
     {
@@ -1428,7 +1430,7 @@ void MainFrame::LoadTrackTitles()
                 currentWord = L"";
             }
         }
-        SetStatusText("Track titles loaded");
+        SetStatusText("Track-titles loaded.");
 
         
         mainConsole.PrintLogAndConsoleNarrow("Unvalidated tracknames:\n");
@@ -1570,7 +1572,7 @@ bool MainFrame::ValidateFields()
         }
         else
         {
-            MessageDialog("Invalid bitrate.\nPlease choose a bitrate from the drop-down list.", "Error");
+            MessageDialog("Invalid bitrate.\nChoose a bitrate from the drop-down list.", "Error");
             return false;
         }
     }
@@ -1615,7 +1617,7 @@ bool MainFrame::ValidateFields()
         }
         else
         {
-            SetStatusText("Copying artwork-playlist-URL from playlist-URL");
+            SetStatusText("Copying artwork-playlist-URL from playlist-URL.");
             fArtworkURL.SetText(URL);
             artworkURL = URL;
         }
@@ -1677,7 +1679,9 @@ void MainFrame::OpenSettings()
     {
         if (GetFileData(settingsFilename.c_str(), &encoded))
         {
-            SetStatusText("Settings file not found");
+            fWorkingDir.SetText(workingDirectoryDefault);
+
+            bLoadedSettings = false;
             return;
         }
         decoded = DecodeFromUTF8(encoded);
@@ -1766,7 +1770,7 @@ void MainFrame::OpenSettings()
         }
     }
 
-    SetStatusText("Settings have beed loaded");
+    SetStatusText("Settings have beed loaded.");
 }
 
 void MainFrame::SaveSettings()
@@ -1797,10 +1801,10 @@ void MainFrame::SaveSettings()
 
     if (WriteDataToFile(encoded, path))
     {
-        SetStatusText("Cannot save settings");
+        SetStatusText("Cannot save settings.");
         return;
     }
-    SetStatusText("Settings have been saved");
+    SetStatusText("Settings have been saved.");
     MessageDialog("Settings have been saved.", "album-dl");
 }
 
