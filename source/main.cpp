@@ -20,11 +20,15 @@ bool MainApp::OnInit()
 
 
     std::wstring testText = L"";
-    for (int i = 0; i < 50; i++)
+    testText += GetLicense() + L"\n" "-----------------------------------------------------------------------" "\n\n" + GetLicense();
+    std::vector<std::wstring> lines = splitByNewlines(testText, true);
+    testText = L"";
+    for (int i = 0; i < lines.size(); i++)
     {
-        testText += NumToWstr(i + 1, 10, 2, ' ') + L": abcdefghijklmnopqrstuvwxyz, abcdefghijklmnopqrstuvwxyz - abcdefghijklmnopqrstuvwxyz\n";
+        testText += NumToWstr(i + 1, 10, 3, ' ') + L": " + lines[i];
     }
-    
+
+
     MainDialog* testDialog3 = new MainDialog(L"testDialog", testText, true);
 
 
