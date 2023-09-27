@@ -19,17 +19,19 @@ bool MainApp::OnInit()
     frame->StartOutputUpdate();  // starts a new thread that updates the output box
 
 
-    std::wstring testText = L"";
-    testText += GetLicense() + L"\n" "-----------------------------------------------------------------------" "\n\n" + GetLicense();
-    std::vector<std::wstring> lines = splitByNewlines(testText, true);
-    testText = L"";
+    std::string testText = "";
+    testText += GetLicense() + "\n" "-----------------------------------------------------------------------";
+    testText += "\n\n" + GetLicense() + "\n" "-----------------------------------------------------------------------";
+    testText += "\n\n" + GetLicense() + "\n" "-----------------------------------------------------------------------";
+    std::vector<std::string> lines = splitByNewlines(testText, true);
+    testText = "";
     for (int i = 0; i < lines.size(); i++)
     {
-        testText += NumToWstr(i + 1, 10, 3, ' ') + L": " + lines[i];
+        testText += NumToStr(i + 1, 10, 3, ' ') + L": " + lines[i];
     }
 
 
-    MainDialog* testDialog3 = new MainDialog(L"testDialog", testText, true);
+    MainDialog* testDialog3 = new MainDialog(L"testDialog", toWide(testText), true);
 
 
 

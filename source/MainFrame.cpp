@@ -594,6 +594,7 @@ void MainFrame::InitTerminalOutput()
     }
 
     if (!dimensionsInfo.empty()) initialOutput += dimensionsInfo;
+    if (!dimensionsInfo.empty()) initialOutput += dimensionsInfo;
     
 
     mainConsole.PrintLogAndConsole(initialOutput);
