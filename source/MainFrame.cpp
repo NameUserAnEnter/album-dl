@@ -70,9 +70,13 @@ void MainFrame::InitValues()
 {
     bDone = true;
     bResetFields = true;
+    bLoadedSettings = false;
 
     uMaxOutputLines = 150;
 
+    bitrate = 0;
+
+    workingDirectoryDefault = L"workfolder/";
 
     converterExec = L"ffmpeg.exe";
     downloaderExec = L"yt-dlp.exe";
@@ -89,20 +93,8 @@ void MainFrame::InitValues()
 
     tracksFilename = L"tracks";
     settingsFilename = L"settings";
-    defaultSettings = L"";
 
-    defaultSettings += L"\n";
-    defaultSettings += L"workfolder/\n";
-    defaultSettings += L"\n";
 
-    defaultSettings += L"-\n";
-    defaultSettings += L"-\n";
-    defaultSettings += L"0\n";
-    defaultSettings += L"192 kbit/s\n";
-
-    thumbnailURL = L"";
-
-    bitrate = 0;
 
 
     defaultPos.x = 0;
@@ -305,7 +297,7 @@ void MainFrame::InitFieldsDimensionRanges()
 
 void MainFrame::InitBindings()
 {
-    Bind(wxEVT_BUTTON, &MainFrame::OnButtonGet, this, ID_buttonDownload);
+    Bind(wxEVT_BUTTON, &MainFrame::OnButtonDownload, this, ID_buttonDownload);
     Bind(wxEVT_BUTTON, &MainFrame::OnButtonUpdate, this, ID_buttonUpdate);
 
     mainPanel.Bind(wxEVT_SIZE, &MainFrame::OnPanelResize, this, ID_framePanel);
@@ -500,6 +492,19 @@ void MainFrame::InitSettings()
 
 
 
+void MainFrame::InitFocus()
+{
+    if (!bLoadedSettings) fAlbumsDir.SetFocus();
+    else
+    {
+        //buttonDownload.SetFocus();
+        fArtist.SetFocus();
+        //fURL.SetFocus();
+    }
+}
+
+
+
 void MainFrame::InitDimensionsInfo()
 {
     dimensionsInfo = L"";
@@ -523,42 +528,36 @@ void MainFrame::InitDimensionsInfo()
     dimensionsInfo += L"GetMinClientSize():  " + NumToWstr(GetMinClientSize().x) + L"x" + NumToWstr(GetMinClientSize().y) + L"\n";
     dimensionsInfo += L"GetSize():           " + NumToWstr(GetSize().x) + L"x" + NumToWstr(GetSize().y) + L"\n";
     dimensionsInfo += L"GetMinSize():        " + NumToWstr(GetMinSize().x) + L"x" + NumToWstr(GetMinSize().y) + L"\n";
-    dimensionsInfo += L"\n";
 }
 
 void MainFrame::InitVerifyExecutables()
 {
-    albumsDirectory = fAlbumsDir.GetText();
+    downloaderExecInfo = L"";
+    converterExecInfo = L"";
+
+    // verify execs only if settings have been loaded, otherwise empty fields might be the user not setting any directories yet
+    if (!bLoadedSettings) return;
+
+
     workingDirectory = fWorkingDir.GetText();
     converterDirectory = fConverterDir.GetText();
 
+    // verify downloader exec
     if (!VerifyFile(workingDirectory, downloaderExec))
     {
-        execsInfo +=    L"Failed to locate '" + downloaderExec + L"' in:\n";
+        downloaderExecInfo += L"Failed to locate '" + downloaderExec + L"' in:\n";
+        downloaderExecInfo += L"\"" + workingDirectory + L"\"\n";
 
-        if (workingDirectory.empty()) execsInfo += L"<no directory provided>";
-        else execsInfo += workingDirectory;
-
-        execsInfo += L"\n";
-        execsInfo += L"--------------------------------------------------------------------------\n\n";
+        fWorkingDir.SetFocus();
     }
 
+    // verify converter exec
     if (!VerifyFile(converterDirectory, converterExec))
     {
-        execsInfo +=    L"Failed to locate '" + converterExec + L"' in:\n";
+        converterExecInfo += L"Failed to locate '" + converterExec + L"' in:\n";
+        converterExecInfo += L"\"" + converterDirectory + L"\"\n";
 
-        if (converterDirectory.empty()) execsInfo += L"<no directory provided>";
-        else execsInfo += converterDirectory;
-
-        execsInfo += L"\n";
-
-
-        execsInfo +=    L"\nAlbum-dl requires FFmpeg to work, if you don't have FFmpeg installed, visit:\n"
-            L"https://ffmpeg.org/download.html\n\n";
-
-        execsInfo += L"Remember to get 'ffmpeg.exe' and provide it's directory in the field above.\n";
-        execsInfo += L"If album-dl still can't locate 'ffmpeg.exe', try running as administrator.\n";
-        execsInfo += L"--------------------------------------------------------------------------\n\n";
+        if (downloaderExecInfo.empty()) fConverterDir.SetFocus();
     }
 }
 
@@ -569,27 +568,33 @@ void MainFrame::InitTerminalOutput()
     initialOutput += L"|            Welcome to album-dl's output terminal, stand-by.            |\n";
     initialOutput += L"--------------------------------------------------------------------------\n\n";
 
-    initialOutput += L"Enter an album playlist URL and optional data.\n";
-    initialOutput += L"Press 'Run' to attempt downloading the album.\n\n";
+    if (downloaderExecInfo.empty() && converterExecInfo.empty())
+    {
+        initialOutput += L"Enter an album playlist URL and optional data.\n";
+        initialOutput += L"Press 'Download' to attempt downloading the album.\n";
 
-    initialOutput += L"Press 'Ctrl + S' to save directories, window position/size & preferred bitrate.\n";
-    initialOutput += L"--------------------------------------------------------------------------\n\n";
+        if (!bLoadedSettings) initialOutput += L"\nPress 'Ctrl + S' to save directories, window position/size & preferred bitrate.\n";
+        initialOutput += L"--------------------------------------------------------------------------\n\n";
+    }
+    else
+    {
+        initialOutput += downloaderExecInfo;
+        if (!downloaderExecInfo.empty() && !converterExecInfo.empty()) initialOutput += L"\n";
+        initialOutput += converterExecInfo;
 
-    //if (!dimensionsInfo.empty())    initialOutput += dimensionsInfo + L"\n\n";
-    if (!execsInfo.empty())         initialOutput += execsInfo + L"\n\n";
+        if (!converterExecInfo.empty())
+        {
+            initialOutput += L"\nalbum-dl requires FFmpeg to work, if you don't have FFmpeg installed, visit:\n";
+            initialOutput += L"https://ffmpeg.org/download.html\n";
+        }
+        initialOutput += L"--------------------------------------------------------------------------\n\n";
+    }
 
+    if (!dimensionsInfo.empty()) initialOutput += dimensionsInfo;
+    
 
     mainConsole.PrintLogAndConsole(initialOutput);
     initialOutput.clear();
-}
-
-
-
-void MainFrame::InitFocus()
-{
-    //buttonDownload.SetFocus();
-    //fArtist.SetFocus();
-    fURL.SetFocus();
 }
 // --
 
@@ -603,7 +608,7 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_mainFrame, "album-dl")
 
     InitFieldsDimensions();         // SET INITIAL FIELDS DIMENSIONS
     InitFields();                   // SET LABELS AND CONSTRUCT FIELDS
-    //InitFieldsLabels();
+    InitFieldsLabels();
     InitFieldsDimensionRanges();
 
     InitBindings();
@@ -619,12 +624,12 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_mainFrame, "album-dl")
     InitWindowSize();
     InitPosition();
     InitSettings();
+
+    InitFocus();
     
     InitDimensionsInfo();
     InitVerifyExecutables();
     InitTerminalOutput();
-
-    InitFocus();
     // --
 
 
@@ -678,7 +683,7 @@ void MainFrame::OnSave(wxCommandEvent& event)
     SaveSettings();
 }
 
-void MainFrame::OnButtonGet(wxCommandEvent& event)
+void MainFrame::OnButtonDownload(wxCommandEvent& event)
 {
     if (!bDone) return;
     if (!ValidateFields()) return;
@@ -1184,10 +1189,10 @@ void MainFrame::GetArtworkStage()
     mainConsole.PrintLogAndConsoleNarrow("\n\n");
 }
 
-std::wstring MainFrame::GetArtworkStageAlt()
+std::wstring MainFrame::GetArtworkStageAlt(std::wstring targetURL)
 {
     std::wstring args = L"";
-    args += L"-o \"" + workingDirectory + artworkFilename + "\" \"" + thumbnailURL + "\"";
+    args += L"-o \"" + workingDirectory + artworkFilename + "\" \"" + targetURL + "\"";
 
     std::wstring fullCommand = L"\""; fullCommand += workingDirectory + downloaderExec + L"\" " + args;
     return fullCommand;
@@ -1527,15 +1532,14 @@ bool MainFrame::ValidateFields()
 
 
     // LOCATE EXECUTABLES
-    if (!VerifyFile(converterDirectory, converterExec))
-    {
-        MessageDialog(L"Failed to locate " + converterExec + L" in:\n" + converterDirectory, L"Error");
-        return false;
-    }
-
     if (!VerifyFile(workingDirectory, downloaderExec))
     {
-        MessageDialog(L"Failed to locate " + downloaderExec + L" in:\n" + workingDirectory, L"Error");
+        MessageDialog(L"Failed to locate " + downloaderExec + L" in:\n\"" + workingDirectory + L"\"", L"Error");
+        return false;
+    }
+    if (!VerifyFile(converterDirectory, converterExec))
+    {
+        MessageDialog(L"Failed to locate " + converterExec + L" in:\n\"" + converterDirectory + L"\"", L"Error");
         return false;
     }
 
@@ -1643,18 +1647,15 @@ bool MainFrame::ValidateFieldsUpdate()
         return false;
     }
 
-
     // UPDATE FIELDS IN CASE A SLASH AT THE END IS APPENDED OR BACKSLASHES HAVE BEEN REPLACED WITH FORWARDSLASHES
     fWorkingDir.SetText(workingDirectory);
-
 
     // LOCATE EXECUTABLES
     if (!VerifyFile(workingDirectory, downloaderExec))
     {
-        MessageDialog(L"Failed to locate " + downloaderExec + L" in:\n" + workingDirectory, L"Error");
+        MessageDialog(L"Failed to locate " + downloaderExec + L" in:\n\"" + workingDirectory + L"\"", L"Error");
         return false;
     }
-
     
     
     // GET BACKSLASH DIRS
@@ -1670,6 +1671,7 @@ void MainFrame::OpenSettings()
     std::string encoded;
     std::wstring decoded;
 
+
     // use FileExist to avoid alert if possible, and silently use default settings instead
     if (FileExist(settingsFilename.c_str()))
     {
@@ -1679,15 +1681,15 @@ void MainFrame::OpenSettings()
             return;
         }
         decoded = DecodeFromUTF8(encoded);
+
+        bLoadedSettings = true;
     }
     else
     {
-        decoded = defaultSettings;
+        fWorkingDir.SetText(workingDirectoryDefault);
 
-        initialOutput += L"\n";
-        initialOutput += L"INFO:\n";
-        initialOutput += L"You can save settings like set directories and bitrate with (Ctrl+S).\n";
-        initialOutput += L"--------------------------------------------------------------------------\n\n";
+        bLoadedSettings = false;
+        return;
     }
 
 

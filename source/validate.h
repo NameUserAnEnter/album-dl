@@ -36,7 +36,10 @@ inline bool validField(std::wstring data, std::vector<std::wstring> allPossibleB
 
 inline bool validDir(std::wstring& dir)
 {
-    if (!validField(dir)) return false;
+    if (!dir.empty())
+    {
+        if (!validField(dir)) return false;
+    }
 
     for (int i = 0; i < dir.size(); i++)
     {

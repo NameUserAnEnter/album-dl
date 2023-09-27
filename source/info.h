@@ -160,7 +160,7 @@ inline std::string GetReadMe()
         "This playlist will be downloaded into .mp3's.\n"
         "If no artwork-playlist URL is provided, this one is used to download the album artwork as well.\n"
 
-        "\n# PLAYLIST URL WITH PROPER ARTWORK:\n"
+        "\n# PLAYLIST URL WITH ARTWORK:\n"
         "Album artwork is downloaded from this playlist. If left empty, URL from \"Playlist URL\" is used.\n"
 
         //"\n\n------------------------------------------------------------------------------------------\n"
@@ -177,15 +177,16 @@ inline std::string GetReadMe()
 
         "\n\n# TRASH:\n"
         "This program uses Windows commands to execute renaming and moving files as well as creating directories.\n"
-        "For extra-safety this program does not use DEL command,\n"
-        "left-over .mp4 files are instead put in /Trash/ subfolder in the working directory\n"
+        "For extra-safety this program does not use the DEL command,\n"
+        "left-over files are instead put in the /Trash/ subfolder in the working directory\n"
         "and you are free to delete contents of that subfolder manually.\n"
         "However there is no need to clear these files as album-dl\n"
-        "always overwrites .mp4's with the same name each time leftover .mp4's are moved there,\n"
-        "so as a result the amount of disk space taken by /Trash/ subfolder does not stack.\n"
+        "always overwrites left-over files with the same name, each time leftover files are moved there,\n"
+        "so as a result the amount of disk space taken by the /Trash/ subfolder does not stack,\n"
+        "instead it is around the amount of disk space taken by just the last run's left-over files.\n"
 
         "\n\n# STAGES:\n"
-        "Album-dl goes through following stages after the \"Run\" button is pressed:\n"
+        "Album-dl goes through following stages after the \"Download\" button is pressed:\n"
         "1. downloading best audio quality .mp4's\n"
         "6. downloading the album artwork\n"
         "2. getting the track titles\n"

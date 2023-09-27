@@ -99,6 +99,7 @@ private:
     std::thread outputThread;
     bool bDone;
     bool bResetFields;
+    bool bLoadedSettings;
     const bool bLog = true;
     unsigned int uMaxOutputLines;
 
@@ -125,12 +126,12 @@ private:
     void InitWindowSize();
     void InitPosition();
     void InitSettings();
+
+    void InitFocus();
     
     void InitDimensionsInfo();
     void InitVerifyExecutables();
     void InitTerminalOutput();
-
-    void InitFocus();
     // --
 
 
@@ -145,7 +146,7 @@ private:
     void OpenSettings();
 private:
     // -- EVENT METHODS
-    void OnButtonGet(wxCommandEvent&);
+    void OnButtonDownload(wxCommandEvent&);
     void OnButtonUpdate(wxCommandEvent&);
 
     void OnPanelResize(wxSizeEvent&);
@@ -181,6 +182,8 @@ private:
 
     void PrintTracks();
 private:
+    std::wstring workingDirectoryDefault;
+
     std::wstring URL;
     std::wstring artworkURL;
 
@@ -205,7 +208,6 @@ private:
 
     std::wstring trashFoldername;
 
-    std::wstring thumbnailURL;
     std::wstring playlistPageFilename;
     std::wstring playlistArtPageFilename;
 
@@ -219,11 +221,12 @@ private:
     std::wstring consoleLogFilepath;
 
     std::wstring settingsFilename;
-    std::wstring defaultSettings;
 
     std::wstring initialOutput;
     std::wstring dimensionsInfo;
-    std::wstring execsInfo;
+    //std::wstring execsInfo;
+    std::wstring converterExecInfo;
+    std::wstring downloaderExecInfo;
 private:
     std::wstring DownloadStage();
     std::vector<std::wstring> ConvertStage();
@@ -235,7 +238,7 @@ private:
     std::vector<std::wstring> RenameFilesStage(std::wstring ext = L".mp3");
 
     void GetArtworkStage();
-    std::wstring GetArtworkStageAlt();
+    std::wstring GetArtworkStageAlt(std::wstring);
 
     void GetTrackTitles();
 
