@@ -106,10 +106,10 @@ inline std::string GetAbout()
         "https://ffmpeg.org/download.html\n"
 
         "\n# SHORTCUTS:\n"
-        "'Ctrl + S':      Save settings\n"
-        "'Esc':           Exit the program\n"
-        "'Tab':           Next field\n"
-        "'Shift + Tab':   Previous field"
+        "-'Ctrl + S':      Save settings\n"
+        "-'Esc':           Exit the program\n"
+        "-'Tab':           Focus next field\n"
+        "-'Shift + Tab':   Focus previous field\n"
         ;
 
     return output;
@@ -123,18 +123,19 @@ inline std::string GetReadMe()
     output +=
         GetAbout() +
 
-        //"\n\n------------------------------------------------------------------------------------------\n"
-
-        "# SAVING SETTINGS:\n" +
+        "\n\n# SAVING SETTINGS:\n" +
         "Press 'Ctrl+S' or go to \"File/Save settings\" to save:\n"
-        "albums directory, working directory, FFmpeg directory, alert-checkbox state, bitrate & window position/size.\n"
-        "These settings are automatically loaded each time album-dl is opened.\n"
+        "-directores\n"
+        "-window position/size\n"
+        "-alert-on-done checkbox state\n"
+        "-audio bitrate\n"
+        "\nThese settings are automatically loaded each time album-dl is opened.\n"
 
-        //"\n\n------------------------------------------------------------------------------------------\n"
 
-        "# ALBUMS DIRECTORY:\n"
+        "\n\n# ALBUMS DIRECTORY:\n"
         "Full or relative path to a directory where the downloaded album folder will be moved,\ne.g.: C:/Albums/\n"
         "If the directory does not exist, it will be created.\n"
+
 
         "\n\n# WORKING DIRECTORY:\n"
         "Full or relative path to a working directory with the following files:\n"
@@ -143,14 +144,14 @@ inline std::string GetReadMe()
         "            -cookies.txt (optional)\n"
         "By default working directory is set to (relative path): workfolder/ and all necessary files are provided there.\n"
 
+
         "\n\n# FFMPEG.EXE DIRECTORY:\n"
         "Full or relative path to a directory containing ffmpeg.exe.\n"
         "Album-dl requires FFmpeg to work, if you don't have FFmpeg installed, visit:\n"
         "https://ffmpeg.org/download.html\n"
 
-        //"\n\n------------------------------------------------------------------------------------------\n"
 
-        "# ARTIST:\n"
+        "\n\n# ARTIST:\n"
         "Used for output album folder name and track filenames.\n"
 
         "\n# ALBUM NAME & ALBUM YEAR:\n"
@@ -163,9 +164,8 @@ inline std::string GetReadMe()
         "\n# PLAYLIST URL WITH ARTWORK:\n"
         "Album artwork is downloaded from this playlist. If left empty, URL from \"Playlist URL\" is used.\n"
 
-        //"\n\n------------------------------------------------------------------------------------------\n"
 
-        "# OUTPUT FILENAMES & FOLDER NAME FORMAT:\n"
+        "\n\n# OUTPUT FILENAMES & FOLDER NAME FORMAT:\n"
         "Albums Directory/\n"
         "            Artist - Album Name (Album Year)/\n"
         "                        Track Number. Artist - Track Title.mp3\n"
@@ -174,6 +174,7 @@ inline std::string GetReadMe()
         "                        ...\n"
         "                        Track Number. Artist - Track Title.mp3\n"
         "                        artwork.png\n"
+
 
         "\n\n# TRASH:\n"
         "This program uses Windows commands to execute renaming and moving files as well as creating directories.\n"
@@ -184,6 +185,7 @@ inline std::string GetReadMe()
         "always overwrites left-over files with the same name, each time leftover files are moved there,\n"
         "so as a result the amount of disk space taken by the /Trash/ subfolder does not stack,\n"
         "instead it is around the amount of disk space taken by just the last run's left-over files.\n"
+
 
         "\n\n# STAGES:\n"
         "Album-dl goes through following stages after the \"Download\" button is pressed:\n"
@@ -198,17 +200,15 @@ inline std::string GetReadMe()
         "9. moving .mp3's into the destination folder\n"
         "10. moving .png into the destination folder\n"
 
-        //"\n\n------------------------------------------------------------------------------------------\n"
 
-        "# BYPASSING AGE-RESTRICTION:\n"
+        "\n\n# BYPASSING AGE-RESTRICTION:\n"
         "In case of an age-restricted URL: \n"
         "1. get a youtube cookies dump into cookies.txt\n"
         "2. place cookies.txt in the working directory\n"
         "3. include the following line in config.txt: --cookies \"cookies.txt\"\n"
 
 
-        //"\n\n------------------------------------------------------------------------------------------\n"
-        "# LICENSE:\n" + GetLicense();
+        "\n\n# LICENSE:\n" + GetLicense();
 
     return output;
 }
@@ -218,6 +218,7 @@ inline void DumpReadMe()
     std::string readme = GetReadMe();
     replaceAllSubStr(readme, "\n", "\r\n");
     WriteDataToFile(readme, L"README.md");
+    WriteDataToFile(readme, L"README.txt");
 }
 
 inline void DumpLicense()

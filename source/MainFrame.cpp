@@ -260,6 +260,7 @@ void MainFrame::InitFieldsLabels()
     fArtist.SetHint(L"(optional, used for album-folder name and filenames)");
     fAlbumName.SetHint(L"(optional, used for album-folder name)");
     fAlbumYear.SetHint(L"(optional, used for album-folder name)");
+    fURL.SetHint(L"https://youtube.com/playlist?list=...");
     fArtworkURL.SetHint(L"(optional, use if the other URL is a normal playlist with no artwork thumbnail)");
 }
 
@@ -620,7 +621,7 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_mainFrame, "album-dl")
     InitThemes();
     InitFonts();
 
-    //InitTestValues();
+    InitTestValues();
     InitBitrates();
 
     InitWindowSize();
