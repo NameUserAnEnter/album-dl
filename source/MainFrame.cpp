@@ -665,7 +665,7 @@ void MainFrame::OnExit(wxCommandEvent& event)
 
 void MainFrame::OnAbout(wxCommandEvent& event)
 {
-    MainDialog* newDialog = new MainDialog(L"About", toWide(GetAbout()), ID_dialogAbout);
+    MainDialog* newDialog = new MainDialog(L"About", toWide(GetAbout()));
     // Center the dialog, relative to the main-frame
     newDialog->SetPosition(wxPoint(GetPosition().x + GetSize().x / 2.f - newDialog->GetSize().x / 2.f,
                                    GetPosition().y + GetSize().y / 2.f - newDialog->GetSize().y / 2.f));
@@ -674,7 +674,7 @@ void MainFrame::OnAbout(wxCommandEvent& event)
 
 void MainFrame::OnLicense(wxCommandEvent& event)
 {
-    MainDialog* newDialog = new MainDialog(L"License", toWide(GetLicense()), ID_dialogLicense);
+    MainDialog* newDialog = new MainDialog(L"License", toWide(GetLicense()));
     newDialog->SetPosition(wxPoint(GetPosition().x + GetSize().x / 2.f - newDialog->GetSize().x / 2.f,
                                    GetPosition().y + GetSize().y / 2.f - newDialog->GetSize().y / 2.f));
     newDialog->Show(true);

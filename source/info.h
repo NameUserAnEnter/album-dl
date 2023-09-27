@@ -102,7 +102,7 @@ inline std::string GetAbout()
         "This program is a tool for downloading albums from youtube.\n"
 
         "\n# REQUIREMENTS:\n"
-        "Album-dl requires FFmpeg to work, if you don't have FFmpeg installed, visit:\n"
+        "album-dl requires FFmpeg to work, if you don't have FFmpeg installed, visit:\n"
         "https://ffmpeg.org/download.html\n"
 
         "\n# SHORTCUTS:\n"

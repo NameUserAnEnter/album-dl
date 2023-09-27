@@ -6,6 +6,7 @@
 #include <wx/wx.h>
 #endif
 
+#include "id_enum.h"
 #include "TextBox.h"
 #include "validate.h"
 #include "encoding.h"
@@ -14,7 +15,6 @@
 #include "info.h"
 #include "DropDown.h"
 #include "MainDialog.h"
-#include "id_enum.h"
 #include <thread>
 #include <mutex>
 #include <chrono>
