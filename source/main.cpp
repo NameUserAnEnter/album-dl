@@ -18,8 +18,14 @@ bool MainApp::OnInit()
     MainFrame* frame = new MainFrame();
     frame->StartOutputUpdate();  // starts a new thread that updates the output box
 
+
+    std::wstring testText = L"";
+    for (int i = 0; i < 50; i++)
+    {
+        testText += NumToWstr(i + 1, 10, 2, ' ') + L": abcdefghijklmnopqrstuvwxyz, abcdefghijklmnopqrstuvwxyz - abcdefghijklmnopqrstuvwxyz\n";
+    }
     
-    MainDialog* testDialog3 = new MainDialog(L"ReadMe", toWide(GetReadMe()), true);
+    MainDialog* testDialog3 = new MainDialog(L"testDialog", testText, true);
 
 
 
