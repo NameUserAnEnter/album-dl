@@ -174,317 +174,6 @@ inline Rect RectUnion(Rect r1, Rect r2)
 
 
 
-// DIALOG-BOX UTILS
-inline void MessageDialog(std::wstring msg, std::wstring title = L"")
-{
-    if (!msg.empty())
-    {
-        if (msg.back() == L'\n') msg.pop_back();
-    }
-
-    MessageBoxW(NULL, msg.c_str(), title.c_str(), MB_OK);
-}
-
-inline void MessageDialog(std::string msg, std::string title = "")
-{
-    MessageDialog(toWide(msg), toWide(title));
-}
-
-
-
-inline std::string FuncErrOutput(std::string function)
-{
-    std::string output = "Failed to invoke " + function + "()";
-    return output;
-}
-
-inline std::wstring FuncErrOutput(std::wstring function)
-{
-    std::wstring output = L"Failed to invoke " + function + L"()";
-    return output;
-}
-
-inline std::string FuncErrOutput(std::string function, unsigned long external_code)
-{
-    std::string output = FuncErrOutput(function);
-    output += ": " + NumToStr(external_code) + " (" + HexToStr(external_code) + ")";
-
-    return output;
-}
-
-inline std::wstring FuncErrOutput(std::wstring function, unsigned long external_code)
-{
-    std::wstring output = FuncErrOutput(function);
-    output += L": " + toWide(NumToStr(external_code)) + L" (" + toWide(HexToStr(external_code)) + L")";
-
-    return output;
-}
-
-inline void ErrFuncExit(std::string function)
-{
-    std::string output = FuncErrOutput(function);
-
-    MessageDialog(output);
-    ExitProcess(0x01);
-}
-
-inline void ErrFuncExitCode(std::string function, unsigned long external_code)
-{
-    std::string output = FuncErrOutput(function, external_code);
-
-    MessageDialog(output);
-    ExitProcess(0x01);
-}
-
-inline void ErrFuncExit(std::wstring function)
-{
-    std::wstring output = FuncErrOutput(function);
-
-    MessageDialog(output);
-    ExitProcess(0x01);
-}
-
-inline void ErrFuncExitCode(std::wstring function, unsigned long external_code)
-{
-    std::wstring output = FuncErrOutput(function, external_code);
-
-    MessageDialog(output);
-    ExitProcess(0x01);
-}
-
-
-inline void ErrMsgExit(std::string msg)
-{
-    MessageDialog(msg);
-    ExitProcess(0x01);
-}
-
-inline void ErrMsgExitCode(std::string msg, unsigned long external_code)
-{
-    MessageDialog(msg);
-    ExitProcess(0x01);
-}
-
-inline void ErrMsgExit(std::wstring msg)
-{
-    MessageDialog(msg);
-    ExitProcess(0x01);
-}
-
-inline void ErrMsgExitCode(std::wstring msg, unsigned long external_code)
-{
-    MessageDialog(msg);
-    ExitProcess(0x01);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-// FILE UTILS
-inline int GetFileData(const wchar_t* filename, std::string* returnData = nullptr)
-{
-    std::string data = "";
-
-    FILE* file;
-    _wfopen_s(&file, filename, L"rb");
-    if (file == nullptr)
-    {
-        //ErrMsgExit(L"Cannot open: " + std::wstring(filename) + L'\n');
-        MessageDialog(L"Cannot open: " + std::wstring(filename) + L'\n');
-        return 1;
-    }
-
-    int currentChar;
-    do
-    {
-        currentChar = getc(file);
-        if (currentChar != EOF) data += (unsigned char)currentChar;
-    } while (currentChar != EOF);
-    fclose(file);
-
-    if (returnData != nullptr) *returnData = data;
-    return 0;
-}
-
-inline int WriteDataToFile(std::string data, const wchar_t* filename)
-{
-    FILE* file;
-    _wfopen_s(&file, filename, L"wb");
-    if (file == nullptr)
-    {
-        //ErrMsgExit(L"Cannot open: " + std::wstring(filename) + L'\n');
-        MessageDialog(L"Cannot open: " + std::wstring(filename) + L'\n');
-        return 1;
-    }
-
-    for (int i = 0; i < data.size(); i++)
-    {
-        putc((unsigned char)data[i], file);
-    }
-    fclose(file);
-
-    return 0;
-}
-
-inline int AppendDataToFile(std::string data, const wchar_t* filename)
-{
-    FILE* file;
-    _wfopen_s(&file, filename, L"a+b");
-    if (file == nullptr)
-    {
-        ErrMsgExit(L"Cannot open: " + std::wstring(filename) + L"\n");
-        return 1;
-    }
-
-    for (int i = 0; i < data.size(); i++)
-    {
-        putc((unsigned char)data[i], file);
-    }
-    fclose(file);
-
-    return 0;
-}
-
-inline int ClearFileData(const wchar_t* filename)
-{
-    return WriteDataToFile("", filename);
-}
-
-inline bool FileExist(const wchar_t* filename)
-{
-    FILE* file;
-    _wfopen_s(&file, filename, L"rb");
-    if (file == nullptr)
-    {
-        return false;
-    }
-
-    fclose(file);
-    return true;
-}
-
-
-
-
-//      NULL-TERMINATED NARROW OVERLOADS
-inline int GetFileData(const char* filename, std::string* returnData = nullptr)
-{
-    return GetFileData(toWide(std::string(filename)).c_str(), returnData);
-}
-
-inline int WriteDataToFile(std::string data, const char* filename)
-{
-    return WriteDataToFile(data, toWide(std::string(filename)).c_str());
-}
-
-inline int AppendDataToFile(std::string data, const char* filename)
-{
-    return AppendDataToFile(data, toWide(std::string(filename)).c_str());
-}
-
-inline int ClearFileData(const char* filename)
-{
-    return ClearFileData(toWide(std::string(filename)).c_str());
-}
-
-
-//      STRING NARROW OVERLOADS
-inline int GetFileData(std::string filename, std::string* returnData = nullptr)
-{
-    return GetFileData(toWide(filename).c_str(), returnData);
-}
-
-inline int WriteDataToFile(std::string data, std::string filename)
-{
-    return WriteDataToFile(data, toWide(filename).c_str());
-}
-
-inline int AppendDataToFile(std::string data, std::string filename)
-{
-    return AppendDataToFile(data, toWide(filename).c_str());
-}
-
-inline int ClearFileData(std::string filename)
-{
-    return ClearFileData(toWide(filename).c_str());
-}
-
-
-
-
-
-//      WIDE STRING OVERLOADS
-inline int GetFileData(std::wstring filename, std::string* returnData = nullptr)
-{
-    return GetFileData(filename.c_str(), returnData);
-}
-
-inline int WriteDataToFile(std::string data, std::wstring filename)
-{
-    return WriteDataToFile(data, filename.c_str());
-}
-
-inline int AppendDataToFile(std::string data, std::wstring filename)
-{
-    return AppendDataToFile(data, filename.c_str());
-}
-
-inline int ClearFileData(std::wstring filename)
-{
-    return ClearFileData(filename.c_str());
-}
-
-
-
-
-
-// BYTES DUMPING
-inline void AppendBytesDump(std::string buf, std::string filepath, unsigned int& point)
-{
-    std::string output = "";
-    for (int i = 0; i < buf.size(); i++)
-    {
-        output += NumToStr((unsigned char)buf[i], 16, 2);
-
-        point++;
-        if (point % 16 == 0) output += "\n";
-        else output += " ";
-    }
-    AppendDataToFile(output, filepath + "_bytes");
-    AppendDataToFile(buf, filepath);
-}
-
-inline void ClearBytesDump(std::string filepath)
-{
-    ClearFileData(filepath + "_bytes");
-    ClearFileData(filepath);
-}
-
-
-
-
-// VECTOR UTILS
-template<typename T>
-std::vector<T> reverseVector(std::vector<T> input)
-{
-    std::vector<T> returnValue;
-    for (int i = input.size() - 1; i >= 0; i--)
-    {
-        returnValue.push_back(input[i]);
-    }
-    return returnValue;
-}
-
-
 
 // STRING TRANSFORMATIONS UTILS
 template<typename T>
@@ -641,7 +330,7 @@ inline void replaceAllSubStr(std::basic_string<T>& str, std::basic_string<T> que
             if (fragmentIndex + 1 == query.size())
             {
                 // found the full query
-                
+
                 str.replace(i - fragmentIndex, query.size(), replacement);  // args: (first, count, replacement)
                 i -= query.size();                      // place the index back at start of the query
                 i += replacement.size();                // skip over the new replacement
@@ -841,6 +530,339 @@ inline std::basic_string<T> trimTrailingNewlines(std::basic_string<T> str)
     }
     return str;
 }
+
+
+
+
+
+// DIALOG-BOX, MESSAGE-BOX, ERROR-OUTPUT & EXIT-PROGRAM UTILS
+namespace utility
+{
+    static const std::wstring fileNoAccessMessage = L"Cannot access file, try running the program as administrator.\n\nAccess type: '$'\nFilepath: '$'";
+    static const std::wstring functionFailureMessage = L"Failed to invoke $()\nTry running the program as administrator.";
+    static const std::wstring functionFailureMessageCode = L"Failed to invoke $(): $ ($)\nTry running the program as administrator.";
+}
+
+enum ACCESS_TYPE
+{
+    READ = 0,
+    WRITE,
+    READ_AND_WRITE
+};
+
+inline std::wstring FileNoAccessMessage(std::wstring filepath, ACCESS_TYPE accessType)
+{
+    using namespace utility;
+
+    std::wstring accessTypes[] = { L"READ", L"WRITE", L"READ AND WRITE" };
+    std::vector<std::wstring> split = splitByChar(fileNoAccessMessage, L'$', false);
+
+    std::wstring msg = L"";
+    msg += split[0];
+    msg += accessTypes[accessType];
+    msg += split[1];
+    msg += filepath;
+    msg += split[2];
+    return msg;
+}
+
+inline std::wstring FunctionFailureMessage(std::wstring function)
+{
+    //
+}
+
+
+inline void MessageDialog(std::wstring msg, std::wstring title = L"")
+{
+    if (!msg.empty())
+    {
+        if (msg.back() == L'\n') msg.pop_back();
+    }
+
+    MessageBoxW(NULL, msg.c_str(), title.c_str(), MB_OK);
+}
+
+inline void MessageDialog(std::string msg, std::string title = "")
+{
+    MessageDialog(toWide(msg), toWide(title));
+}
+
+
+
+inline std::wstring FuncErrOutput(std::wstring function)
+{
+    using namespace utility;
+    std::vector<std::wstring> split = splitByChar(functionFailureMessage, L'$', false);
+
+    std::wstring msg = L"";
+    msg += split[0];
+    msg += function;
+    msg += split[1];
+    return msg;
+}
+
+inline std::wstring FuncErrOutput(std::wstring function, unsigned long external_code)
+{
+    using namespace utility;
+    std::vector<std::wstring> split = splitByChar(functionFailureMessageCode, L'$', false);
+
+    std::wstring msg = L"";
+    msg += split[0];
+    msg += function;
+    msg += split[1];
+    msg += NumToWstr(external_code);
+    msg += split[2];
+    msg += HexToWstr(external_code);
+    msg += split[3];
+    return msg;
+}
+
+inline void ErrFuncExit(std::wstring function)
+{
+    std::wstring output = FuncErrOutput(function);
+
+    MessageDialog(output);
+    ExitProcess(0x01);
+}
+
+inline void ErrFuncExit(std::string function)
+{
+    ErrFuncExit(toWide(function));
+}
+
+inline void ErrFuncExitCode(std::wstring function, unsigned long external_code)
+{
+    std::wstring output = FuncErrOutput(function, external_code);
+
+    MessageDialog(output);
+    ExitProcess(0x01);
+}
+
+inline void ErrFuncExitCode(std::string function, unsigned long external_code)
+{
+    ErrFuncExitCode(toWide(function), external_code);
+}
+
+inline void ErrMsgExit(std::wstring msg, std::wstring title = L"")
+{
+    MessageDialog(msg, title);
+    ExitProcess(0x01);
+}
+
+inline void ErrMsgExit(std::string msg, std::string title = "")
+{
+    ErrMsgExit(toWide(msg), toWide(title));
+}
+
+
+
+
+
+
+
+
+
+
+// FILE UTILS
+inline int GetFileData(const wchar_t* filename, std::string* returnData = nullptr)
+{
+    using namespace utility;
+    std::string data = "";
+
+    FILE* file;
+    _wfopen_s(&file, filename, L"rb");
+    if (file == nullptr)
+    {
+        // Exit to cancel any invalid operation during execution
+        ErrMsgExit(FileNoAccessMessage(std::wstring(filename), READ), L"GetFileData()");
+        return 1;
+    }
+
+    int currentChar;
+    do
+    {
+        currentChar = getc(file);
+        if (currentChar != EOF) data += (unsigned char)currentChar;
+    } while (currentChar != EOF);
+    fclose(file);
+
+    if (returnData != nullptr) *returnData = data;
+    return 0;
+}
+
+inline int WriteDataToFile(std::string data, const wchar_t* filename)
+{
+    FILE* file;
+    _wfopen_s(&file, filename, L"wb");
+    if (file == nullptr)
+    {
+        // Exit to cancel any invalid operation during execution
+        ErrMsgExit(FileNoAccessMessage(std::wstring(filename), READ), L"WriteDataToFile()");
+        return 1;
+    }
+
+    for (int i = 0; i < data.size(); i++)
+    {
+        putc((unsigned char)data[i], file);
+    }
+    fclose(file);
+
+    return 0;
+}
+
+inline int AppendDataToFile(std::string data, const wchar_t* filename)
+{
+    FILE* file;
+    _wfopen_s(&file, filename, L"a+b");
+    if (file == nullptr)
+    {
+        // Exit to cancel any invalid operation during execution
+        ErrMsgExit(FileNoAccessMessage(std::wstring(filename), READ_AND_WRITE), L"AppendDataToFile()");
+        return 1;
+    }
+
+    for (int i = 0; i < data.size(); i++)
+    {
+        putc((unsigned char)data[i], file);
+    }
+    fclose(file);
+
+    return 0;
+}
+
+inline int ClearFileData(const wchar_t* filename)
+{
+    return WriteDataToFile("", filename);
+}
+
+inline bool FileExist(const wchar_t* filename)
+{
+    FILE* file;
+    _wfopen_s(&file, filename, L"rb");
+    if (file == nullptr)
+    {
+        return false;
+    }
+
+    fclose(file);
+    return true;
+}
+
+
+
+
+//      NULL-TERMINATED NARROW OVERLOADS
+inline int GetFileData(const char* filename, std::string* returnData = nullptr)
+{
+    return GetFileData(toWide(std::string(filename)).c_str(), returnData);
+}
+
+inline int WriteDataToFile(std::string data, const char* filename)
+{
+    return WriteDataToFile(data, toWide(std::string(filename)).c_str());
+}
+
+inline int AppendDataToFile(std::string data, const char* filename)
+{
+    return AppendDataToFile(data, toWide(std::string(filename)).c_str());
+}
+
+inline int ClearFileData(const char* filename)
+{
+    return ClearFileData(toWide(std::string(filename)).c_str());
+}
+
+
+//      STRING NARROW OVERLOADS
+inline int GetFileData(std::string filename, std::string* returnData = nullptr)
+{
+    return GetFileData(toWide(filename).c_str(), returnData);
+}
+
+inline int WriteDataToFile(std::string data, std::string filename)
+{
+    return WriteDataToFile(data, toWide(filename).c_str());
+}
+
+inline int AppendDataToFile(std::string data, std::string filename)
+{
+    return AppendDataToFile(data, toWide(filename).c_str());
+}
+
+inline int ClearFileData(std::string filename)
+{
+    return ClearFileData(toWide(filename).c_str());
+}
+
+
+
+
+
+//      WIDE STRING OVERLOADS
+inline int GetFileData(std::wstring filename, std::string* returnData = nullptr)
+{
+    return GetFileData(filename.c_str(), returnData);
+}
+
+inline int WriteDataToFile(std::string data, std::wstring filename)
+{
+    return WriteDataToFile(data, filename.c_str());
+}
+
+inline int AppendDataToFile(std::string data, std::wstring filename)
+{
+    return AppendDataToFile(data, filename.c_str());
+}
+
+inline int ClearFileData(std::wstring filename)
+{
+    return ClearFileData(filename.c_str());
+}
+
+
+
+
+
+// BYTES DUMPING
+inline void AppendBytesDump(std::string buf, std::string filepath, unsigned int& point)
+{
+    std::string output = "";
+    for (int i = 0; i < buf.size(); i++)
+    {
+        output += NumToStr((unsigned char)buf[i], 16, 2);
+
+        point++;
+        if (point % 16 == 0) output += "\n";
+        else output += " ";
+    }
+    AppendDataToFile(output, filepath + "_bytes");
+    AppendDataToFile(buf, filepath);
+}
+
+inline void ClearBytesDump(std::string filepath)
+{
+    ClearFileData(filepath + "_bytes");
+    ClearFileData(filepath);
+}
+
+
+
+
+// VECTOR UTILS
+template<typename T>
+std::vector<T> reverseVector(std::vector<T> input)
+{
+    std::vector<T> returnValue;
+    for (int i = input.size() - 1; i >= 0; i--)
+    {
+        returnValue.push_back(input[i]);
+    }
+    return returnValue;
+}
+
+
+
+
 
 
 

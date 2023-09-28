@@ -14,6 +14,7 @@ bool MainApp::OnInit()
     MainFrame* frame = new MainFrame();
     frame->StartOutputUpdate();  // starts a new thread that updates the output box
 
+
     return true;
 }
 

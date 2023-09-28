@@ -155,10 +155,10 @@ void Console::RunProcess(std::wstring wPath)
 	szPath[path.size()] = '\0';
 
 
-	PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
-	PrintLogAndConsoleNarrow("----------------------------   Output mode: " + GetModeStr() + "\n");
-	PrintLogAndConsole(L"----------------------------   Executing process:\n" + (wPath)+L"\n");
-	PrintLogAndConsoleNarrow("----------------------------   Start of process.   ----------------------------\n\n");
+	PrintLogAndConsoleNarrow( "----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+	PrintLogAndConsoleNarrow( "----------------------------   Output mode: " + GetModeStr() + "\n");
+	PrintLogAndConsole	   	(L"----------------------------   Executing process:\n" + (wPath) + L"\n");
+	PrintLogAndConsoleNarrow( "----------------------------   Start of process.   ----------------------------\n\n");
 
 
 	STARTUPINFO startupInfo = { };
@@ -225,6 +225,7 @@ void Console::PrintLogAndConsole(std::wstring buf)
 	PrintConsole(buf);
 
 	if (!bLogOpen) return;
+	//AppendDataToFile(EncodeToUTF8(buf), logFilepath);
 	Write(hLogWrite, EncodeToUTF8(buf));
 }
 
@@ -237,7 +238,7 @@ void Console::PrintConsole(std::wstring buf)
 {
 	if (!bInit) return;
 
-	//MessageDialog("test");
+
 	std::lock_guard<std::mutex> bufLock(printMutex);
 	*pOutputBuffer += (buf);
 }
@@ -349,10 +350,10 @@ void Console::InitSubOutputPipe()
 void Console::OpenLog()
 {
 	if (!bInit) return;
-
 	GetFileHandle(logFilepath.c_str(), CREATE_ALWAYS, &hLogWrite, true, FILE_SHARE_READ, GENERIC_WRITE);
 	AddActiveHandle(hLogWrite);
 
+	//ClearFileData(logFilepath);
 	bLogOpen = true;
 }
 
@@ -365,6 +366,7 @@ void Console::CloseLog()
 	bLogOpen = false;
 }
 
+///*
 void Console::GetFileHandle(std::wstring wPath, DWORD dwCreationDisposition, HANDLE* hDest, bool bInheritable,
 							DWORD dwShareMode, DWORD dwDesiredAccess)
 {
@@ -383,8 +385,7 @@ void Console::GetFileHandle(std::wstring wPath, DWORD dwCreationDisposition, HAN
 
 	if (*hDest == INVALID_HANDLE_VALUE) ErrorWithCode("CreateFile", GetLastError(), ERR_FILE);
 }
-
-
+//*/
 
 
 
@@ -422,7 +423,7 @@ void Console::RemoveActiveHandle(HANDLE hActive)
 
 void Console::Error(std::string function, unsigned long exit_code)
 {
-	std::string output = FuncErrOutput(function);
+	std::wstring output = FuncErrOutput(toWide(function));
 
 	if (exit_code != ERR_SUCCESS) MessageDialog(output);
 	ExitProcess(exit_code);	// the destructor contains the kill-handles loop, so end the lifetime by ending process
@@ -430,7 +431,7 @@ void Console::Error(std::string function, unsigned long exit_code)
 
 void Console::ErrorWithCode(std::string function, unsigned long external_code, unsigned long exit_code)
 {
-	std::string output = FuncErrOutput(function, external_code);
+	std::wstring output = FuncErrOutput(toWide(function), external_code);
 
 	if (exit_code != ERR_SUCCESS) MessageDialog(output);
 	ExitProcess(exit_code);
