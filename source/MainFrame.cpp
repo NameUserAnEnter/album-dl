@@ -991,35 +991,35 @@ void MainFrame::GetAlbum()
 
     
     //--------------------------------------------------
-    //GetArtworkStage();
+    GetArtworkStage();
 
 
 
     //--------------------------------------------------
-    //ResetTracksFile();
-    //mainConsole.AddCmd(GetTitlesStage());
-    //ExecuteBatchSession();
+    ResetTracksFile();
+    mainConsole.AddCmd(GetTitlesStage());
+    ExecuteBatchSession();
 
-    //LoadTrackTitles();
-    //ValidateTrackTitles();
-    //ResetTracksFile();
+    LoadTrackTitles();
+    ValidateTrackTitles();
+    ResetTracksFile();
     
     
     //--------------------------------------------------
-    //mainConsole.AddCmd(ConvertStage(), UTF8);
-    //mainConsole.AddCmd(CreateTrashDirStage());
-    //mainConsole.AddCmd(RemoveLeftoverStage());
-    //mainConsole.AddCmd(RenameFilesStage());
-    //ExecuteBatchSession();
+    mainConsole.AddCmd(ConvertStage(), UTF8);
+    mainConsole.AddCmd(CreateTrashDirStage());
+    mainConsole.AddCmd(RemoveLeftoverStage());
+    mainConsole.AddCmd(RenameFilesStage());
+    ExecuteBatchSession();
 
 
     //--------------------------------------------------
-    //AttachArtworkToAll();
+    AttachArtworkToAll();
 
-    //mainConsole.AddCmd(CreateAlbumDirectoryStage());
-    //mainConsole.AddCmd(MoveAudioStage());
-    //mainConsole.AddCmd(MoveArtworkStage());
-    //ExecuteBatchSession();
+    mainConsole.AddCmd(CreateAlbumDirectoryStage());
+    mainConsole.AddCmd(MoveAudioStage());
+    mainConsole.AddCmd(MoveArtworkStage());
+    ExecuteBatchSession();
 
     
     // FIELDS VALUE RESET
