@@ -9,7 +9,6 @@ enum
     ID_menuExit,
     ID_menuAbout,
     ID_menuLicense,
-    ID_menuReadMe,
 
     ID_fAlbumsDir,
     ID_fWorkingDir,

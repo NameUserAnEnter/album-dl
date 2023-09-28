@@ -59,7 +59,7 @@ private:
     {
         buttonOk.Create(&panel, wxID_ANY, L"OK");
 
-        buttonMargin = { 1, 0, 5, 0 };
+        buttonMargin = { 5, 0, 15, 0 };
         buttonSize = wxSize(100, 25);
         buttonOk.SetSize(buttonSize);
     }
@@ -177,7 +177,7 @@ public:
                bool bShow = false,
                wxPoint position = wxPoint(0, 0),
                wxFontInfo requestedFont = MainDialogDefaults::defaultFont,
-               Margin requestedTextMargin = { 30, 30, 0, 30 })
+               Margin requestedTextMargin = { 30, 30, 5, 30 })
         : wxDialog(NULL, wxID_ANY, title, position, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     {
         lines = splitByNewlines(trimTrailingNewlines(text), false);

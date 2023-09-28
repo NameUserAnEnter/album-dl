@@ -156,7 +156,6 @@ private:
 
     void OnAbout(wxCommandEvent&);
     void OnLicense(wxCommandEvent&);
-    void OnReadMe(wxCommandEvent&);
 
     void OnClose(wxCloseEvent&);
     // --

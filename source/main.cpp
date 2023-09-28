@@ -11,10 +11,6 @@ public:
 
 bool MainApp::OnInit()
 {
-    DumpLicense();
-    DumpReadMe();
-
-
     MainFrame* frame = new MainFrame();
     frame->StartOutputUpdate();  // starts a new thread that updates the output box
 
