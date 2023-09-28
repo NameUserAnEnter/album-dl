@@ -21,8 +21,8 @@ bool MainApp::OnInit()
 
     std::string testText = "";
     testText += GetLicense() + "\n" "-----------------------------------------------------------------------";
-    testText += "\n\n" + GetLicense() + "\n" "-----------------------------------------------------------------------";
-    testText += "\n\n" + GetLicense() + "\n" "-----------------------------------------------------------------------";
+    testText += "\n\n" + GetLicense();// + "\n" "-----------------------------------------------------------------------";
+    //testText += "\n\n" + GetLicense() + "\n" "-----------------------------------------------------------------------";
     std::vector<std::string> lines = splitByNewlines(testText, true);
     testText = "";
     for (int i = 0; i < lines.size(); i++)
