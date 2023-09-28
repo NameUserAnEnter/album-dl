@@ -185,9 +185,9 @@ void MainFrame::InitFieldsDimensions()
     fields.push_back(Field(clientMargin.left, clientMargin.top, TextBoxSize));
     fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
     fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
+    fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
 
     fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight + fieldBreakV, TextBoxSize));
-    fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
     fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
     fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
 
@@ -218,11 +218,11 @@ void MainFrame::InitFields()
     unsigned int index = 0;
 
     // FIELDS:
-    fAlbumsDir.Init(    ID_fAlbumsDir,      fields[index].pos, fields[index].size, parent); index++;
     fWorkingDir.Init(   ID_fWorkingDir,     fields[index].pos, fields[index].size, parent); index++;
     fConverterDir.Init( ID_fConverterDir,   fields[index].pos, fields[index].size, parent); index++;
+    fAlbumsDir.Init(    ID_fAlbumsDir,      fields[index].pos, fields[index].size, parent); index++;
+    fPreview.Init(      ID_fPreview,        fields[index].pos, fields[index].size, parent); index++;
     // extra separation
-    fPreview.Init(  ID_fPreview,   fields[index].pos, fields[index].size, parent); index++;
     fArtist.Init(   ID_fArtist,    fields[index].pos, fields[index].size, parent); index++;
     fAlbumName.Init(ID_fAlbumName, fields[index].pos, fields[index].size, parent); index++;
     fAlbumYear.Init(ID_fAlbumYear, fields[index].pos, fields[index].size, parent); index++;
@@ -240,11 +240,11 @@ void MainFrame::InitFields()
 
 void MainFrame::InitFieldsLabels()
 {
-    fAlbumsDir.SetLabel(L"Albums directory:");
     fWorkingDir.SetLabel(L"Working directory:");
-    fConverterDir.SetLabel(L"ffmpe.exe directory:");
-
+    fConverterDir.SetLabel(L"ffmpeg.exe directory:");
+    fAlbumsDir.SetLabel(L"Albums directory:");
     fPreview.SetLabel(L"Album path (preview):");
+    
     fArtist.SetLabel(L"Artist");
     fAlbumName.SetLabel(L"Album name:");
     fAlbumYear.SetLabel(L"Album year:");
@@ -262,6 +262,7 @@ void MainFrame::InitFieldsLabels()
 
 
     // Set hints:
+    fAlbumsDir.SetHint(L"(the album will be moved to this location)");
     fPreview.SetEditable(false);
     //fPreview.Disable();
     fArtist.SetHint(L"(optional, used for album-folder name and filenames)");
@@ -274,11 +275,11 @@ void MainFrame::InitFieldsLabels()
 void MainFrame::InitFieldsDimensionRanges()
 {
     // FIELDS MIN SIZES
-    fAlbumsDir.SetMinSize(minDataFieldSize);
     fWorkingDir.SetMinSize(minDataFieldSize);
     fConverterDir.SetMinSize(minDataFieldSize);
-
+    fAlbumsDir.SetMinSize(minDataFieldSize);
     fPreview.SetMinSize(minDataFieldSize);
+    
     fArtist.SetMinSize(minDataFieldSize);
     fAlbumName.SetMinSize(minDataFieldSize);
     fAlbumYear.SetMinSize(minDataFieldSize);
@@ -289,11 +290,11 @@ void MainFrame::InitFieldsDimensionRanges()
 
 
     // FIELDS MAX SIZES
-    fAlbumsDir.SetMaxSize(maxDataFieldSize);
     fWorkingDir.SetMaxSize(maxDataFieldSize);
     fConverterDir.SetMaxSize(maxDataFieldSize);
-
+    fAlbumsDir.SetMaxSize(maxDataFieldSize);
     fPreview.SetMaxSize(maxDataFieldSize);
+    
     fArtist.SetMaxSize(maxDataFieldSize);
     fAlbumName.SetMaxSize(maxDataFieldSize);
     fAlbumYear.SetMaxSize(maxDataFieldSize);
@@ -802,11 +803,11 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     vIncreaseCell2 -= clientMargin.top;
     
 
-    fAlbumsDir.SetSize(fAlbumsDir.GetMinSize().x + hIncreaseCell1, fAlbumsDir.GetSize().y);
     fWorkingDir.SetSize(fWorkingDir.GetMinSize().x + hIncreaseCell1, fWorkingDir.GetSize().y);
     fConverterDir.SetSize(fConverterDir.GetMinSize().x + hIncreaseCell1, fConverterDir.GetSize().y);
-
+    fAlbumsDir.SetSize(fAlbumsDir.GetMinSize().x + hIncreaseCell1, fAlbumsDir.GetSize().y);
     fPreview.SetSize(fPreview.GetMinSize().x + hIncreaseCell1, fPreview.GetSize().y);
+    
     fArtist.SetSize(fArtist.GetMinSize().x + hIncreaseCell1, fArtist.GetSize().y);
     fAlbumName.SetSize(fAlbumName.GetMinSize().x + hIncreaseCell1, fAlbumName.GetSize().y);
     fAlbumYear.SetSize(fAlbumYear.GetMinSize().x + hIncreaseCell1, fAlbumYear.GetSize().y);
@@ -814,14 +815,14 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     fArtworkURL.SetSize(fArtworkURL.GetMinSize().x + hIncreaseCell1, fArtworkURL.GetSize().y);
 
     std::vector<TextBox*> textBoxesCell1;
-    textBoxesCell1.push_back(&fAlbumsDir);
     textBoxesCell1.push_back(&fWorkingDir);
     textBoxesCell1.push_back(&fConverterDir);
+    textBoxesCell1.push_back(&fAlbumsDir);
+    textBoxesCell1.push_back(&fPreview);
 
     textBoxesCell1.push_back(&fArtist);
     textBoxesCell1.push_back(&fAlbumName);
     textBoxesCell1.push_back(&fAlbumYear);
-    textBoxesCell1.push_back(&fPreview);
     textBoxesCell1.push_back(&fURL);
     textBoxesCell1.push_back(&fArtworkURL);
     wxSize maxDistance1 = FindMaxDistance(std::vector<Field>(), textBoxesCell1);
@@ -845,22 +846,20 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     vOffset3 -= fieldHeight;        // fAlbumYear
     vOffset3 -= fieldHeight;        // fAlbumName
     vOffset3 -= fieldHeight;        // fArtist
-    vOffset3 -= fieldHeight;        // fPreview
     if (vOffset3 >= clientMargin.top + fieldHeight * 3 + fieldBreakV)
     {
-        fPreview.SetPosition(fPreview.GetPosition().x, vOffset3 + fieldHeight * 0);
-        fArtist.SetPosition(fArtist.GetPosition().x, vOffset3 + fieldHeight * 1);
-        fAlbumName.SetPosition(fAlbumName.GetPosition().x, vOffset3 + fieldHeight * 2);
-        fAlbumYear.SetPosition(fAlbumYear.GetPosition().x, vOffset3 + fieldHeight * 3);
+        fArtist.SetPosition(fArtist.GetPosition().x, vOffset3 + fieldHeight * 0);
+        fAlbumName.SetPosition(fAlbumName.GetPosition().x, vOffset3 + fieldHeight * 1);
+        fAlbumYear.SetPosition(fAlbumYear.GetPosition().x, vOffset3 + fieldHeight * 2);
 
-        fURL.SetPosition(fURL.GetPosition().x, vOffset3 + fieldHeight * 4);
-        fArtworkURL.SetPosition(fArtworkURL.GetPosition().x, vOffset3 + fieldHeight * 5);
+        fURL.SetPosition(fURL.GetPosition().x, vOffset3 + fieldHeight * 3);
+        fArtworkURL.SetPosition(fArtworkURL.GetPosition().x, vOffset3 + fieldHeight * 4);
 
 
-        buttonDownload.SetPosition(wxPoint(buttonDownload.GetPosition().x, vOffset3 + fieldHeight * 6));
-        checkAlert.SetPosition(wxPoint(checkAlert.GetPosition().x, vOffset3 + fieldHeight * 6 + verticalCheckBoxOffset));
-        fBitrate.SetPosition(fBitrate.GetPosition().x, vOffset3 + fieldHeight * 6 + verticalDropDownOffset);
-        buttonUpdateYtDlp.SetPosition(wxPoint(buttonUpdateYtDlp.GetPosition().x, vOffset3 + fieldHeight * 6));
+        buttonDownload.SetPosition(wxPoint(buttonDownload.GetPosition().x, vOffset3 + fieldHeight * 5));
+        checkAlert.SetPosition(wxPoint(checkAlert.GetPosition().x, vOffset3 + fieldHeight * 5 + verticalCheckBoxOffset));
+        fBitrate.SetPosition(fBitrate.GetPosition().x, vOffset3 + fieldHeight * 5 + verticalDropDownOffset);
+        buttonUpdateYtDlp.SetPosition(wxPoint(buttonUpdateYtDlp.GetPosition().x, vOffset3 + fieldHeight * 5));
     }
 
 
