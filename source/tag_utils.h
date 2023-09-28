@@ -64,7 +64,7 @@ inline int FindTheTag(const wchar_t* filename, unsigned int* returnTagStartIndex
 
     std::string fileData;
     if (GetFileData(filename, &fileData)) return 1;
-
+    
 
     bool bFound = false;
     unsigned int tagStartIndex;

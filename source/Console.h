@@ -54,7 +54,7 @@ private:
 	bool bWrap;
 
 	std::vector<HANDLE> ActiveHandles;
-	//HANDLE hLogWrite;
+	HANDLE hLogWrite;
 
 	HANDLE hSubOutWr;
 	HANDLE hSubOutRd;
@@ -71,7 +71,7 @@ public:
 	void RunSession();
 private:
 	std::string GetModeStr();
-	
+
 	void InitValues();
 
 	void InitSubOutputPipe();
@@ -93,8 +93,8 @@ private:
 
 
 
+	void GetFileHandle(std::wstring, DWORD, HANDLE*, bool = false, DWORD = NULL, DWORD = GENERIC_READ | GENERIC_WRITE);
 
-	
 
 	void AddActiveHandle(HANDLE hActive);
 	void RemoveActiveHandle(HANDLE hActive);

@@ -24,7 +24,7 @@ void Console::InitValues()
 	logFilepath = L"";
 	pOutputBuffer = nullptr;
 
-	//hLogWrite = NULL;
+	hLogWrite = NULL;
 
 	hSubOutWr = NULL;
 	hSubOutRd = NULL;
@@ -145,27 +145,27 @@ void Console::RunProcess(std::wstring wPath)
 	if (wPath.empty()) return;
 
 	std::wstring path = (wPath);
-	
+
 
 	auto typeVar = path[0];
 	decltype(typeVar)* szPath = (decltype(typeVar)*)calloc(path.size() + 1, sizeof(decltype(typeVar)));
 	if (szPath == nullptr) Error("calloc");
-	
+
 	for (int i = 0; i < path.size(); i++) szPath[i] = path[i];
 	szPath[path.size()] = '\0';
 
 
-	PrintLogAndConsoleNarrow( "----------------------------   Time: " + GetDateAndTimeStr() + "\n");
-	PrintLogAndConsoleNarrow( "----------------------------   Output mode: " + GetModeStr() + "\n");
-	PrintLogAndConsole		(L"----------------------------   Executing process:\n" + (wPath) + L"\n");
-	PrintLogAndConsoleNarrow( "----------------------------   Start of process.   ----------------------------\n\n");
-	
-	
+	PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
+	PrintLogAndConsoleNarrow("----------------------------   Output mode: " + GetModeStr() + "\n");
+	PrintLogAndConsole(L"----------------------------   Executing process:\n" + (wPath)+L"\n");
+	PrintLogAndConsoleNarrow("----------------------------   Start of process.   ----------------------------\n\n");
+
+
 	STARTUPINFO startupInfo = { };
 	startupInfo.hStdOutput = hSubOutWr;
 	startupInfo.hStdError = hSubOutWr;
 	startupInfo.dwFlags = STARTF_USESTDHANDLES;
-	
+
 	DWORD dwCreationFlags = 0;
 	dwCreationFlags |= CREATE_NO_WINDOW;
 
@@ -225,7 +225,7 @@ void Console::PrintLogAndConsole(std::wstring buf)
 	PrintConsole(buf);
 
 	if (!bLogOpen) return;
-	AppendDataToFile(EncodeToUTF8(buf), logFilepath);
+	Write(hLogWrite, EncodeToUTF8(buf));
 }
 
 void Console::PrintLogAndConsoleNarrow(std::string buf)
@@ -310,14 +310,14 @@ void Console::GetSubOutput()
 				case WINDOWS1250:
 					PrintLogAndConsole(GetWideFromCodePage(buf.c_str(), codepage::table_CP1250));
 					break;
-				
+
 				case UTF8:
 				default:
 					PrintLogAndConsole(DecodeFromUTF8(buf));
 					break;
 			}
 		}
-		
+
 
 		if (!GetPipeBufSize()) break;
 	}
@@ -350,7 +350,9 @@ void Console::OpenLog()
 {
 	if (!bInit) return;
 
-	ClearFileData(logFilepath);
+	GetFileHandle(logFilepath.c_str(), CREATE_ALWAYS, &hLogWrite, true, FILE_SHARE_READ, GENERIC_WRITE);
+	AddActiveHandle(hLogWrite);
+
 	bLogOpen = true;
 }
 
@@ -359,8 +361,27 @@ void Console::CloseLog()
 	if (!bInit) return;
 	if (!bLogOpen) return;
 
-
+	RemoveActiveHandle(hLogWrite);
 	bLogOpen = false;
+}
+
+void Console::GetFileHandle(std::wstring wPath, DWORD dwCreationDisposition, HANDLE* hDest, bool bInheritable,
+							DWORD dwShareMode, DWORD dwDesiredAccess)
+{
+	std::wstring path = (wPath);
+
+	if (!bInheritable) *hDest = CreateFileW(path.c_str(), dwDesiredAccess, dwShareMode, NULL, dwCreationDisposition, FILE_ATTRIBUTE_NORMAL, NULL);
+	else
+	{
+		SECURITY_ATTRIBUTES secAttr = { };
+		secAttr.nLength = sizeof(secAttr);
+		secAttr.lpSecurityDescriptor = NULL;
+		secAttr.bInheritHandle = true;
+
+		*hDest = CreateFileW(path.c_str(), dwDesiredAccess, dwShareMode, &secAttr, dwCreationDisposition, FILE_ATTRIBUTE_NORMAL, NULL);
+	}
+
+	if (*hDest == INVALID_HANDLE_VALUE) ErrorWithCode("CreateFile", GetLastError(), ERR_FILE);
 }
 
 

@@ -120,8 +120,8 @@ private:
     void InitThemes();
     void InitFonts();
 
-    void InitTestValues();
     void InitBitrates();
+    void InitTestValues();
 
     void InitWindowSize();
     void InitPosition();
@@ -235,14 +235,15 @@ private:
     std::wstring CreateTrashDirStage();
     std::vector<std::wstring> RemoveLeftoverStage();
 
-    std::wstring GetTitlesStageAlt();
-
     std::vector<std::wstring> RenameFilesStage(std::wstring ext = L".mp3");
+
+
+    void GetTrackTitles();
+    std::wstring GetTitlesStageAlt();
 
     void GetArtworkStage();
     std::wstring GetArtworkStageAlt(std::wstring);
 
-    void GetTrackTitles();
 
     void AttachArtworkToAll();
 

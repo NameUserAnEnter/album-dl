@@ -57,8 +57,6 @@ inline double absolute_value(double num)
 
 inline std::string NumToStr(unsigned long long num, unsigned long long base = 10, unsigned int min_digits = 1, char whitespace = '0')
 {
-    // 1, 10, 2, ' '
-
     std::string str = "";
     if (num == 0)   // special case
     {
@@ -71,16 +69,12 @@ inline std::string NumToStr(unsigned long long num, unsigned long long base = 10
     }
 
     unsigned int count_digits = 0;
-    // FFFFFFFF
     while (power(base, count_digits) <= num) count_digits++;
 
     unsigned int size = count_digits;
     if (size < min_digits) size = min_digits;
 
-    for (int i = 0; i < size - count_digits; i++)
-    {
-        str += whitespace;
-    }
+    for (int i = 0; i < size - count_digits; i++) str += whitespace;
     for (int i = count_digits - 1; i >= 0; i--)
     {
         // 5248 % 10 = 8 -> 8 / 1 = 8

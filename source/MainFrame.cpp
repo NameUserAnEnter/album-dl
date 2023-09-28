@@ -142,7 +142,7 @@ void MainFrame::InitMenuAndStatusBar()
 
     wxMenu* menuInfo = new wxMenu;
     menuInfo->Append(ID_menuAbout, "&About", "About this program.");
-    menuInfo->Append(ID_menuLicense, "&License", "See the program's license.");
+    menuInfo->Append(ID_menuLicense, "&License", "See license.");
     menuInfo->Append(ID_menuReadMe, "&Read me", "See Read me.");
 
 
@@ -306,9 +306,11 @@ void MainFrame::InitBindings()
 
     Bind(wxEVT_MENU, &MainFrame::OnSave, this, ID_menuSave);
     Bind(wxEVT_MENU, &MainFrame::OnExit, this, ID_menuExit);
+
     Bind(wxEVT_MENU, &MainFrame::OnAbout, this, ID_menuAbout);
     Bind(wxEVT_MENU, &MainFrame::OnLicense, this, ID_menuLicense);
     Bind(wxEVT_MENU, &MainFrame::OnReadMe, this, ID_menuReadMe);
+
     Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose, this);
 }
 
@@ -394,19 +396,30 @@ void MainFrame::InitFonts()
 
 
 
+void MainFrame::InitBitrates()
+{
+    fBitrate.AppendItem("128 kbit/s");
+    fBitrate.AppendItem("144 kbit/s");
+    fBitrate.AppendItem("160 kbit/s");
+    fBitrate.AppendItem("192 kbit/s");
+    fBitrate.AppendItem("224 kbit/s");
+    fBitrate.AppendItem("256 kbit/s");
+    fBitrate.AppendItem("320 kbit/s");
+}
+
 void MainFrame::InitTestValues()
 {
     bResetFields = false;
-
+    fBitrate.SetSelected(3);
 
     
     // -- SAMPLE TEST VALUES FOR CONVENIENCE:
     
     // SHORT PLAYLISTS
-    fArtist.SetText(L"Big Black");
-    fAlbumName.SetText(L"Racer-X");
-    fAlbumYear.SetText(L"1985");
-    fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nrAFOfF6ITDAEJ-BuHYWpHYOwsKNTZ994");
+    //fArtist.SetText(L"Big Black");
+    //fAlbumName.SetText(L"Racer-X");
+    //fAlbumYear.SetText(L"1985");
+    //fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nrAFOfF6ITDAEJ-BuHYWpHYOwsKNTZ994");
 
     //fArtist.SetText(L"Big Black");
     //fAlbumName.SetText(L"Lungs");
@@ -441,17 +454,15 @@ void MainFrame::InitTestValues()
     //fAlbumYear.SetText(L"2012");
     //fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
     ////fArtworkURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
-}
 
-void MainFrame::InitBitrates()
-{
-    fBitrate.AppendItem("128 kbit/s");
-    fBitrate.AppendItem("144 kbit/s");
-    fBitrate.AppendItem("160 kbit/s");
-    fBitrate.AppendItem("192 kbit/s");
-    fBitrate.AppendItem("224 kbit/s");
-    fBitrate.AppendItem("256 kbit/s");
-    fBitrate.AppendItem("320 kbit/s");
+    // THE CODE POINT PROBLEM WITH THE NEW WAY TO DOWNLOAD TRACK-TITLES e.g. \u0026
+    fArtist.SetText(L"Supergrass");
+    fAlbumName.SetText(L"Road To Rouen");
+    fAlbumYear.SetText(L"2005");
+    fURL.SetText(L"https://www.youtube.com/playlist?list=PLHTo__bpnlYURCrPK2lf1onaXhWKlzcYl");
+    fArtworkURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_l-QlUzRsn3KV4PvzkGxWgeUbiae67USgo");
+
+    // --
 }
 
 
@@ -623,8 +634,8 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_mainFrame, "album-dl")
     InitThemes();
     InitFonts();
 
-    InitTestValues();
     InitBitrates();
+    InitTestValues();
 
     InitWindowSize();
     InitPosition();
@@ -948,39 +959,39 @@ void MainFrame::GetAlbum()
 
 
     //--------------------------------------------------
-    mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
-    ExecuteBatchSession();
+    //mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
+    //ExecuteBatchSession();
 
-    
-    //--------------------------------------------------
-    GetArtworkStage();
+    ////
+    //////--------------------------------------------------
+    //GetArtworkStage();
 
 
 
-    //--------------------------------------------------
-    ResetTracksFile();
-    GetTrackTitles();
+    //////--------------------------------------------------
+    //ResetTracksFile();
+    //GetTrackTitles();
 
     LoadTrackTitles();
     ValidateTrackTitles();
-    ResetTracksFile();
-    
-    
-    //--------------------------------------------------
-    mainConsole.AddCmd(ConvertStage(), UTF8);
-    mainConsole.AddCmd(CreateTrashDirStage());
-    mainConsole.AddCmd(RemoveLeftoverStage());
-    mainConsole.AddCmd(RenameFilesStage());
-    ExecuteBatchSession();
+    ////ResetTracksFile();
+    ////
+    ////
+    //////--------------------------------------------------
+    //mainConsole.AddCmd(ConvertStage(), UTF8);
+    ////mainConsole.AddCmd(CreateTrashDirStage());
+    //mainConsole.AddCmd(RemoveLeftoverStage());
+    //mainConsole.AddCmd(RenameFilesStage());
+    //ExecuteBatchSession();
 
 
     //--------------------------------------------------
     AttachArtworkToAll();
 
-    mainConsole.AddCmd(CreateAlbumDirectoryStage());
-    mainConsole.AddCmd(MoveAudioStage());
-    mainConsole.AddCmd(MoveArtworkStage());
-    ExecuteBatchSession();
+    //mainConsole.AddCmd(CreateAlbumDirectoryStage());
+    //mainConsole.AddCmd(MoveAudioStage());
+    //mainConsole.AddCmd(MoveArtworkStage());
+    //ExecuteBatchSession();
 
     
     // FIELDS VALUE RESET
@@ -1247,6 +1258,9 @@ std::wstring MainFrame::MoveArtworkStage()
     return cmd;
 }
 
+
+
+
 void MainFrame::AttachArtworkToAll()
 {
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
@@ -1268,11 +1282,6 @@ void MainFrame::AttachArtworkToAll()
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   End of function.    ----------------------------\n");
     mainConsole.PrintLogAndConsoleNarrow("\n\n");
 }
-
-
-
-
-
 
 void MainFrame::AttachArtwork(std::wstring audioFile, std::wstring artworkFile)
 {
@@ -1526,6 +1535,8 @@ bool MainFrame::VerifyFile(std::wstring dir, std::wstring filename)
     if (!FileExist(path.c_str())) return false;
     return true;
 }
+
+
 
 
 
