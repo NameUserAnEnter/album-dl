@@ -143,6 +143,7 @@ void MainFrame::InitMenuAndStatusBar()
     wxMenu* menuInfo = new wxMenu;
     menuInfo->Append(ID_menuAbout, "&About", "About this program.");
     menuInfo->Append(ID_menuLicense, "&License", "See the program's license.");
+    menuInfo->Append(ID_menuReadMe, "&Read me", "See Read me.");
 
 
 
@@ -307,6 +308,7 @@ void MainFrame::InitBindings()
     Bind(wxEVT_MENU, &MainFrame::OnExit, this, ID_menuExit);
     Bind(wxEVT_MENU, &MainFrame::OnAbout, this, ID_menuAbout);
     Bind(wxEVT_MENU, &MainFrame::OnLicense, this, ID_menuLicense);
+    Bind(wxEVT_MENU, &MainFrame::OnReadMe, this, ID_menuReadMe);
     Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose, this);
 }
 
@@ -594,7 +596,6 @@ void MainFrame::InitTerminalOutput()
     }
 
     if (!dimensionsInfo.empty()) initialOutput += dimensionsInfo;
-    if (!dimensionsInfo.empty()) initialOutput += dimensionsInfo;
     
 
     mainConsole.PrintLogAndConsole(initialOutput);
@@ -668,16 +669,39 @@ void MainFrame::OnAbout(wxCommandEvent& event)
 {
     MainDialog* newDialog = new MainDialog(L"About", toWide(GetAbout()));
     // Center the dialog, relative to the main-frame
-    newDialog->SetPosition(wxPoint(GetPosition().x + GetSize().x / 2.f - newDialog->GetSize().x / 2.f,
-                                   GetPosition().y + GetSize().y / 2.f - newDialog->GetSize().y / 2.f));
+    wxPoint dialogPosition(GetPosition().x + GetSize().x / 2.f - newDialog->GetSize().x / 2.f,
+                           GetPosition().y + GetSize().y / 2.f - newDialog->GetSize().y / 2.f);
+    if (dialogPosition.x < 0) dialogPosition.x = 0;
+    if (dialogPosition.y < 0) dialogPosition.y = 0;
+
+
+    newDialog->SetPosition(dialogPosition);
     newDialog->Show(true);
 }
 
 void MainFrame::OnLicense(wxCommandEvent& event)
 {
     MainDialog* newDialog = new MainDialog(L"License", toWide(GetLicense()));
-    newDialog->SetPosition(wxPoint(GetPosition().x + GetSize().x / 2.f - newDialog->GetSize().x / 2.f,
-                                   GetPosition().y + GetSize().y / 2.f - newDialog->GetSize().y / 2.f));
+    wxPoint dialogPosition(GetPosition().x + GetSize().x / 2.f - newDialog->GetSize().x / 2.f,
+                           GetPosition().y + GetSize().y / 2.f - newDialog->GetSize().y / 2.f);
+    if (dialogPosition.x < 0) dialogPosition.x = 0;
+    if (dialogPosition.y < 0) dialogPosition.y = 0;
+
+
+    newDialog->SetPosition(dialogPosition);
+    newDialog->Show(true);
+}
+
+void MainFrame::OnReadMe(wxCommandEvent& event)
+{
+    MainDialog* newDialog = new MainDialog(L"Read me", toWide(GetReadMe()));
+    wxPoint dialogPosition(GetPosition().x + GetSize().x / 2.f - newDialog->GetSize().x / 2.f,
+                           GetPosition().y + GetSize().y / 2.f - newDialog->GetSize().y / 2.f);
+    if (dialogPosition.x < 0) dialogPosition.x = 0;
+    if (dialogPosition.y < 0) dialogPosition.y = 0;
+
+
+    newDialog->SetPosition(dialogPosition);
     newDialog->Show(true);
 }
 

@@ -706,7 +706,11 @@ inline std::vector<std::basic_string<T>> splitByChar(std::basic_string<T> str, T
             returnValue.push_back(std::basic_string<T>());
         }
     }
-    if (returnValue.back().size() == 0) returnValue.pop_back();
+
+    if (!returnValue.empty())
+    {
+        if (returnValue.back().size() == 0) returnValue.pop_back();
+    }
     return returnValue;
 }
 

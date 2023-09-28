@@ -153,8 +153,10 @@ private:
 
     void OnSave(wxCommandEvent&);
     void OnExit(wxCommandEvent&);
+
     void OnAbout(wxCommandEvent&);
     void OnLicense(wxCommandEvent&);
+    void OnReadMe(wxCommandEvent&);
 
     void OnClose(wxCloseEvent&);
     // --
