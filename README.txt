@@ -1,30 +1,38 @@
-VERSION:
+# VERSION:
 album-dl_v1.1
 
 
-DESCRIPTION:
+# DESCRIPTION:
 This program is a tool for downloading albums from youtube.
 
-REQUIREMENTS:
-Album-dl requires FFmpeg to work, if you don't have FFmpeg installed, visit:
+# REQUIREMENTS:
+album-dl requires FFmpeg to work, if you don't have FFmpeg installed, visit:
 https://ffmpeg.org/download.html
 
+# SHORTCUTS:
+-'Ctrl + S':      Save settings
+-'Esc':           Exit the program
+-'Tab':           Focus next field
+-'Shift + Tab':   Focus previous field
 
-------------------------------------------------------------------------------------------
-SAVING SETTINGS:
-Press Ctrl+S or go to "File/Save settings" to save:
-albums directory, working directory, FFmpeg directory, alert-checkbox state, bitrate & window position.
+
+# SAVING SETTINGS:
+Press 'Ctrl+S' or go to "File/Save settings" to save:
+-directores
+-window position/size
+-alert-on-done checkbox state
+-audio bitrate
+
 These settings are automatically loaded each time album-dl is opened.
 
 
-------------------------------------------------------------------------------------------
-ALBUMS DIRECTORY:
-Full or relative path to a directory where the album folder will be moved,
+# ALBUMS DIRECTORY:
+Full or relative path to a directory where the downloaded album folder will be moved,
 e.g.: C:/Albums/
 If the directory does not exist, it will be created.
 
 
-WORKING DIRECTORY:
+# WORKING DIRECTORY:
 Full or relative path to a working directory with the following files:
             -yt-dlp.exe
             -config.txt
@@ -32,29 +40,27 @@ Full or relative path to a working directory with the following files:
 By default working directory is set to (relative path): workfolder/ and all necessary files are provided there.
 
 
-FFMPEG.EXE DIRECTORY:
+# FFMPEG.EXE DIRECTORY:
 Full or relative path to a directory containing ffmpeg.exe.
 Album-dl requires FFmpeg to work, if you don't have FFmpeg installed, visit:
 https://ffmpeg.org/download.html
 
 
-------------------------------------------------------------------------------------------
-ARTIST:
+# ARTIST:
 Used for output album folder name and track filenames.
 
-ALBUM NAME & ALBUM YEAR:
+# ALBUM NAME & ALBUM YEAR:
 Used only for output album folder name.
 
-PLAYLIST URL:
+# PLAYLIST URL:
 This playlist will be downloaded into .mp3's.
 If no artwork-playlist URL is provided, this one is used to download the album artwork as well.
 
-PLAYLIST URL WITH PROPER ARTWORK:
+# PLAYLIST URL WITH ARTWORK:
 Album artwork is downloaded from this playlist. If left empty, URL from "Playlist URL" is used.
 
 
-------------------------------------------------------------------------------------------
-OUTPUT FILENAMES & FOLDER NAME FORMAT:
+# OUTPUT FILENAMES & FOLDER NAME FORMAT:
 Albums Directory/
             Artist - Album Name (Album Year)/
                         Track Number. Artist - Track Title.mp3
@@ -65,41 +71,39 @@ Albums Directory/
                         artwork.png
 
 
-TRASH:
+# TRASH:
 This program uses Windows commands to execute renaming and moving files as well as creating directories.
-For extra-safety this program does not use DEL command,
-left-over .mp4 files are instead put in /Trash/ subfolder in the working directory
+For extra-safety this program does not use the DEL command,
+left-over files are instead put in the /Trash/ subfolder in the working directory
 and you are free to delete contents of that subfolder manually.
 However there is no need to clear these files as album-dl
-always overwrites .mp4's with the same name each time leftover .mp4's are moved there,
-so as a result the amount of disk space taken by /Trash/ subfolder does not stack.
+always overwrites left-over files with the same name, each time leftover files are moved there,
+so as a result the amount of disk space taken by the /Trash/ subfolder does not stack,
+instead it is around the amount of disk space taken by just the last run's left-over files.
 
 
-STAGES:
-Album-dl goes through following stages after the "Run" button is pressed:
-1) downloading best audio quality .mp4's
-2) getting the track titles
-3) converting .mp4 files into .mp3's
-4) removing the .mp4's
-5) renaming the .mp3's
-6) downloading the album artwork
-7) attaching artwork.png to .mp3's metadata
-8) creating destination album subfolder in the albums directory
-9) moving .mp3's into the destination folder
-10) moving .png into the destination folder
+# STAGES:
+Album-dl goes through following stages after the "Download" button is pressed:
+1. downloading best audio quality .mp4's
+6. downloading the album artwork
+2. getting the track titles
+3. converting .mp4 files into .mp3's
+4. removing the .mp4's
+5. renaming the .mp3's
+7. attaching artwork.png to .mp3's metadata
+8. creating destination album subfolder in the albums directory
+9. moving .mp3's into the destination folder
+10. moving .png into the destination folder
 
 
-------------------------------------------------------------------------------------------
-BYPASSING AGE-RESTRICTION:
+# BYPASSING AGE-RESTRICTION:
 In case of an age-restricted URL: 
-1) get a youtube cookies dump into cookies.txt
-2) place cookies.txt in the working directory
-3) include the following line in config.txt:
---cookies "cookies.txt"
+1. get a youtube cookies dump into cookies.txt
+2. place cookies.txt in the working directory
+3. include the following line in config.txt: --cookies "cookies.txt"
 
 
-------------------------------------------------------------------------------------------
-LICENSE:
+# LICENSE:
 This is free and unencumbered software released into the public domain.
 
 Anyone is free to copy, modify, publish, use, compile, sell, or
