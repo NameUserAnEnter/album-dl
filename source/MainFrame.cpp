@@ -414,10 +414,10 @@ void MainFrame::InitTestValues()
     // -- SAMPLE TEST VALUES FOR CONVENIENCE:
     
     // SHORT PLAYLISTS
-    //fArtist.SetText(L"Big Black");
-    //fAlbumName.SetText(L"Racer-X");
-    //fAlbumYear.SetText(L"1985");
-    //fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nrAFOfF6ITDAEJ-BuHYWpHYOwsKNTZ994");
+    fArtist.SetText(L"Big Black");
+    fAlbumName.SetText(L"Racer-X");
+    fAlbumYear.SetText(L"1985");
+    fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nrAFOfF6ITDAEJ-BuHYWpHYOwsKNTZ994");
 
     //fArtist.SetText(L"Big Black");
     //fAlbumName.SetText(L"Lungs");
@@ -454,11 +454,11 @@ void MainFrame::InitTestValues()
     ////fArtworkURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
 
     // THE CODE POINT PROBLEM WITH THE NEW WAY TO DOWNLOAD TRACK-TITLES e.g. \u0026
-    fArtist.SetText(L"Supergrass");
-    fAlbumName.SetText(L"Road To Rouen");
-    fAlbumYear.SetText(L"2005");
-    fURL.SetText(L"https://www.youtube.com/playlist?list=PLHTo__bpnlYURCrPK2lf1onaXhWKlzcYl");
-    fArtworkURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_l-QlUzRsn3KV4PvzkGxWgeUbiae67USgo");
+    //fArtist.SetText(L"Supergrass");
+    //fAlbumName.SetText(L"Road To Rouen");
+    //fAlbumYear.SetText(L"2005");
+    //fURL.SetText(L"https://www.youtube.com/playlist?list=PLHTo__bpnlYURCrPK2lf1onaXhWKlzcYl");
+    //fArtworkURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_l-QlUzRsn3KV4PvzkGxWgeUbiae67USgo");
 
     // --
 }
