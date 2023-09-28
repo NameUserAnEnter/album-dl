@@ -237,8 +237,8 @@ private:
     std::vector<std::wstring> RenameFilesStage(std::wstring ext = L".mp3");
 
 
-    void GetTrackTitles();
-    std::wstring GetTitlesStageAlt();
+    void GetTrackTitlesAlt();
+    std::wstring GetTitlesStage();
 
     void GetArtworkStage();
     std::wstring GetArtworkStageAlt(std::wstring);

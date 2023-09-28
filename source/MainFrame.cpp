@@ -414,10 +414,10 @@ void MainFrame::InitTestValues()
     // -- SAMPLE TEST VALUES FOR CONVENIENCE:
     
     // SHORT PLAYLISTS
-    fArtist.SetText(L"Big Black");
-    fAlbumName.SetText(L"Racer-X");
-    fAlbumYear.SetText(L"1985");
-    fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nrAFOfF6ITDAEJ-BuHYWpHYOwsKNTZ994");
+    //fArtist.SetText(L"Big Black");
+    //fAlbumName.SetText(L"Racer-X");
+    //fAlbumYear.SetText(L"1985");
+    //fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nrAFOfF6ITDAEJ-BuHYWpHYOwsKNTZ994");
 
     //fArtist.SetText(L"Big Black");
     //fAlbumName.SetText(L"Lungs");
@@ -453,12 +453,13 @@ void MainFrame::InitTestValues()
     //fURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
     ////fArtworkURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nMsUDBQ3_Xsjdz62NkJ_g1HnEirKtRkZg");
 
-    // THE CODE POINT PROBLEM WITH THE NEW WAY TO DOWNLOAD TRACK-TITLES e.g. \u0026
-    //fArtist.SetText(L"Supergrass");
-    //fAlbumName.SetText(L"Road To Rouen");
-    //fAlbumYear.SetText(L"2005");
-    //fURL.SetText(L"https://www.youtube.com/playlist?list=PLHTo__bpnlYURCrPK2lf1onaXhWKlzcYl");
-    //fArtworkURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_l-QlUzRsn3KV4PvzkGxWgeUbiae67USgo");
+    // NORMAL PLAYLIST
+    // Proves GetTrackTitlesAlt() to be incomplete, with titles ending up containing unparsed code-points like: "... \u0026 ..."
+    fArtist.SetText(L"Supergrass");
+    fAlbumName.SetText(L"Road To Rouen");
+    fAlbumYear.SetText(L"2005");
+    fURL.SetText(L"https://www.youtube.com/playlist?list=PLHTo__bpnlYURCrPK2lf1onaXhWKlzcYl");
+    fArtworkURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_l-QlUzRsn3KV4PvzkGxWgeUbiae67USgo");
 
     // --
 }
@@ -947,24 +948,25 @@ void MainFrame::GetAlbum()
     //mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
     //ExecuteBatchSession();
 
-    ////
-    //////--------------------------------------------------
+    
+    //--------------------------------------------------
     //GetArtworkStage();
 
 
 
-    //////--------------------------------------------------
+    //--------------------------------------------------
     //ResetTracksFile();
-    //GetTrackTitles();
+    //mainConsole.AddCmd(GetTitlesStage());
+    //ExecuteBatchSession();
 
     LoadTrackTitles();
     ValidateTrackTitles();
-    ////ResetTracksFile();
-    ////
-    ////
-    //////--------------------------------------------------
+    //ResetTracksFile();
+    
+    
+    //--------------------------------------------------
     //mainConsole.AddCmd(ConvertStage(), UTF8);
-    ////mainConsole.AddCmd(CreateTrashDirStage());
+    //mainConsole.AddCmd(CreateTrashDirStage());
     //mainConsole.AddCmd(RemoveLeftoverStage());
     //mainConsole.AddCmd(RenameFilesStage());
     //ExecuteBatchSession();
@@ -1349,7 +1351,17 @@ void MainFrame::PrintTracks()
 
 
 
-void MainFrame::GetTrackTitles()
+std::wstring MainFrame::GetTitlesStage()
+{
+    std::wstring tracksPath = workingDirectory + tracksFilename;
+    std::wstring cmd = L"cmd /a /c \"\"" + workingDirectory + downloaderExec + L"\"";
+    std::wstring args = L" --no-warnings --print title --print-to-file %(title)s \"" + tracksPath + L"\" \"" + URL + L"\"\"";
+    
+    cmd += args;
+    return cmd;
+}
+
+void MainFrame::GetTrackTitlesAlt()
 {
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Time: " + GetDateAndTimeStr() + "\n");
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Executing function:\n" "GetTrackTitles()" "\n");
@@ -1467,13 +1479,6 @@ void MainFrame::LoadTrackTitles()
 }
 
 
-
-std::wstring MainFrame::GetTitlesStageAlt()
-{
-    //std::wstring cmd = L"cmd /a /c \"\"" + workingDirectory + downloaderExec + L"\" -e --print-to-file %(title)s \"tracks\" \"" + URL + L"\"\"";
-    std::wstring cmd = L"cmd /a /c \"\"" + workingDirectory + downloaderExec + L"\" -e --print-to-file %(title)s \"" + tracksFilename + L"\" \"" + URL + L"\"\"";
-    return cmd;
-}
 
 
 
