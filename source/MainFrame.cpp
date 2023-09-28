@@ -189,6 +189,7 @@ void MainFrame::InitFieldsDimensions()
     fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight + fieldBreakV, TextBoxSize));
     fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
     fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
+    fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
 
     fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
     fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
@@ -221,9 +222,11 @@ void MainFrame::InitFields()
     fWorkingDir.Init(   ID_fWorkingDir,     fields[index].pos, fields[index].size, parent); index++;
     fConverterDir.Init( ID_fConverterDir,   fields[index].pos, fields[index].size, parent); index++;
     // extra separation
+    fPreview.Init(  ID_fPreview,   fields[index].pos, fields[index].size, parent); index++;
     fArtist.Init(   ID_fArtist,    fields[index].pos, fields[index].size, parent); index++;
     fAlbumName.Init(ID_fAlbumName, fields[index].pos, fields[index].size, parent); index++;
     fAlbumYear.Init(ID_fAlbumYear, fields[index].pos, fields[index].size, parent); index++;
+
     fURL.Init(          ID_fURL,        fields[index].pos, fields[index].size, parent); index++;
     fArtworkURL.Init(   ID_fArtworkURL, fields[index].pos, fields[index].size, parent); index++;
 
@@ -241,9 +244,11 @@ void MainFrame::InitFieldsLabels()
     fWorkingDir.SetLabel(L"Working directory:");
     fConverterDir.SetLabel(L"ffmpe.exe directory:");
 
+    fPreview.SetLabel(L"Album path (preview):");
     fArtist.SetLabel(L"Artist");
     fAlbumName.SetLabel(L"Album name:");
     fAlbumYear.SetLabel(L"Album year:");
+
     fURL.SetLabel(L"Playlist URL:");
     fArtworkURL.SetLabel(L"Playlist URL with artwork:");
 
@@ -257,6 +262,8 @@ void MainFrame::InitFieldsLabels()
 
 
     // Set hints:
+    fPreview.SetEditable(false);
+    //fPreview.Disable();
     fArtist.SetHint(L"(optional, used for album-folder name and filenames)");
     fAlbumName.SetHint(L"(optional, used for album-folder name)");
     fAlbumYear.SetHint(L"(optional, used for album-folder name)");
@@ -271,6 +278,7 @@ void MainFrame::InitFieldsDimensionRanges()
     fWorkingDir.SetMinSize(minDataFieldSize);
     fConverterDir.SetMinSize(minDataFieldSize);
 
+    fPreview.SetMinSize(minDataFieldSize);
     fArtist.SetMinSize(minDataFieldSize);
     fAlbumName.SetMinSize(minDataFieldSize);
     fAlbumYear.SetMinSize(minDataFieldSize);
@@ -285,6 +293,7 @@ void MainFrame::InitFieldsDimensionRanges()
     fWorkingDir.SetMaxSize(maxDataFieldSize);
     fConverterDir.SetMaxSize(maxDataFieldSize);
 
+    fPreview.SetMaxSize(maxDataFieldSize);
     fArtist.SetMaxSize(maxDataFieldSize);
     fAlbumName.SetMaxSize(maxDataFieldSize);
     fAlbumYear.SetMaxSize(maxDataFieldSize);
@@ -308,6 +317,11 @@ void MainFrame::InitBindings()
 
     Bind(wxEVT_MENU, &MainFrame::OnAbout, this, ID_menuAbout);
     Bind(wxEVT_MENU, &MainFrame::OnLicense, this, ID_menuLicense);
+
+    Bind(wxEVT_TEXT, &MainFrame::OnAlbumPathPreview, this, ID_fAlbumsDir);
+    Bind(wxEVT_TEXT, &MainFrame::OnAlbumPathPreview, this, ID_fArtist);
+    Bind(wxEVT_TEXT, &MainFrame::OnAlbumPathPreview, this, ID_fAlbumName);
+    Bind(wxEVT_TEXT, &MainFrame::OnAlbumPathPreview, this, ID_fAlbumYear);
 
     Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose, this);
 }
@@ -675,6 +689,28 @@ void MainFrame::OnExit(wxCommandEvent& event)
     Close(true);
 }
 
+void MainFrame::OnAlbumPathPreview(wxCommandEvent& event)
+{
+    //MessageDialog("OnAlbumPathPreview()");
+    std::wstring albumsDirPreview = fAlbumsDir.GetText();
+    if (!validDir(albumsDirPreview))
+    {
+        fPreview.SetText(L"<invalid-directory>");
+        return;
+    }
+
+    std::wstring artistPreview = fArtist.GetText();
+    std::wstring albumNamePreview = fAlbumName.GetText();
+    std::wstring albumYearPreview = fAlbumYear.GetText();
+
+    ValidateFilenameStr(artistPreview);
+    ValidateFilenameStr(albumNamePreview);
+    ValidateFilenameStr(albumYearPreview);
+
+    std::wstring albumPathPreview = albumsDirPreview + artistPreview + L" - " + albumNamePreview + L" " + L"(" + albumYearPreview + L")" + L"/";
+    fPreview.SetText(albumPathPreview);
+}
+
 void MainFrame::OnAbout(wxCommandEvent& event)
 {
     MainDialog* newDialog = new MainDialog(L"About", toWide(GetAbout()));
@@ -770,6 +806,7 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     fWorkingDir.SetSize(fWorkingDir.GetMinSize().x + hIncreaseCell1, fWorkingDir.GetSize().y);
     fConverterDir.SetSize(fConverterDir.GetMinSize().x + hIncreaseCell1, fConverterDir.GetSize().y);
 
+    fPreview.SetSize(fPreview.GetMinSize().x + hIncreaseCell1, fPreview.GetSize().y);
     fArtist.SetSize(fArtist.GetMinSize().x + hIncreaseCell1, fArtist.GetSize().y);
     fAlbumName.SetSize(fAlbumName.GetMinSize().x + hIncreaseCell1, fAlbumName.GetSize().y);
     fAlbumYear.SetSize(fAlbumYear.GetMinSize().x + hIncreaseCell1, fAlbumYear.GetSize().y);
@@ -784,6 +821,7 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     textBoxesCell1.push_back(&fArtist);
     textBoxesCell1.push_back(&fAlbumName);
     textBoxesCell1.push_back(&fAlbumYear);
+    textBoxesCell1.push_back(&fPreview);
     textBoxesCell1.push_back(&fURL);
     textBoxesCell1.push_back(&fArtworkURL);
     wxSize maxDistance1 = FindMaxDistance(std::vector<Field>(), textBoxesCell1);
@@ -801,25 +839,28 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     int vOffset3 = newClientHeight;
     vOffset3 -= clientMargin.bottom;
     vOffset3 -= buttonDownload.GetSize().y;
-    vOffset3 -= fieldHeight;
-    vOffset3 -= fieldHeight;
+    vOffset3 -= fieldHeight;        // fArtworkURL
+    vOffset3 -= fieldHeight;        // fURL
 
-    vOffset3 -= fieldHeight;
-    vOffset3 -= fieldHeight;
-    vOffset3 -= fieldHeight;
+    vOffset3 -= fieldHeight;        // fAlbumYear
+    vOffset3 -= fieldHeight;        // fAlbumName
+    vOffset3 -= fieldHeight;        // fArtist
+    vOffset3 -= fieldHeight;        // fPreview
     if (vOffset3 >= clientMargin.top + fieldHeight * 3 + fieldBreakV)
     {
-        fArtist.SetPosition(fArtist.GetPosition().x, vOffset3 + fieldHeight * 0);
-        fAlbumName.SetPosition(fAlbumName.GetPosition().x, vOffset3 + fieldHeight * 1);
-        fAlbumYear.SetPosition(fAlbumYear.GetPosition().x, vOffset3 + fieldHeight * 2);
-        fURL.SetPosition(fURL.GetPosition().x, vOffset3 + fieldHeight * 3);
-        fArtworkURL.SetPosition(fArtworkURL.GetPosition().x, vOffset3 + fieldHeight * 4);
+        fPreview.SetPosition(fPreview.GetPosition().x, vOffset3 + fieldHeight * 0);
+        fArtist.SetPosition(fArtist.GetPosition().x, vOffset3 + fieldHeight * 1);
+        fAlbumName.SetPosition(fAlbumName.GetPosition().x, vOffset3 + fieldHeight * 2);
+        fAlbumYear.SetPosition(fAlbumYear.GetPosition().x, vOffset3 + fieldHeight * 3);
+
+        fURL.SetPosition(fURL.GetPosition().x, vOffset3 + fieldHeight * 4);
+        fArtworkURL.SetPosition(fArtworkURL.GetPosition().x, vOffset3 + fieldHeight * 5);
 
 
-        buttonDownload.SetPosition(wxPoint(buttonDownload.GetPosition().x, vOffset3 + fieldHeight * 5));
-        checkAlert.SetPosition(wxPoint(checkAlert.GetPosition().x, vOffset3 + fieldHeight * 5 + verticalCheckBoxOffset));
-        fBitrate.SetPosition(fBitrate.GetPosition().x, vOffset3 + fieldHeight * 5 + verticalDropDownOffset);
-        buttonUpdateYtDlp.SetPosition(wxPoint(buttonUpdateYtDlp.GetPosition().x, vOffset3 + fieldHeight * 5));
+        buttonDownload.SetPosition(wxPoint(buttonDownload.GetPosition().x, vOffset3 + fieldHeight * 6));
+        checkAlert.SetPosition(wxPoint(checkAlert.GetPosition().x, vOffset3 + fieldHeight * 6 + verticalCheckBoxOffset));
+        fBitrate.SetPosition(fBitrate.GetPosition().x, vOffset3 + fieldHeight * 6 + verticalDropDownOffset);
+        buttonUpdateYtDlp.SetPosition(wxPoint(buttonUpdateYtDlp.GetPosition().x, vOffset3 + fieldHeight * 6));
     }
 
 
@@ -945,8 +986,8 @@ void MainFrame::GetAlbum()
 
 
     //--------------------------------------------------
-    //mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
-    //ExecuteBatchSession();
+    mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
+    ExecuteBatchSession();
 
     
     //--------------------------------------------------
@@ -959,8 +1000,8 @@ void MainFrame::GetAlbum()
     //mainConsole.AddCmd(GetTitlesStage());
     //ExecuteBatchSession();
 
-    LoadTrackTitles();
-    ValidateTrackTitles();
+    //LoadTrackTitles();
+    //ValidateTrackTitles();
     //ResetTracksFile();
     
     
@@ -973,7 +1014,7 @@ void MainFrame::GetAlbum()
 
 
     //--------------------------------------------------
-    AttachArtworkToAll();
+    //AttachArtworkToAll();
 
     //mainConsole.AddCmd(CreateAlbumDirectoryStage());
     //mainConsole.AddCmd(MoveAudioStage());

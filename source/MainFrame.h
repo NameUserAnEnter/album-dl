@@ -61,6 +61,8 @@ private:
     TextBox fAlbumYear;
     TextBox fURL;
     TextBox fArtworkURL;
+
+    TextBox fPreview;
     
     wxButton buttonDownload;
     wxButton buttonUpdateYtDlp;
@@ -156,6 +158,8 @@ private:
 
     void OnAbout(wxCommandEvent&);
     void OnLicense(wxCommandEvent&);
+
+    void OnAlbumPathPreview(wxCommandEvent&);
 
     void OnClose(wxCloseEvent&);
     // --

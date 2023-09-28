@@ -18,6 +18,8 @@ enum
     ID_fAlbumName,
     ID_fAlbumYear,
 
+    ID_fPreview,
+
     ID_fURL,
     ID_fArtworkURL,
 
