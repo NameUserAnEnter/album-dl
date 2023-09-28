@@ -1,6 +1,6 @@
 #ifndef INFO_H
 #define INFO_H
-#define VER 1.1
+#define VER 1.2
 #include "utils.h"
 
 
@@ -100,10 +100,10 @@ inline std::string GetAbout()
         
         "\n\n# DESCRIPTION:\n"
         "This program is a tool for downloading album-playlists from youtube as audio files, with album cover-artwork attached.\n"
-        "For more information visit:\n"
+        "\nFor more information visit:\n"
         "https://github.com/NameUserAnEnter/album-dl\n"
 
-        "\n# REQUIREMENTS:\n"
+        "\n\n# REQUIREMENTS:\n"
         "album-dl requires ffmpeg to work, if you don't have ffmpeg installed, visit:\n"
         "https://ffmpeg.org/download.html\n"
 

@@ -262,14 +262,15 @@ void MainFrame::InitFieldsLabels()
 
 
     // Set hints:
-    fAlbumsDir.SetHint(L"(the album will be moved to this location)");
+    fConverterDir.SetHint(L"This location has to contain ffmpeg.exe");
+    fAlbumsDir.SetHint(L"The album will be moved to this location");
     fPreview.SetEditable(false);
     //fPreview.Disable();
-    fArtist.SetHint(L"(optional, used for album-folder name and filenames)");
-    fAlbumName.SetHint(L"(optional, used for album-folder name)");
-    fAlbumYear.SetHint(L"(optional, used for album-folder name)");
-    fURL.SetHint(L"https://youtube.com/playlist?list=...");
-    fArtworkURL.SetHint(L"(optional, use if the other URL is a normal playlist with no artwork thumbnail)");
+    fArtist.SetHint(    L"optional: used for album path and filenames");
+    fAlbumName.SetHint( L"optional: used for album path");
+    fAlbumYear.SetHint( L"optional: used for album path");
+    fURL.SetHint(       L"https://youtube.com/playlist?list=...");
+    fArtworkURL.SetHint(L"optional: use if the other URL is a normal playlist with no artwork thumbnail");
 }
 
 void MainFrame::InitFieldsDimensionRanges()
@@ -422,8 +423,8 @@ void MainFrame::InitBitrates()
 
 void MainFrame::InitTestValues()
 {
-    bResetFields = false;
-    fBitrate.SetSelected(3);
+    //bResetFields = false;
+    //fBitrate.SetSelected(3);
 
     
     // -- SAMPLE TEST VALUES FOR CONVENIENCE:
@@ -470,11 +471,11 @@ void MainFrame::InitTestValues()
 
     // NORMAL PLAYLIST
     // Proves GetTrackTitlesAlt() to be incomplete, with titles ending up containing unparsed code-points like: "... \u0026 ..."
-    fArtist.SetText(L"Supergrass");
-    fAlbumName.SetText(L"Road To Rouen");
-    fAlbumYear.SetText(L"2005");
-    fURL.SetText(L"https://www.youtube.com/playlist?list=PLHTo__bpnlYURCrPK2lf1onaXhWKlzcYl");
-    fArtworkURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_l-QlUzRsn3KV4PvzkGxWgeUbiae67USgo");
+    //fArtist.SetText(L"Supergrass");
+    //fAlbumName.SetText(L"Road To Rouen");
+    //fAlbumYear.SetText(L"2005");
+    //fURL.SetText(L"https://www.youtube.com/playlist?list=PLHTo__bpnlYURCrPK2lf1onaXhWKlzcYl");
+    //fArtworkURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_l-QlUzRsn3KV4PvzkGxWgeUbiae67USgo");
 
     // --
 }
@@ -504,7 +505,7 @@ void MainFrame::InitWindowSize()
     }
 
     float devClientResX = GetMinClientSize().x;
-    float devClientResY = 500;
+    float devClientResY = 600;
 
     SetClientSize((devClientResX * userScreenResX) / devScreenResX, (devClientResY * userScreenResY) / devScreenResY);
 }
@@ -524,7 +525,7 @@ void MainFrame::InitSettings()
 
 void MainFrame::InitFocus()
 {
-    if (!bLoadedSettings) fAlbumsDir.SetFocus();
+    if (!bLoadedSettings) fConverterDir.SetFocus();
     else
     {
         //buttonDownload.SetFocus();
@@ -620,7 +621,7 @@ void MainFrame::InitTerminalOutput()
         initialOutput += L"--------------------------------------------------------------------------\n\n";
     }
 
-    if (!dimensionsInfo.empty()) initialOutput += dimensionsInfo;
+    //if (!dimensionsInfo.empty()) initialOutput += dimensionsInfo;
     
 
     mainConsole.PrintLogAndConsole(initialOutput);
