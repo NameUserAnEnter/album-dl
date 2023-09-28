@@ -18,15 +18,6 @@ bool MainApp::OnInit()
     MainFrame* frame = new MainFrame();
     frame->StartOutputUpdate();  // starts a new thread that updates the output box
 
-
-    MainDialog* testDialog3 = new MainDialog(L"Read me", toWide(GetReadMe()), true);
-
-
-
-
-
-
-
     return true;
 }
 
