@@ -116,8 +116,8 @@ void MainFrame::InitValues()
     //clientMargin = { 28, 20, 20, 20 };
     clientMargin = { 18, 10, 10, 10 };
 
-    minDataFieldSize = wxSize(420, 20);
-    maxDataFieldSize = wxSize(600, minDataFieldSize.y);
+    minTextBoxSize = wxSize(420, 20);
+    maxTextBoxSize = wxSize(600, minTextBoxSize.y);
 
     minButtonSize = wxSize(100, 25);
 }
@@ -158,10 +158,10 @@ void MainFrame::InitMenuAndStatusBar()
 
 
 
-void MainFrame::InitFieldRectangs()
+void MainFrame::InitControlRectangs()
 {
     //  _________________________________
-    // | fields      |terminal           |
+    // |             |terminal           |
     // | ____________|__________________ |
     // ||directories |                  ||
     // ||____________|                  ||
@@ -172,12 +172,12 @@ void MainFrame::InitFieldRectangs()
     // |_____________|___________________|
 
 
-    // Data field dimensions are set here to minimal sizes and positions
+    // Here control dimensions are set to minimal sizes and positions the program will allow during runtime
     wxSize TextBoxSize;
     wxSize OutputBoxSize;
     wxSize ButtonSize;
 
-    TextBoxSize = minDataFieldSize;
+    TextBoxSize = minTextBoxSize;
     ButtonSize = minButtonSize;
 
     rectangs.clear();
@@ -196,6 +196,7 @@ void MainFrame::InitFieldRectangs()
 
     int verticalButtonOffset = rectangs.back().pos.y + fieldHeight;
     rectangs.push_back(Rectang(clientMargin.left + (ButtonSize.x + buttonBreak) * 0, verticalButtonOffset + verticalDropDownOffset, ButtonSize));
+
     rectangs.push_back(Rectang(clientMargin.left + (ButtonSize.x + buttonBreak) * 1, verticalButtonOffset + verticalCheckBoxOffset, ButtonSize));
     rectangs.push_back(Rectang(clientMargin.left + TextBoxSize.x - ButtonSize.x * 2 - buttonBreak * 1, verticalButtonOffset, ButtonSize));
     rectangs.push_back(Rectang(clientMargin.left + TextBoxSize.x - ButtonSize.x * 1 - buttonBreak * 0, verticalButtonOffset, ButtonSize));
@@ -208,37 +209,40 @@ void MainFrame::InitFieldRectangs()
     rectangs.push_back(Rectang(maxDistance.x + fieldBreakH, clientMargin.top, OutputBoxSize));
 }
 
-void MainFrame::InitFields()
+void MainFrame::InitControls()
 {
-    // PANEL:
     // default sizes and pos because it's automatically stretched to the frame anyway
     mainPanel.Create(this, ID_framePanel, wxDefaultPosition, wxDefaultSize, 2621440L, "Main Panel");
     wxWindow* parent = &mainPanel;
 
     unsigned int index = 0;
 
-    // FIELDS:
-    fWorkingDir.Init(   ID_fWorkingDir,     rectangs[index].pos, rectangs[index].size, parent); index++;
-    fConverterDir.Init( ID_fConverterDir,   rectangs[index].pos, rectangs[index].size, parent); index++;
-    fAlbumsDir.Init(    ID_fAlbumsDir,      rectangs[index].pos, rectangs[index].size, parent); index++;
-    fPreview.Init(      ID_fPreview,        rectangs[index].pos, rectangs[index].size, parent); index++;
-    // extra separation
-    fArtist.Init(   ID_fArtist,    rectangs[index].pos, rectangs[index].size, parent); index++;
-    fAlbumName.Init(ID_fAlbumName, rectangs[index].pos, rectangs[index].size, parent); index++;
-    fAlbumYear.Init(ID_fAlbumYear, rectangs[index].pos, rectangs[index].size, parent); index++;
+    fWorkingDir.Init(ID_fWorkingDir,        minTextBoxSize, parent);
+    fConverterDir.Init(ID_fConverterDir,    minTextBoxSize, parent);
+    fAlbumsDir.Init(ID_fAlbumsDir,          minTextBoxSize, parent);
+    fPreview.Init(ID_fPreview,              minTextBoxSize, parent);
 
-    fURL.Init(          ID_fURL,        rectangs[index].pos, rectangs[index].size, parent); index++;
-    fArtworkURL.Init(   ID_fArtworkURL, rectangs[index].pos, rectangs[index].size, parent); index++;
+    fArtist.Init(ID_fArtist,                minTextBoxSize, parent);
+    fAlbumName.Init(ID_fAlbumName,          minTextBoxSize, parent);
+    fAlbumYear.Init(ID_fAlbumYear,          minTextBoxSize, parent);
 
-    fBitrate.Init(L"----", ID_fBitrate,                     rectangs[index].pos, rectangs[index].size, parent); index++;
-    checkAlert.Create(parent,        ID_checkAlert,     "", rectangs[index].pos, rectangs[index].size);         index++;
-    buttonUpdateYtDlp.Create(parent, ID_buttonUpdate,   "", rectangs[index].pos, rectangs[index].size);         index++;
-    buttonDownload.Create(parent,    ID_buttonDownload, "", rectangs[index].pos, rectangs[index].size);         index++;
+    fURL.Init(ID_fURL,                      minTextBoxSize, parent);
+    fArtworkURL.Init(ID_fArtworkURL,        minTextBoxSize, parent);
+
+    fBitrate.Init(ID_fBitrate,              minButtonSize, parent);
+
+    checkAlert.Create(parent,           ID_checkAlert, "");
+    buttonUpdateYtDlp.Create(parent,    ID_buttonUpdate,   "");
+    buttonDownload.Create(parent,       ID_buttonDownload, "");
+
+    checkAlert.SetSize(minButtonSize);
+    buttonUpdateYtDlp.SetSize(minButtonSize);
+    buttonDownload.SetSize(minButtonSize);
     
-    fOutput.Init(ID_fOutput, rectangs[index].pos, rectangs[index].size, parent, wxTE_MULTILINE | wxTE_READONLY); index++;
+    fOutput.Init(ID_fOutput, rectangs.back().size, parent, wxTE_MULTILINE | wxTE_READONLY);
 }
 
-void MainFrame::InitFieldLabels()
+void MainFrame::InitControlLabels()
 {
     fWorkingDir.SetLabel(L"Working directory:");
     fConverterDir.SetLabel(L"ffmpeg.exe directory:");
@@ -253,6 +257,8 @@ void MainFrame::InitFieldLabels()
     fArtworkURL.SetLabel(L"Playlist URL with artwork:");
 
     fBitrate.SetLabel(L"Audio bitrate:");
+    fBitrate.SetValue(L"----");
+
     checkAlert.SetLabel(L"Alert on done");
     buttonUpdateYtDlp.SetLabel(L"Update YT-DLP");
     buttonDownload.SetLabel(L"Download");
@@ -273,34 +279,58 @@ void MainFrame::InitFieldLabels()
     fArtworkURL.SetHint(L"optional: use if the other URL is a normal playlist with no artwork thumbnail");
 }
 
-void MainFrame::InitFieldDimensionRanges()
+void MainFrame::InitControlPositions()
+{
+    unsigned int index = 0;
+    fWorkingDir.SetPosition(rectangs[index].pos); index++;
+    fConverterDir.SetPosition(rectangs[index].pos); index++;
+    fAlbumsDir.SetPosition(rectangs[index].pos); index++;
+    fPreview.SetPosition(rectangs[index].pos); index++;
+
+    fArtist.SetPosition(rectangs[index].pos); index++;
+    fAlbumName.SetPosition(rectangs[index].pos); index++;
+    fAlbumYear.SetPosition(rectangs[index].pos); index++;
+
+    fURL.SetPosition(rectangs[index].pos); index++;
+    fArtworkURL.SetPosition(rectangs[index].pos); index++;
+
+    fBitrate.SetPosition(rectangs[index].pos); index++;
+
+    checkAlert.SetPosition(rectangs[index].pos); index++;
+    buttonUpdateYtDlp.SetPosition(rectangs[index].pos); index++;
+    buttonDownload.SetPosition(rectangs[index].pos); index++;
+
+    fOutput.SetPosition(rectangs[index].pos); index++;
+}
+
+void MainFrame::InitControlDimensionRanges()
 {
     // FIELDS MIN SIZES
-    fWorkingDir.SetMinSize(minDataFieldSize);
-    fConverterDir.SetMinSize(minDataFieldSize);
-    fAlbumsDir.SetMinSize(minDataFieldSize);
-    fPreview.SetMinSize(minDataFieldSize);
+    fWorkingDir.SetMinSize(minTextBoxSize);
+    fConverterDir.SetMinSize(minTextBoxSize);
+    fAlbumsDir.SetMinSize(minTextBoxSize);
+    fPreview.SetMinSize(minTextBoxSize);
     
-    fArtist.SetMinSize(minDataFieldSize);
-    fAlbumName.SetMinSize(minDataFieldSize);
-    fAlbumYear.SetMinSize(minDataFieldSize);
-    fURL.SetMinSize(minDataFieldSize);
-    fArtworkURL.SetMinSize(minDataFieldSize);
+    fArtist.SetMinSize(minTextBoxSize);
+    fAlbumName.SetMinSize(minTextBoxSize);
+    fAlbumYear.SetMinSize(minTextBoxSize);
+    fURL.SetMinSize(minTextBoxSize);
+    fArtworkURL.SetMinSize(minTextBoxSize);
     
     fOutput.SetMinSize(fOutput.GetSize());
 
 
     // FIELDS MAX SIZES
-    fWorkingDir.SetMaxSize(maxDataFieldSize);
-    fConverterDir.SetMaxSize(maxDataFieldSize);
-    fAlbumsDir.SetMaxSize(maxDataFieldSize);
-    fPreview.SetMaxSize(maxDataFieldSize);
+    fWorkingDir.SetMaxSize(maxTextBoxSize);
+    fConverterDir.SetMaxSize(maxTextBoxSize);
+    fAlbumsDir.SetMaxSize(maxTextBoxSize);
+    fPreview.SetMaxSize(maxTextBoxSize);
     
-    fArtist.SetMaxSize(maxDataFieldSize);
-    fAlbumName.SetMaxSize(maxDataFieldSize);
-    fAlbumYear.SetMaxSize(maxDataFieldSize);
-    fURL.SetMaxSize(maxDataFieldSize);
-    fArtworkURL.SetMaxSize(maxDataFieldSize);
+    fArtist.SetMaxSize(maxTextBoxSize);
+    fAlbumName.SetMaxSize(maxTextBoxSize);
+    fAlbumYear.SetMaxSize(maxTextBoxSize);
+    fURL.SetMaxSize(maxTextBoxSize);
+    fArtworkURL.SetMaxSize(maxTextBoxSize);
 
     fOutput.SetMaxSize(-1, -1);
 }
@@ -637,10 +667,11 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_mainFrame, "album-dl")
     InitValues();
     InitMenuAndStatusBar();
 
-    InitFieldRectangs();         // SET INITIAL FIELDS DIMENSIONS
-    InitFields();                   // SET LABELS AND CONSTRUCT FIELDS
-    InitFieldLabels();
-    InitFieldDimensionRanges();
+    InitControlRectangs();         // SET INITIAL FIELDS DIMENSIONS
+    InitControls();                   // SET LABELS AND CONSTRUCT FIELDS
+    InitControlLabels();
+    InitControlPositions();
+    InitControlDimensionRanges();
 
     InitBindings();
 
@@ -785,14 +816,14 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     hIncreaseTotal -= clientMargin.right;
     hIncreaseTotal -= fOutput.GetMinSize().x;
     hIncreaseTotal -= fieldBreakH;
-    hIncreaseTotal -= minDataFieldSize.x;
+    hIncreaseTotal -= minTextBoxSize.x;
     hIncreaseTotal -= clientMargin.left;
 
     int hIncreaseCell1 = hIncreaseTotal;
     int hIncreaseCell2 = 0;
-    if (minDataFieldSize.x + hIncreaseCell1 > maxDataFieldSize.x)
+    if (minTextBoxSize.x + hIncreaseCell1 > maxTextBoxSize.x)
     {
-        hIncreaseCell1 = maxDataFieldSize.x - minDataFieldSize.x;
+        hIncreaseCell1 = maxTextBoxSize.x - minTextBoxSize.x;
         hIncreaseCell2 = hIncreaseTotal - hIncreaseCell1;
     }
     
@@ -881,9 +912,9 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     
     hOffset4 -= (buttonDownload.GetSize().x);
     buttonX = hOffset4;
-    if (hOffset4 <= clientMargin.left + minDataFieldSize.x - buttonDownload.GetSize().x)
+    if (hOffset4 <= clientMargin.left + minTextBoxSize.x - buttonDownload.GetSize().x)
     {
-        buttonX = clientMargin.left + minDataFieldSize.x - buttonDownload.GetSize().x;
+        buttonX = clientMargin.left + minTextBoxSize.x - buttonDownload.GetSize().x;
     }
 
     b1_1 = Rect{    buttonDownload.GetPosition().x - refreshMargin.x,
@@ -900,9 +931,9 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     hOffset4 -= buttonBreak;
     hOffset4 -= buttonUpdateYtDlp.GetSize().x;
     buttonX = hOffset4;
-    if (hOffset4 <= clientMargin.left + minDataFieldSize.x - buttonDownload.GetSize().x - buttonBreak - buttonUpdateYtDlp.GetSize().x)
+    if (hOffset4 <= clientMargin.left + minTextBoxSize.x - buttonDownload.GetSize().x - buttonBreak - buttonUpdateYtDlp.GetSize().x)
     {
-        buttonX = clientMargin.left + minDataFieldSize.x - buttonDownload.GetSize().x - buttonBreak - buttonUpdateYtDlp.GetSize().x;
+        buttonX = clientMargin.left + minTextBoxSize.x - buttonDownload.GetSize().x - buttonBreak - buttonUpdateYtDlp.GetSize().x;
     }
 
     b2_1 = Rect { buttonUpdateYtDlp.GetPosition().x - refreshMargin.x,

@@ -18,30 +18,26 @@ DropDown::DropDown()
     maxSize.y = -1;
 }
 
-void DropDown::Init(std::wstring label, std::wstring initial_value, wxWindowID dropDownID, wxPoint position, wxSize size, wxWindow* parent, long style)
+void DropDown::Init(wxWindowID id, wxSize size, wxWindow* parent, long style)
 {
+    std::wstring label = L"";
+
     labelBox.Create(
-        parent, wxID_ANY, label,
-        wxPoint(position.x - labelOffset.left, position.y - labelOffset.top),
-        wxSize(labelOffset.left + size.x + labelOffset.right, labelOffset.top + size.y + labelOffset.bottom),
-        0, label + L" label");
+        parent, wxID_ANY, label, wxDefaultPosition, ComputeLabelBoxSize(size));
+
 
     labelBox.Bind(wxEVT_MOVE, &DropDown::OnLabelBoxMove, this, labelBox.GetId());
 
     listBox.Create(
-        &labelBox, dropDownID, initial_value,
+        &labelBox, id, L"",
         wxPoint(labelOffset.left, labelOffset.top),
         size, 0, NULL,
-        style, wxDefaultValidator, label + L" text field");
+        style);
 
+    //rectang = Rectang(listBox.GetPosition().x, listBox.GetPosition().y, listBox.GetSize().x, listBox.GetSize().y);
     listBox.SetEditable(false);
 
 	bInit = true;
-}
-
-void DropDown::Init(std::wstring initial_value, wxWindowID dropDownID, wxPoint position, wxSize size, wxWindow* parent, long style)
-{
-    Init(L"", initial_value, dropDownID, position, size, parent, style);
 }
 
 
@@ -144,6 +140,11 @@ void DropDown::SetSelected(unsigned int index)
     }
 }
 
+void DropDown::SetValue(std::wstring value)
+{
+    listBox.SetValue(value);
+}
+
 std::string DropDown::GetSelected()
 {
     if (!bInit) return "";
@@ -219,25 +220,25 @@ void DropDown::SetMaxSize(int width, int height)
 
 
 
-void DropDown::SetSize(wxSize attemptedSize)
+void DropDown::SetSize(wxSize requestedSize)
 {
     if (!bInit) return;
     wxSize newSize = listBox.GetSize();
 
-    if (attemptedSize.x >= minSize.x && (attemptedSize.x <= maxSize.x || maxSize.x == -1))
+    if (requestedSize.x >= minSize.x && (requestedSize.x <= maxSize.x || maxSize.x == -1))
     {
-        newSize.x = attemptedSize.x;
+        newSize.x = requestedSize.x;
     }
-    else if (attemptedSize.x < minSize.x) newSize.x = minSize.x;
-    else if (attemptedSize.x > maxSize.x && maxSize.x != -1) newSize.x = maxSize.x;
+    else if (requestedSize.x < minSize.x) newSize.x = minSize.x;
+    else if (requestedSize.x > maxSize.x && maxSize.x != -1) newSize.x = maxSize.x;
 
 
-    if (attemptedSize.y >= minSize.y && (attemptedSize.y <= maxSize.y || maxSize.y == -1))
+    if (requestedSize.y >= minSize.y && (requestedSize.y <= maxSize.y || maxSize.y == -1))
     {
-        newSize.y = attemptedSize.y;
+        newSize.y = requestedSize.y;
     }
-    else if (attemptedSize.y < minSize.y) newSize.y = minSize.y;
-    else if (attemptedSize.y > maxSize.y && maxSize.y != -1) newSize.y = maxSize.y;
+    else if (requestedSize.y < minSize.y) newSize.y = minSize.y;
+    else if (requestedSize.y > maxSize.y && maxSize.y != -1) newSize.y = maxSize.y;
 
 
 
@@ -316,3 +317,4 @@ void DropDown::Enable()
 {
     listBox.Enable();
 }
+

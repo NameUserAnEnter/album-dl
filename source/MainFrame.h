@@ -84,8 +84,8 @@ private:
     int verticalCheckBoxOffset;
     int verticalDropDownOffset;
 
-    wxSize minDataFieldSize;
-    wxSize maxDataFieldSize;
+    wxSize minTextBoxSize;
+    wxSize maxTextBoxSize;
 
     wxSize minOutputFieldSize;
     wxSize maxOutputFieldSize;
@@ -110,10 +110,11 @@ private:
     void InitValues();
     void InitMenuAndStatusBar();
 
-    void InitFieldRectangs();
-    void InitFields();
-    void InitFieldLabels();
-    void InitFieldDimensionRanges();
+    void InitControlRectangs();
+    void InitControls();
+    void InitControlLabels();
+    void InitControlPositions();
+    void InitControlDimensionRanges();
 
     void InitBindings();
 

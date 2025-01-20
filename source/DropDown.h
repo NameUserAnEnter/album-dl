@@ -8,6 +8,7 @@
 
 #include "encoding.h"
 #include "utils.h"
+#include "Rectang.h"
 
 class DropDown
 {
@@ -18,16 +19,16 @@ private:
 
 	std::vector<std::string> items;
 
-	wxStaticBox labelBox;
-	wxComboBox listBox;
-
 	wxSize minSize;
 	wxSize maxSize;
 public:
+	wxStaticBox labelBox;
+	wxComboBox listBox;
 	DropDown();
 
-	void Init(std::wstring, std::wstring, wxWindowID, wxPoint, wxSize, wxWindow*, long = NULL);
-	void Init(std::wstring, wxWindowID, wxPoint, wxSize, wxWindow*, long = NULL);
+	//Rectang rectang;
+
+	void Init(wxWindowID, wxSize, wxWindow*, long = NULL);
 
 	void AppendItem(std::string);
 	void SetItems(std::vector<std::string>);
@@ -36,6 +37,7 @@ public:
 	std::vector<std::string> GetItems();
 
 	void SetSelected(unsigned int);
+	void SetValue(std::wstring value);
 	std::string GetSelected();
 
 	void Disable();

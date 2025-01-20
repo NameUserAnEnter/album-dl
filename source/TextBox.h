@@ -9,6 +9,7 @@
 #include <string>
 #include "encoding.h"
 #include "utils.h"
+#include "Rectang.h"
 
 enum TEXT_ENCODING
 {
@@ -37,13 +38,14 @@ public:
     wxTextCtrl textField;
     TextBox();
 
-    void Init(std::wstring, wxWindowID, wxPoint, wxSize, wxWindow*, long = NULL);
-    void Init(wxWindowID, wxPoint, wxSize, wxWindow*, long = NULL);
+    //Rectang rectang;
+
+    void Init(wxWindowID, wxSize, wxWindow*, long = NULL);
 
     std::wstring* GetBuf();
     void SetMutex(std::mutex*);
     void FlushBuf();
-
+     
     void SetText(std::wstring);
     void SetTextNarrow(std::string);
 

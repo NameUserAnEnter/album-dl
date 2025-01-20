@@ -14,6 +14,7 @@ TextBox::TextBox()
     labelOffset.top = 15;
     labelOffset.bottom = 3;
 
+
     minSize.x = 0;
     minSize.y = 0;
 
@@ -21,29 +22,26 @@ TextBox::TextBox()
     maxSize.y = -1;
 }
 
-void TextBox::Init(std::wstring label, wxWindowID textFieldID, wxPoint position, wxSize size, wxWindow* parent, long style)
+void TextBox::Init(wxWindowID id, wxSize size, wxWindow* parent, long style)
 {
+    std::wstring label = L"";
+
     labelBox.Create(
-        parent, wxID_ANY, label,
-        ComputeLabelBoxPos(position),
-        ComputeLabelBoxSize(size));
+        parent, wxID_ANY, label, wxDefaultPosition, ComputeLabelBoxSize(size));
 
 
     labelBox.Bind(wxEVT_MOVE, &TextBox::OnLabelBoxMove, this, labelBox.GetId());
 
     textField.Create(
-        &labelBox, textFieldID, "",
+        &labelBox, id, L"",
         wxPoint(labelOffset.left, labelOffset.top),
         size,
         style);
 
+    //rectang = Rectang(textField.GetPosition().x, textField.GetPosition().y, textField.GetSize().x, textField.GetSize().y);
+
 
     bInit = true;
-}
-
-void TextBox::Init(wxWindowID textFieldID, wxPoint position, wxSize size, wxWindow* parent, long style)
-{
-    Init(L"", textFieldID, position, size, parent, style);
 }
 
 
@@ -306,25 +304,25 @@ void TextBox::SetMaxSize(int width, int height)
 
 
 
-void TextBox::SetSize(wxSize attemptedSize)
+void TextBox::SetSize(wxSize requestedSize)
 {
     if (!bInit) return;
     wxSize newSize = textField.GetSize();
 
-    if (attemptedSize.x >= minSize.x && (attemptedSize.x <= maxSize.x || maxSize.x == -1))
+    if (requestedSize.x >= minSize.x && (requestedSize.x <= maxSize.x || maxSize.x == -1))
     {
-        newSize.x = attemptedSize.x;
+        newSize.x = requestedSize.x;
     }
-    else if (attemptedSize.x < minSize.x) newSize.x = minSize.x;
-    else if (attemptedSize.x > maxSize.x && maxSize.x != -1) newSize.x = maxSize.x;
+    else if (requestedSize.x < minSize.x) newSize.x = minSize.x;
+    else if (requestedSize.x > maxSize.x && maxSize.x != -1) newSize.x = maxSize.x;
 
 
-    if (attemptedSize.y >= minSize.y && (attemptedSize.y <= maxSize.y || maxSize.y == -1))
+    if (requestedSize.y >= minSize.y && (requestedSize.y <= maxSize.y || maxSize.y == -1))
     {
-        newSize.y = attemptedSize.y;
+        newSize.y = requestedSize.y;
     }
-    else if (attemptedSize.y < minSize.y) newSize.y = minSize.y;
-    else if (attemptedSize.y > maxSize.y && maxSize.y != -1) newSize.y = maxSize.y;
+    else if (requestedSize.y < minSize.y) newSize.y = minSize.y;
+    else if (requestedSize.y > maxSize.y && maxSize.y != -1) newSize.y = maxSize.y;
 
 
 
