@@ -7,7 +7,7 @@
 
 
 wxSize MainFrame::FindMaxDistance(
-    std::vector<Field> fieldTemplates = std::vector<Field>(),
+    std::vector<Rectang> fieldTemplates = std::vector<Rectang>(),
     std::vector<TextBox*> textBoxes = std::vector<TextBox*>(),
     std::vector<DropDown*> dropDowns = std::vector<DropDown*>(),
     std::vector<wxWindow*> nativeControls = std::vector<wxWindow*>()
@@ -43,7 +43,7 @@ wxSize MainFrame::FindMaxDistance(
 
     for (int i = 0; i < fieldTemplates.size(); i++)
     {
-        Field currentField = fieldTemplates[i];
+        Rectang currentField = fieldTemplates[i];
         if (currentField.pos.x + currentField.size.x > maxDistance.x) maxDistance.x = currentField.pos.x + currentField.size.x;
         if (currentField.pos.y + currentField.size.y > maxDistance.y) maxDistance.y = currentField.pos.y + currentField.size.y;
     }
@@ -53,7 +53,7 @@ wxSize MainFrame::FindMaxDistance(
 
 void MainFrame::SetFullSize()
 {
-    wxSize maxDistance = FindMaxDistance(fields);
+    wxSize maxDistance = FindMaxDistance(rectangs);
 
     int ClientWidth = maxDistance.x + clientMargin.right;
     int ClientHeight = maxDistance.y + clientMargin.bottom;
@@ -158,7 +158,7 @@ void MainFrame::InitMenuAndStatusBar()
 
 
 
-void MainFrame::InitFieldsDimensions()
+void MainFrame::InitFieldRectangs()
 {
     //  _________________________________
     // | fields      |terminal           |
@@ -180,32 +180,32 @@ void MainFrame::InitFieldsDimensions()
     TextBoxSize = minDataFieldSize;
     ButtonSize = minButtonSize;
 
-    fields.clear();
+    rectangs.clear();
 
-    fields.push_back(Field(clientMargin.left, clientMargin.top, TextBoxSize));
-    fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
-    fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
-    fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
+    rectangs.push_back(Rectang(clientMargin.left, clientMargin.top, TextBoxSize));
+    rectangs.push_back(Rectang(clientMargin.left, rectangs.back().pos.y + fieldHeight, TextBoxSize));
+    rectangs.push_back(Rectang(clientMargin.left, rectangs.back().pos.y + fieldHeight, TextBoxSize));
+    rectangs.push_back(Rectang(clientMargin.left, rectangs.back().pos.y + fieldHeight, TextBoxSize));
 
-    fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight + fieldBreakV, TextBoxSize));
-    fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
-    fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
+    rectangs.push_back(Rectang(clientMargin.left, rectangs.back().pos.y + fieldHeight + fieldBreakV, TextBoxSize));
+    rectangs.push_back(Rectang(clientMargin.left, rectangs.back().pos.y + fieldHeight, TextBoxSize));
+    rectangs.push_back(Rectang(clientMargin.left, rectangs.back().pos.y + fieldHeight, TextBoxSize));
 
-    fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
-    fields.push_back(Field(clientMargin.left, fields.back().pos.y + fieldHeight, TextBoxSize));
+    rectangs.push_back(Rectang(clientMargin.left, rectangs.back().pos.y + fieldHeight, TextBoxSize));
+    rectangs.push_back(Rectang(clientMargin.left, rectangs.back().pos.y + fieldHeight, TextBoxSize));
 
-    int verticalButtonOffset = fields.back().pos.y + fieldHeight;
-    fields.push_back(Field(clientMargin.left + (ButtonSize.x + buttonBreak) * 0, verticalButtonOffset + verticalDropDownOffset, ButtonSize));
-    fields.push_back(Field(clientMargin.left + (ButtonSize.x + buttonBreak) * 1, verticalButtonOffset + verticalCheckBoxOffset, ButtonSize));
-    fields.push_back(Field(clientMargin.left + TextBoxSize.x - ButtonSize.x * 2 - buttonBreak * 1, verticalButtonOffset, ButtonSize));
-    fields.push_back(Field(clientMargin.left + TextBoxSize.x - ButtonSize.x * 1 - buttonBreak * 0, verticalButtonOffset, ButtonSize));
+    int verticalButtonOffset = rectangs.back().pos.y + fieldHeight;
+    rectangs.push_back(Rectang(clientMargin.left + (ButtonSize.x + buttonBreak) * 0, verticalButtonOffset + verticalDropDownOffset, ButtonSize));
+    rectangs.push_back(Rectang(clientMargin.left + (ButtonSize.x + buttonBreak) * 1, verticalButtonOffset + verticalCheckBoxOffset, ButtonSize));
+    rectangs.push_back(Rectang(clientMargin.left + TextBoxSize.x - ButtonSize.x * 2 - buttonBreak * 1, verticalButtonOffset, ButtonSize));
+    rectangs.push_back(Rectang(clientMargin.left + TextBoxSize.x - ButtonSize.x * 1 - buttonBreak * 0, verticalButtonOffset, ButtonSize));
 
 
 
-    wxSize maxDistance = FindMaxDistance(fields);
+    wxSize maxDistance = FindMaxDistance(rectangs);
 
     OutputBoxSize = wxSize(700, maxDistance.y - clientMargin.top);
-    fields.push_back(Field(maxDistance.x + fieldBreakH, clientMargin.top, OutputBoxSize));
+    rectangs.push_back(Rectang(maxDistance.x + fieldBreakH, clientMargin.top, OutputBoxSize));
 }
 
 void MainFrame::InitFields()
@@ -218,27 +218,27 @@ void MainFrame::InitFields()
     unsigned int index = 0;
 
     // FIELDS:
-    fWorkingDir.Init(   ID_fWorkingDir,     fields[index].pos, fields[index].size, parent); index++;
-    fConverterDir.Init( ID_fConverterDir,   fields[index].pos, fields[index].size, parent); index++;
-    fAlbumsDir.Init(    ID_fAlbumsDir,      fields[index].pos, fields[index].size, parent); index++;
-    fPreview.Init(      ID_fPreview,        fields[index].pos, fields[index].size, parent); index++;
+    fWorkingDir.Init(   ID_fWorkingDir,     rectangs[index].pos, rectangs[index].size, parent); index++;
+    fConverterDir.Init( ID_fConverterDir,   rectangs[index].pos, rectangs[index].size, parent); index++;
+    fAlbumsDir.Init(    ID_fAlbumsDir,      rectangs[index].pos, rectangs[index].size, parent); index++;
+    fPreview.Init(      ID_fPreview,        rectangs[index].pos, rectangs[index].size, parent); index++;
     // extra separation
-    fArtist.Init(   ID_fArtist,    fields[index].pos, fields[index].size, parent); index++;
-    fAlbumName.Init(ID_fAlbumName, fields[index].pos, fields[index].size, parent); index++;
-    fAlbumYear.Init(ID_fAlbumYear, fields[index].pos, fields[index].size, parent); index++;
+    fArtist.Init(   ID_fArtist,    rectangs[index].pos, rectangs[index].size, parent); index++;
+    fAlbumName.Init(ID_fAlbumName, rectangs[index].pos, rectangs[index].size, parent); index++;
+    fAlbumYear.Init(ID_fAlbumYear, rectangs[index].pos, rectangs[index].size, parent); index++;
 
-    fURL.Init(          ID_fURL,        fields[index].pos, fields[index].size, parent); index++;
-    fArtworkURL.Init(   ID_fArtworkURL, fields[index].pos, fields[index].size, parent); index++;
+    fURL.Init(          ID_fURL,        rectangs[index].pos, rectangs[index].size, parent); index++;
+    fArtworkURL.Init(   ID_fArtworkURL, rectangs[index].pos, rectangs[index].size, parent); index++;
 
-    fBitrate.Init(L"----", ID_fBitrate,                     fields[index].pos, fields[index].size, parent); index++;
-    checkAlert.Create(parent,        ID_checkAlert,     "", fields[index].pos, fields[index].size);         index++;
-    buttonUpdateYtDlp.Create(parent, ID_buttonUpdate,   "", fields[index].pos, fields[index].size);         index++;
-    buttonDownload.Create(parent,    ID_buttonDownload, "", fields[index].pos, fields[index].size);         index++;
+    fBitrate.Init(L"----", ID_fBitrate,                     rectangs[index].pos, rectangs[index].size, parent); index++;
+    checkAlert.Create(parent,        ID_checkAlert,     "", rectangs[index].pos, rectangs[index].size);         index++;
+    buttonUpdateYtDlp.Create(parent, ID_buttonUpdate,   "", rectangs[index].pos, rectangs[index].size);         index++;
+    buttonDownload.Create(parent,    ID_buttonDownload, "", rectangs[index].pos, rectangs[index].size);         index++;
     
-    fOutput.Init(ID_fOutput, fields[index].pos, fields[index].size, parent, wxTE_MULTILINE | wxTE_READONLY); index++;
+    fOutput.Init(ID_fOutput, rectangs[index].pos, rectangs[index].size, parent, wxTE_MULTILINE | wxTE_READONLY); index++;
 }
 
-void MainFrame::InitFieldsLabels()
+void MainFrame::InitFieldLabels()
 {
     fWorkingDir.SetLabel(L"Working directory:");
     fConverterDir.SetLabel(L"ffmpeg.exe directory:");
@@ -273,7 +273,7 @@ void MainFrame::InitFieldsLabels()
     fArtworkURL.SetHint(L"optional: use if the other URL is a normal playlist with no artwork thumbnail");
 }
 
-void MainFrame::InitFieldsDimensionRanges()
+void MainFrame::InitFieldDimensionRanges()
 {
     // FIELDS MIN SIZES
     fWorkingDir.SetMinSize(minDataFieldSize);
@@ -547,11 +547,11 @@ void MainFrame::InitDimensionsInfo()
     dimensionsInfo += L"screen res: " + NumToWstr((int)screenX) + L"x" + NumToWstr((int)screenY) + L"\n";
 
     char whitespace = ' ';
-    for (int i = 0; i < fields.size(); i++)
+    for (int i = 0; i < rectangs.size(); i++)
     {
-        dimensionsInfo += L"fields[" + NumToWstr(i, 10, 2, whitespace) + L"]: (";
-        dimensionsInfo += NumToWstr(fields[i].pos.x, 10, 3, ' ') + L", " + NumToWstr(fields[i].pos.y, 10, 3, ' ') + L"), (";
-        dimensionsInfo += NumToWstr(fields[i].size.x, 10, 3, ' ') + L", " + NumToWstr(fields[i].size.y, 10, 3, ' ') + L")\n";
+        dimensionsInfo += L"rectangs[" + NumToWstr(i, 10, 2, whitespace) + L"]: (";
+        dimensionsInfo += NumToWstr(rectangs[i].pos.x, 10, 3, ' ') + L", " + NumToWstr(rectangs[i].pos.y, 10, 3, ' ') + L"), (";
+        dimensionsInfo += NumToWstr(rectangs[i].size.x, 10, 3, ' ') + L", " + NumToWstr(rectangs[i].size.y, 10, 3, ' ') + L")\n";
     }
 
     dimensionsInfo += L"\n";
@@ -637,10 +637,10 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_mainFrame, "album-dl")
     InitValues();
     InitMenuAndStatusBar();
 
-    InitFieldsDimensions();         // SET INITIAL FIELDS DIMENSIONS
+    InitFieldRectangs();         // SET INITIAL FIELDS DIMENSIONS
     InitFields();                   // SET LABELS AND CONSTRUCT FIELDS
-    InitFieldsLabels();
-    InitFieldsDimensionRanges();
+    InitFieldLabels();
+    InitFieldDimensionRanges();
 
     InitBindings();
 
@@ -826,7 +826,7 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     textBoxesCell1.push_back(&fAlbumYear);
     textBoxesCell1.push_back(&fURL);
     textBoxesCell1.push_back(&fArtworkURL);
-    wxSize maxDistance1 = FindMaxDistance(std::vector<Field>(), textBoxesCell1);
+    wxSize maxDistance1 = FindMaxDistance(std::vector<Rectang>(), textBoxesCell1);
     
 
 
@@ -868,8 +868,6 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
 
 
     // CELL 4
-    wxButton* buttonPtr;
-    
     Rect b1_1, b1_2, b2_1, b2_2;
     wxSize refreshMargin(0, 0);
 
@@ -887,16 +885,16 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     {
         buttonX = clientMargin.left + minDataFieldSize.x - buttonDownload.GetSize().x;
     }
-    buttonPtr = &buttonDownload;
-    b1_1 = Rect{    buttonPtr->GetPosition().x - refreshMargin.x,
-                    buttonPtr->GetPosition().y - refreshMargin.y,
-                    buttonPtr->GetSize().x + refreshMargin.x * 2,
-                    buttonPtr->GetSize().y + refreshMargin.y * 2 };
-    buttonPtr->SetPosition(wxPoint(buttonX, buttonPtr->GetPosition().y));
-    b1_2 = Rect { buttonPtr->GetPosition().x - refreshMargin.x,
-                    buttonPtr->GetPosition().y - refreshMargin.y,
-                    buttonPtr->GetSize().x + refreshMargin.x * 2,
-                    buttonPtr->GetSize().y + refreshMargin.y * 2 };
+
+    b1_1 = Rect{    buttonDownload.GetPosition().x - refreshMargin.x,
+                    buttonDownload.GetPosition().y - refreshMargin.y,
+                    buttonDownload.GetSize().x + refreshMargin.x * 2,
+                    buttonDownload.GetSize().y + refreshMargin.y * 2 };
+    buttonDownload.SetPosition(wxPoint(buttonX, buttonDownload.GetPosition().y));
+    b1_2 = Rect { buttonDownload.GetPosition().x - refreshMargin.x,
+                    buttonDownload.GetPosition().y - refreshMargin.y,
+                    buttonDownload.GetSize().x + refreshMargin.x * 2,
+                    buttonDownload.GetSize().y + refreshMargin.y * 2 };
 
 
     hOffset4 -= buttonBreak;
@@ -906,16 +904,16 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     {
         buttonX = clientMargin.left + minDataFieldSize.x - buttonDownload.GetSize().x - buttonBreak - buttonUpdateYtDlp.GetSize().x;
     }
-    buttonPtr = &buttonUpdateYtDlp;
-    b2_1 = Rect { buttonPtr->GetPosition().x - refreshMargin.x,
-                    buttonPtr->GetPosition().y - refreshMargin.y,
-                    buttonPtr->GetSize().x + refreshMargin.x * 2,
-                    buttonPtr->GetSize().y + refreshMargin.y * 2 };
-    buttonPtr->SetPosition(wxPoint(buttonX, buttonPtr->GetPosition().y));
-    b2_2 = Rect { buttonPtr->GetPosition().x - refreshMargin.x,
-                    buttonPtr->GetPosition().y - refreshMargin.y,
-                    buttonPtr->GetSize().x + refreshMargin.x * 2,
-                    buttonPtr->GetSize().y + refreshMargin.y * 2 };
+
+    b2_1 = Rect { buttonUpdateYtDlp.GetPosition().x - refreshMargin.x,
+                    buttonUpdateYtDlp.GetPosition().y - refreshMargin.y,
+                    buttonUpdateYtDlp.GetSize().x + refreshMargin.x * 2,
+                    buttonUpdateYtDlp.GetSize().y + refreshMargin.y * 2 };
+    buttonUpdateYtDlp.SetPosition(wxPoint(buttonX, buttonUpdateYtDlp.GetPosition().y));
+    b2_2 = Rect { buttonUpdateYtDlp.GetPosition().x - refreshMargin.x,
+                    buttonUpdateYtDlp.GetPosition().y - refreshMargin.y,
+                    buttonUpdateYtDlp.GetSize().x + refreshMargin.x * 2,
+                    buttonUpdateYtDlp.GetSize().y + refreshMargin.y * 2 };
 
     // Compare smoothness with this bool
     bool bRefreshWholeClientArea = true;
@@ -933,11 +931,11 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     Rect reg;
 
 
-    buttonPtr = &buttonDownload;
+
     reg = RectUnion(b1_1, b1_2);
     RefreshRect(wxRect(reg.x, reg.y, reg.width, reg.height));
 
-    buttonPtr = &buttonUpdateYtDlp;
+
     reg = RectUnion(b2_1, b2_2);
     RefreshRect(wxRect(reg.x, reg.y, reg.width, reg.height));
 }

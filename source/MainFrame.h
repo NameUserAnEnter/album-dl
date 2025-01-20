@@ -19,23 +19,23 @@
 #include <mutex>
 #include <chrono>
 
-struct Field
+struct Rectang
 {
     wxPoint pos;
     wxSize size;
 
-    Field(int x, int y, wxSize _size)
+    Rectang(int x, int y, wxSize _size)
     {
         pos = wxPoint(x, y);
         size = _size;
     }
 
-    Field(wxPoint _pos, wxSize _size) : pos(_pos), size(_size)
+    Rectang(wxPoint _pos, wxSize _size) : pos(_pos), size(_size)
     {
         //
     }
 
-    Field()
+    Rectang()
     {
         pos = wxPoint(0, 0);
         size = wxSize(0, 0);
@@ -73,7 +73,7 @@ private:
 private:
     wxPoint defaultPos;
 
-    std::vector<Field> fields;
+    std::vector<Rectang> rectangs;
     
     int fieldHeight;
     int fieldBreakV;
@@ -110,10 +110,10 @@ private:
     void InitValues();
     void InitMenuAndStatusBar();
 
-    void InitFieldsDimensions();
+    void InitFieldRectangs();
     void InitFields();
-    void InitFieldsLabels();
-    void InitFieldsDimensionRanges();
+    void InitFieldLabels();
+    void InitFieldDimensionRanges();
 
     void InitBindings();
 
@@ -140,7 +140,7 @@ private:
 
 
 
-    wxSize FindMaxDistance(std::vector<Field>, std::vector<TextBox*>, std::vector<DropDown*>, std::vector<wxWindow*>);
+    wxSize FindMaxDistance(std::vector<Rectang>, std::vector<TextBox*>, std::vector<DropDown*>, std::vector<wxWindow*>);
     void SetFullSize();
 
 
