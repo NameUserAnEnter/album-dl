@@ -51,32 +51,64 @@ wxSize MainFrame::FindMaxDistance(
     return maxDistance;
 }
 
-wxSize MainFrame::areaTaken(std::vector<Rectang> controls = std::vector<Rectang>())
+wxSize MainFrame::AreaTaken(std::vector<Rectang> controls = std::vector<Rectang>())
 {
-    wxSize areaTaken = wxSize(0, 0);
+    wxSize AreaTaken = wxSize(0, 0);
 
     for (int i = 0; i < controls.size(); i++)
     {
         Rectang control = controls[i];
-        if (control.pos.x + control.size.x > areaTaken.x) areaTaken.x = control.pos.x + control.size.x;
-        if (control.pos.y + control.size.y > areaTaken.y) areaTaken.y = control.pos.y + control.size.y;
+        if (control.pos.x + control.size.x > AreaTaken.x) AreaTaken.x = control.pos.x + control.size.x;
+        if (control.pos.y + control.size.y > AreaTaken.y) AreaTaken.y = control.pos.y + control.size.y;
     }
 
-    return areaTaken;
+    return AreaTaken;
 }
 
-wxSize MainFrame::clientAreaTaken()
+wxSize MainFrame::AreaTakenInput()
+{
+    return AreaTaken(GetRectangsInput());
+}
+
+wxSize MainFrame::AreaTakenAll()
+{
+    return AreaTaken(GetRectangsAll());
+}
+
+std::vector<Rectang> MainFrame::GetRectangsInput()
 {
     std::vector<Rectang> controls;
-    //controls.push_back(fWorkingDir.rectang);
-    // ...
+    controls.push_back(fWorkingDir.rectang);
+    controls.push_back(fConverterDir.rectang);
+    controls.push_back(fAlbumsDir.rectang);
+    controls.push_back(fPreview.rectang);
 
-    return areaTaken(controls);
+    controls.push_back(fArtist.rectang);
+    controls.push_back(fAlbumName.rectang);
+    controls.push_back(fAlbumYear.rectang);
+
+    controls.push_back(fBitrate.rectang);
+    controls.push_back(Rectang(checkAlert.GetPosition().x, checkAlert.GetPosition().y, checkAlert.GetSize().x, checkAlert.GetSize().y));
+    controls.push_back(Rectang(buttonUpdateYtDlp.GetPosition().x, buttonUpdateYtDlp.GetPosition().y, buttonUpdateYtDlp.GetSize().x, buttonUpdateYtDlp.GetSize().y));
+    controls.push_back(Rectang(buttonDownload.GetPosition().x, buttonDownload.GetPosition().y, buttonDownload.GetSize().x, buttonDownload.GetSize().y));
+
+    return controls;
 }
+
+std::vector<Rectang> MainFrame::GetRectangsAll()
+{
+    std::vector<Rectang> controls = GetRectangsInput();
+    controls.push_back(fOutput.rectang);
+
+    return controls;
+}
+
+
 
 void MainFrame::SetFullSize()
 {
-    wxSize area = areaTaken(rectangs);
+    //wxSize area = AreaTaken(rectangs);
+    wxSize area = AreaTakenAll();
 
     int ClientWidth = area.x + clientMargin.right;
     int ClientHeight = area.y + clientMargin.bottom;
@@ -184,7 +216,7 @@ void MainFrame::InitMenuAndStatusBar()
 void MainFrame::InitControlRectangs()
 {
     //  _________________________________
-    // |             |terminal           |
+    // | input       | terminal          |
     // | ____________|__________________ |
     // ||directories |                  ||
     // ||____________|                  ||
@@ -223,7 +255,7 @@ void MainFrame::InitControlRectangs()
 
 
 
-    wxSize area = areaTaken(rectangs);
+    wxSize area = AreaTaken(rectangs);
 
     Point OutputBoxSize = Point(700, area.y - clientMargin.top);
     rectangs.push_back(Rectang(area.x + fieldBreakH, clientMargin.top, OutputBoxSize));
@@ -259,7 +291,7 @@ void MainFrame::InitControls()
     buttonUpdateYtDlp.SetSize(minButtonSize);
     buttonDownload.SetSize(minButtonSize);
     
-    fOutput.Init(ID_fOutput, wxSize(rectangs.back().size.x, rectangs.back().size.x), parent, wxTE_MULTILINE | wxTE_READONLY);
+    fOutput.Init(ID_fOutput, wxSize(rectangs.back().size.x, rectangs.back().size.y), parent, wxTE_MULTILINE | wxTE_READONLY);
 }
 
 void MainFrame::InitControlPositions()
@@ -552,13 +584,14 @@ void MainFrame::InitWindowSize()
     }
     else
     {
-        userScreenResX = 1366;
+        userScreenResX = 1366;      // sample low screen resolution for testing
         userScreenResY = 768;
     }
 
     float devClientResX = GetMinClientSize().x;
     float devClientResY = 600;
 
+    // These calculations attempt to preserve the proportions of client area seen by the developer building the program and the end user
     SetClientSize((devClientResX * userScreenResX) / devScreenResX, (devClientResY * userScreenResY) / devScreenResY);
 }
 
