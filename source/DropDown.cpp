@@ -34,10 +34,10 @@ void DropDown::Init(wxWindowID id, wxSize size, wxWindow* parent, long style)
         size, 0, NULL,
         style);
 
-    UpdateRectang();
     listBox.SetEditable(false);
 
 	bInit = true;
+    UpdateRectang();
 }
 
 

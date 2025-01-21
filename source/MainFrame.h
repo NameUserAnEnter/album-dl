@@ -42,7 +42,7 @@ private:
     TextBox fPreview;
     
     wxButton buttonDownload;
-    wxButton buttonUpdateYtDlp;
+    wxButton buttonUpdate;          // update yt-dlp button
     wxCheckBox checkAlert;
     DropDown fBitrate;
 
@@ -50,8 +50,6 @@ private:
 private:
     wxPoint defaultPos;
 
-    std::vector<Rectang> rectangs;
-    
     int fieldHeight;
     int fieldBreakV;
     int fieldBreakH;
@@ -60,6 +58,8 @@ private:
 
     int verticalCheckBoxOffset;
     int verticalDropDownOffset;
+
+    int minTerminalWidth;
 
     wxSize minTextBoxSize;
     wxSize maxTextBoxSize;
@@ -87,7 +87,6 @@ private:
     void InitValues();
     void InitMenuAndStatusBar();
 
-    void InitControlRectangs();
     void InitControls();
     void InitControlPositions();
     void InitControlDimensionRanges();
@@ -127,7 +126,10 @@ private:
     std::vector<Rectang> GetRectangsInput();
     std::vector<Rectang> GetRectangsAll();
 
-    void SetFullSize();
+    wxSize GetAreaLeftForTerminal();
+
+    void SetWindowSize();
+    void AdjustWindowSize();
 
 
     void SaveSettings();

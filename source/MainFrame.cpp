@@ -8,6 +8,8 @@
 
 wxSize MainFrame::AreaTaken(std::vector<Rectang> controls = std::vector<Rectang>())
 {
+    // This method returns the coordinates of the lowermost and rightmost corner in given controls
+
     wxSize AreaTaken = wxSize(0, 0);
 
     for (int i = 0; i < controls.size(); i++)
@@ -47,7 +49,7 @@ std::vector<Rectang> MainFrame::GetRectangsInput()
 
     controls.push_back(fBitrate.rectang);
     controls.push_back(Rectang(checkAlert.GetPosition().x, checkAlert.GetPosition().y, checkAlert.GetSize().x, checkAlert.GetSize().y));
-    controls.push_back(Rectang(buttonUpdateYtDlp.GetPosition().x, buttonUpdateYtDlp.GetPosition().y, buttonUpdateYtDlp.GetSize().x, buttonUpdateYtDlp.GetSize().y));
+    controls.push_back(Rectang(buttonUpdate.GetPosition().x, buttonUpdate.GetPosition().y, buttonUpdate.GetSize().x, buttonUpdate.GetSize().y));
     controls.push_back(Rectang(buttonDownload.GetPosition().x, buttonDownload.GetPosition().y, buttonDownload.GetSize().x, buttonDownload.GetSize().y));
 
     return controls;
@@ -61,9 +63,15 @@ std::vector<Rectang> MainFrame::GetRectangsAll()
     return controls;
 }
 
+wxSize MainFrame::GetAreaLeftForTerminal()
+{
+    // Force minimal width, but adjust to height given by the input section
+    return wxSize(minTerminalWidth, AreaTakenInput().y - clientMargin.top);
+}
 
 
-void MainFrame::SetFullSize()
+
+void MainFrame::SetWindowSize()
 {
     wxSize area = AreaTakenAll();
 
@@ -71,6 +79,31 @@ void MainFrame::SetFullSize()
     int ClientHeight = area.y + clientMargin.bottom;
 
     SetClientSize(ClientWidth, ClientHeight);
+}
+
+void MainFrame::AdjustWindowSize()
+{
+    float devScreenResX = 1920;
+    float devScreenResY = 1080;
+
+    bool bTestEndUser = false;
+    float userScreenResX, userScreenResY;
+    if (!bTestEndUser)
+    {
+        userScreenResX = GetSystemMetrics(SM_CXSCREEN);
+        userScreenResY = GetSystemMetrics(SM_CYSCREEN);
+    }
+    else
+    {
+        userScreenResX = 1366;      // sample low screen resolution for testing
+        userScreenResY = 768;
+    }
+
+    float devClientResX = GetMinClientSize().x;
+    float devClientResY = 600;
+
+    // These calculations attempt to preserve the proportions of client area seen by the developer building the program and the end user
+    SetClientSize((devClientResX * userScreenResX) / devScreenResX, (devClientResY * userScreenResY) / devScreenResY);
 }
 
 
@@ -123,7 +156,9 @@ void MainFrame::InitValues()
 
     // offsets relative to a button, since some controls are not aligned evenly
     verticalCheckBoxOffset = 0;
-    verticalDropDownOffset = 2;     // to do: fix distance impact of this offset
+    verticalDropDownOffset = 2;
+
+    minTerminalWidth = 700;
 
     //clientMargin = { 28, 20, 20, 20 };
     clientMargin = { 18, 10, 10, 10 };
@@ -170,62 +205,13 @@ void MainFrame::InitMenuAndStatusBar()
 
 
 
-void MainFrame::InitControlRectangs()
-{
-    //  _________________________________
-    // | input       | terminal          |
-    // | ____________|__________________ |
-    // ||directories |                  ||
-    // ||____________|                  ||
-    // ||data        |                  ||
-    // ||____________|                  ||
-    // ||buttons     |                  ||
-    // ||____________|__________________||
-    // |_____________|___________________|
-
-
-    // Here control dimensions are set to minimal sizes and positions the program will allow during runtime
-    Point TextBoxSize = Point(minTextBoxSize.x, minTextBoxSize.y);
-    Point ButtonSize = Point(minButtonSize.x, minButtonSize.y);
-
-
-    rectangs.clear();
-
-    rectangs.push_back(Rectang(clientMargin.left, clientMargin.top, TextBoxSize));
-    rectangs.push_back(Rectang(clientMargin.left, rectangs.back().pos.y + fieldHeight, TextBoxSize));
-    rectangs.push_back(Rectang(clientMargin.left, rectangs.back().pos.y + fieldHeight, TextBoxSize));
-    rectangs.push_back(Rectang(clientMargin.left, rectangs.back().pos.y + fieldHeight, TextBoxSize));
-
-    rectangs.push_back(Rectang(clientMargin.left, rectangs.back().pos.y + fieldHeight + fieldBreakV, TextBoxSize));
-    rectangs.push_back(Rectang(clientMargin.left, rectangs.back().pos.y + fieldHeight, TextBoxSize));
-    rectangs.push_back(Rectang(clientMargin.left, rectangs.back().pos.y + fieldHeight, TextBoxSize));
-
-    rectangs.push_back(Rectang(clientMargin.left, rectangs.back().pos.y + fieldHeight, TextBoxSize));
-    rectangs.push_back(Rectang(clientMargin.left, rectangs.back().pos.y + fieldHeight, TextBoxSize));
-
-    int verticalButtonOffset = rectangs.back().pos.y + fieldHeight;
-    rectangs.push_back(Rectang(clientMargin.left + (ButtonSize.x + buttonBreak) * 0, verticalButtonOffset + verticalDropDownOffset, ButtonSize));
-
-    rectangs.push_back(Rectang(clientMargin.left + (ButtonSize.x + buttonBreak) * 1, verticalButtonOffset + verticalCheckBoxOffset, ButtonSize));
-    rectangs.push_back(Rectang(clientMargin.left + TextBoxSize.x - ButtonSize.x * 2 - buttonBreak * 1, verticalButtonOffset, ButtonSize));
-    rectangs.push_back(Rectang(clientMargin.left + TextBoxSize.x - ButtonSize.x * 1 - buttonBreak * 0, verticalButtonOffset, ButtonSize));
-
-
-
-    wxSize area = AreaTaken(rectangs);
-
-    Point OutputBoxSize = Point(700, area.y - clientMargin.top);
-    rectangs.push_back(Rectang(area.x + fieldBreakH, clientMargin.top, OutputBoxSize));
-}
-
 void MainFrame::InitControls()
 {
     // default sizes and pos because it's automatically stretched to the frame anyway
     mainPanel.Create(this, ID_framePanel, wxDefaultPosition, wxDefaultSize, 2621440L, "Main Panel");
     wxWindow* parent = &mainPanel;
 
-    unsigned int index = 0;
-
+    // Here control dimensions are set to minimal sizes and positions the program will allow during runtime
     fWorkingDir.Init(ID_fWorkingDir,        minTextBoxSize, parent);
     fConverterDir.Init(ID_fConverterDir,    minTextBoxSize, parent);
     fAlbumsDir.Init(ID_fAlbumsDir,          minTextBoxSize, parent);
@@ -241,39 +227,55 @@ void MainFrame::InitControls()
     fBitrate.Init(ID_fBitrate,              minButtonSize, parent);
 
     checkAlert.Create(parent,           ID_checkAlert, "");
-    buttonUpdateYtDlp.Create(parent,    ID_buttonUpdate,   "");
+    buttonUpdate.Create(parent,         ID_buttonUpdate,   "");
     buttonDownload.Create(parent,       ID_buttonDownload, "");
 
     checkAlert.SetSize(minButtonSize);
-    buttonUpdateYtDlp.SetSize(minButtonSize);
+    buttonUpdate.SetSize(minButtonSize);
     buttonDownload.SetSize(minButtonSize);
     
-    fOutput.Init(ID_fOutput, wxSize(rectangs.back().size.x, rectangs.back().size.y), parent, wxTE_MULTILINE | wxTE_READONLY);
-    //fOutput.Init(ID_fOutput, minTextBoxSize, parent, wxTE_MULTILINE | wxTE_READONLY);
+    fOutput.Init(ID_fOutput, minTextBoxSize, parent, wxTE_MULTILINE | wxTE_READONLY);
 }
 
 void MainFrame::InitControlPositions()
 {
-    unsigned int index = 0;
-    fWorkingDir.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
-    fConverterDir.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
-    fAlbumsDir.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
-    fPreview.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
+    // Also sets the terminal size
+    //  _________________________________
+    // | input       | terminal          |
+    // | ____________|__________________ |    fieldBreakV
+    // ||directories |                  ||      |
+    // ||____________|/_________________||______|
+    // ||data        |\                 ||
+    // ||____________|                  ||
+    // ||buttons     |                  ||
+    // ||____________|__________________||
+    // |_____________|___________________|
+    //               ^
+    //               |_______ fieldBreakH
 
-    fArtist.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
-    fAlbumName.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
-    fAlbumYear.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
+    fWorkingDir.SetPosition(clientMargin.left,      clientMargin.top);
+    fConverterDir.SetPosition(clientMargin.left,    clientMargin.top + fieldHeight * 1);
+    fAlbumsDir.SetPosition(clientMargin.left,       clientMargin.top + fieldHeight * 2);
+    fPreview.SetPosition(clientMargin.left,         clientMargin.top + fieldHeight * 3);
 
-    fURL.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
-    fArtworkURL.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
+    fArtist.SetPosition(clientMargin.left,          clientMargin.top + fieldHeight * 3 + fieldBreakV + fieldHeight * 1);
+    fAlbumName.SetPosition(clientMargin.left,       clientMargin.top + fieldHeight * 3 + fieldBreakV + fieldHeight * 2);
+    fAlbumYear.SetPosition(clientMargin.left,       clientMargin.top + fieldHeight * 3 + fieldBreakV + fieldHeight * 3);
 
-    fBitrate.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
+    fURL.SetPosition(clientMargin.left,             clientMargin.top + fieldHeight * 3 + fieldBreakV + fieldHeight * 4);
+    fArtworkURL.SetPosition(clientMargin.left,      clientMargin.top + fieldHeight * 3 + fieldBreakV + fieldHeight * 5);
 
-    checkAlert.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
-    buttonUpdateYtDlp.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
-    buttonDownload.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
+    fBitrate.SetPosition(clientMargin.left,                                                 clientMargin.top + fieldHeight * 3 + fieldBreakV + fieldHeight * 6 + verticalDropDownOffset);
+    checkAlert.SetPosition(wxPoint(clientMargin.left + fBitrate.GetSize().x + buttonBreak,  clientMargin.top + fieldHeight * 3 + fieldBreakV + fieldHeight * 6 + verticalCheckBoxOffset));
 
-    fOutput.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
+    buttonUpdate.SetPosition(wxPoint(0,     clientMargin.top + fieldHeight * 3 + fieldBreakV + fieldHeight * 6));
+    buttonDownload.SetPosition(wxPoint(0,   clientMargin.top + fieldHeight * 3 + fieldBreakV + fieldHeight * 6));
+
+    fOutput.SetPosition(wxPoint(AreaTakenInput().x + fieldBreakH, clientMargin.top));
+    fOutput.SetSize(GetAreaLeftForTerminal());
+
+    buttonDownload.SetPosition(wxPoint(fOutput.GetPosition().x  - fieldBreakH - buttonDownload.GetSize().x,                                             buttonDownload.GetPosition().y));
+    buttonUpdate.SetPosition(wxPoint(fOutput.GetPosition().x    - fieldBreakH - buttonDownload.GetSize().x - buttonBreak - buttonUpdate.GetSize().x,    buttonUpdate.GetPosition().y));
 }
 
 void MainFrame::InitControlDimensionRanges()
@@ -328,7 +330,7 @@ void MainFrame::InitControlLabels()
     fBitrate.SetValue(L"----");
 
     checkAlert.SetLabel(L"Alert on done");
-    buttonUpdateYtDlp.SetLabel(L"Update YT-DLP");
+    buttonUpdate.SetLabel(L"Update YT-DLP");
     buttonDownload.SetLabel(L"Download");
 
     fOutput.SetLabel(L"Output:");
@@ -395,9 +397,14 @@ void MainFrame::InitThemes()
 
     // TO DO:
     
-    // -Add blinking cursor at insertion point (e.g. char: _)
-    // -Custom foreground, background and selection colors
-    // -Directory boxes instead of text boxes for dir fields
+    // - add blinking cursor at insertion point (e.g. char: _)
+    // - custom foreground, background and selection colors
+    // - directory boxes instead of text boxes for dir fields
+    // 
+    // 2025-01-21
+    // - create a common base for TextBox and DropDown
+    // - refactor OnPanelResize
+    // - swap update button to a checkbox
     // 
 }
 
@@ -526,31 +533,12 @@ void MainFrame::InitTestValues()
 
 void MainFrame::InitWindowSize()
 {
-    SetFullSize();
+    // Initialize minimal window size first
+    SetWindowSize();
     SetMinSize(GetSize());
 
-
-    float devScreenResX = 1920;
-    float devScreenResY = 1080;
-
-    bool bTestEndUser = false;
-    float userScreenResX, userScreenResY;
-    if (!bTestEndUser)
-    {
-        userScreenResX = GetSystemMetrics(SM_CXSCREEN);
-        userScreenResY = GetSystemMetrics(SM_CYSCREEN);
-    }
-    else
-    {
-        userScreenResX = 1366;      // sample low screen resolution for testing
-        userScreenResY = 768;
-    }
-
-    float devClientResX = GetMinClientSize().x;
-    float devClientResY = 600;
-
-    // These calculations attempt to preserve the proportions of client area seen by the developer building the program and the end user
-    SetClientSize((devClientResX * userScreenResX) / devScreenResX, (devClientResY * userScreenResY) / devScreenResY);
+    // Adjust a larger window size relative to user screen
+    //AdjustWindowSize();
 }
 
 void MainFrame::InitPosition()
@@ -591,10 +579,7 @@ void MainFrame::InitDimensionsInfo()
 
     char whitespace = ' ';
 
-    // InitBindings() causes the output vary by 2px on y-axis of index-4+ elements depending on controls' source
     std::vector<Rectang> controls = GetRectangsAll();
-    //std::vector<Rectang> controls = rectangs;
-
     for (int i = 0; i < controls.size(); i++)
     {
         dimensionsInfo += L"rectangs[" + NumToWstr(i, 10, 2, whitespace) + L"]: (";
@@ -685,12 +670,11 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_mainFrame, "album-dl")
     InitValues();
     InitMenuAndStatusBar();
 
-    InitControlRectangs();         // SET INITIAL FIELDS DIMENSIONS
     InitControls();                   // SET LABELS AND CONSTRUCT FIELDS
     InitControlPositions();
     InitControlDimensionRanges();
 
-    //InitControlLabels();
+    InitControlLabels();
 
     InitBindings();
 
@@ -699,8 +683,8 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_mainFrame, "album-dl")
     InitThemes();
     InitFonts();
 
-    //InitBitrates();
-    //InitTestValues();
+    InitBitrates();
+    InitTestValues();
 
     InitWindowSize();
     InitPosition();
@@ -891,13 +875,18 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     // CELL 3
     int vOffset3 = newClientHeight;
     vOffset3 -= clientMargin.bottom;
+    
+    vOffset3 -= std::max({verticalDropDownOffset, verticalCheckBoxOffset});
+
     vOffset3 -= buttonDownload.GetSize().y;
+
     vOffset3 -= fieldHeight;        // fArtworkURL
     vOffset3 -= fieldHeight;        // fURL
 
     vOffset3 -= fieldHeight;        // fAlbumYear
     vOffset3 -= fieldHeight;        // fAlbumName
     vOffset3 -= fieldHeight;        // fArtist
+
     if (vOffset3 >= clientMargin.top + fieldHeight * 3 + fieldBreakV)
     {
         fArtist.SetPosition(fArtist.GetPosition().x, vOffset3 + fieldHeight * 0);
@@ -911,7 +900,7 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
         buttonDownload.SetPosition(wxPoint(buttonDownload.GetPosition().x, vOffset3 + fieldHeight * 5));
         checkAlert.SetPosition(wxPoint(checkAlert.GetPosition().x, vOffset3 + fieldHeight * 5 + verticalCheckBoxOffset));
         fBitrate.SetPosition(fBitrate.GetPosition().x, vOffset3 + fieldHeight * 5 + verticalDropDownOffset);
-        buttonUpdateYtDlp.SetPosition(wxPoint(buttonUpdateYtDlp.GetPosition().x, vOffset3 + fieldHeight * 5));
+        buttonUpdate.SetPosition(wxPoint(buttonUpdate.GetPosition().x, vOffset3 + fieldHeight * 5));
     }
 
 
@@ -949,22 +938,22 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
 
 
     hOffset4 -= buttonBreak;
-    hOffset4 -= buttonUpdateYtDlp.GetSize().x;
+    hOffset4 -= buttonUpdate.GetSize().x;
     buttonX = hOffset4;
-    if (hOffset4 <= clientMargin.left + minTextBoxSize.x - buttonDownload.GetSize().x - buttonBreak - buttonUpdateYtDlp.GetSize().x)
+    if (hOffset4 <= clientMargin.left + minTextBoxSize.x - buttonDownload.GetSize().x - buttonBreak - buttonUpdate.GetSize().x)
     {
-        buttonX = clientMargin.left + minTextBoxSize.x - buttonDownload.GetSize().x - buttonBreak - buttonUpdateYtDlp.GetSize().x;
+        buttonX = clientMargin.left + minTextBoxSize.x - buttonDownload.GetSize().x - buttonBreak - buttonUpdate.GetSize().x;
     }
 
-    b2_1 = Rect { buttonUpdateYtDlp.GetPosition().x - refreshMargin.x,
-                    buttonUpdateYtDlp.GetPosition().y - refreshMargin.y,
-                    buttonUpdateYtDlp.GetSize().x + refreshMargin.x * 2,
-                    buttonUpdateYtDlp.GetSize().y + refreshMargin.y * 2 };
-    buttonUpdateYtDlp.SetPosition(wxPoint(buttonX, buttonUpdateYtDlp.GetPosition().y));
-    b2_2 = Rect { buttonUpdateYtDlp.GetPosition().x - refreshMargin.x,
-                    buttonUpdateYtDlp.GetPosition().y - refreshMargin.y,
-                    buttonUpdateYtDlp.GetSize().x + refreshMargin.x * 2,
-                    buttonUpdateYtDlp.GetSize().y + refreshMargin.y * 2 };
+    b2_1 = Rect { buttonUpdate.GetPosition().x - refreshMargin.x,
+                    buttonUpdate.GetPosition().y - refreshMargin.y,
+                    buttonUpdate.GetSize().x + refreshMargin.x * 2,
+                    buttonUpdate.GetSize().y + refreshMargin.y * 2 };
+    buttonUpdate.SetPosition(wxPoint(buttonX, buttonUpdate.GetPosition().y));
+    b2_2 = Rect { buttonUpdate.GetPosition().x - refreshMargin.x,
+                    buttonUpdate.GetPosition().y - refreshMargin.y,
+                    buttonUpdate.GetSize().x + refreshMargin.x * 2,
+                    buttonUpdate.GetSize().y + refreshMargin.y * 2 };
 
     // Compare smoothness with this bool
     bool bRefreshWholeClientArea = true;
@@ -975,7 +964,7 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
         return;
     }
     //buttonDownload.Refresh();
-    //buttonUpdateYtDlp.Refresh();
+    //buttonUpdate.Refresh();
     //return;
     
     // Refresh only dirty regions around the two buttons

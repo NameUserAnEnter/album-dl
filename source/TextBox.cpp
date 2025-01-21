@@ -38,10 +38,10 @@ void TextBox::Init(wxWindowID id, wxSize size, wxWindow* parent, long style)
         size,
         style);
 
-    UpdateRectang();
 
 
     bInit = true;
+    UpdateRectang();
 }
 
 
