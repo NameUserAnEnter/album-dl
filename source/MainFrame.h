@@ -119,8 +119,7 @@ private:
 
 
 
-    wxSize FindMaxDistance(std::vector<Rectang>, std::vector<TextBox*>, std::vector<DropDown*>, std::vector<wxWindow*>);
-    wxSize AreaTaken(std::vector<Rectang>);     // supposed to replace and do the same as FindMaxDistance
+    wxSize AreaTaken(std::vector<Rectang>);     // replaced and does the same as FindMaxDistance
     
     wxSize AreaTakenInput();                    // calls AreaTaken passing only input controls (no terminal) member rectangs
     wxSize AreaTakenAll();                      // calls AreaTaken passing all controls' member rectangs

@@ -6,51 +6,6 @@
 
 
 
-wxSize MainFrame::FindMaxDistance(
-    std::vector<Rectang> fieldTemplates = std::vector<Rectang>(),
-    std::vector<TextBox*> textBoxes = std::vector<TextBox*>(),
-    std::vector<DropDown*> dropDowns = std::vector<DropDown*>(),
-    std::vector<wxWindow*> nativeControls = std::vector<wxWindow*>()
-)
-{
-    wxSize maxDistance(0, 0);
-
-    for (int i = 0; i < nativeControls.size(); i++)
-    {
-        wxPoint currentPos = nativeControls[i]->GetPosition();
-        wxSize currentSize = nativeControls[i]->GetSize();
-
-        if (currentPos.x + currentSize.x > maxDistance.x) maxDistance.x = currentPos.x + currentSize.x;
-        if (currentPos.y + currentSize.y > maxDistance.y) maxDistance.y = currentPos.y + currentSize.y;
-    }
-
-    for (int i = 0; i < textBoxes.size(); i++)
-    {
-        wxSize currentDistance = textBoxes[i]->GetDistance();
-
-        if (currentDistance.x > maxDistance.x) maxDistance.x = currentDistance.x;
-        if (currentDistance.y > maxDistance.y) maxDistance.y = currentDistance.y;
-    }
-
-    //for (int i = 0; i < dropDowns.size(); i++)
-    //{
-    //    wxSize currentDistance = dropDowns[i]->GetDistance();
-    //    //currentDistance.y -= verticalDropDownOffset;
-
-    //    if (currentDistance.x > maxDistance.x) maxDistance.x = currentDistance.x;
-    //    if (currentDistance.y > maxDistance.y) maxDistance.y = currentDistance.y;
-    //}
-
-    for (int i = 0; i < fieldTemplates.size(); i++)
-    {
-        Rectang currentField = fieldTemplates[i];
-        if (currentField.pos.x + currentField.size.x > maxDistance.x) maxDistance.x = currentField.pos.x + currentField.size.x;
-        if (currentField.pos.y + currentField.size.y > maxDistance.y) maxDistance.y = currentField.pos.y + currentField.size.y;
-    }
-
-    return maxDistance;
-}
-
 wxSize MainFrame::AreaTaken(std::vector<Rectang> controls = std::vector<Rectang>())
 {
     wxSize AreaTaken = wxSize(0, 0);
@@ -87,6 +42,9 @@ std::vector<Rectang> MainFrame::GetRectangsInput()
     controls.push_back(fAlbumName.rectang);
     controls.push_back(fAlbumYear.rectang);
 
+    controls.push_back(fURL.rectang);
+    controls.push_back(fArtworkURL.rectang);
+
     controls.push_back(fBitrate.rectang);
     controls.push_back(Rectang(checkAlert.GetPosition().x, checkAlert.GetPosition().y, checkAlert.GetSize().x, checkAlert.GetSize().y));
     controls.push_back(Rectang(buttonUpdateYtDlp.GetPosition().x, buttonUpdateYtDlp.GetPosition().y, buttonUpdateYtDlp.GetSize().x, buttonUpdateYtDlp.GetSize().y));
@@ -107,7 +65,6 @@ std::vector<Rectang> MainFrame::GetRectangsAll()
 
 void MainFrame::SetFullSize()
 {
-    //wxSize area = AreaTaken(rectangs);
     wxSize area = AreaTakenAll();
 
     int ClientWidth = area.x + clientMargin.right;
@@ -292,6 +249,7 @@ void MainFrame::InitControls()
     buttonDownload.SetSize(minButtonSize);
     
     fOutput.Init(ID_fOutput, wxSize(rectangs.back().size.x, rectangs.back().size.y), parent, wxTE_MULTILINE | wxTE_READONLY);
+    //fOutput.Init(ID_fOutput, minTextBoxSize, parent, wxTE_MULTILINE | wxTE_READONLY);
 }
 
 void MainFrame::InitControlPositions()
@@ -632,11 +590,16 @@ void MainFrame::InitDimensionsInfo()
     dimensionsInfo += L"screen res: " + NumToWstr((int)screenX) + L"x" + NumToWstr((int)screenY) + L"\n";
 
     char whitespace = ' ';
-    for (int i = 0; i < rectangs.size(); i++)
+
+    // InitBindings() causes the output vary by 2px on y-axis of index-4+ elements depending on controls' source
+    std::vector<Rectang> controls = GetRectangsAll();
+    //std::vector<Rectang> controls = rectangs;
+
+    for (int i = 0; i < controls.size(); i++)
     {
         dimensionsInfo += L"rectangs[" + NumToWstr(i, 10, 2, whitespace) + L"]: (";
-        dimensionsInfo += NumToWstr(rectangs[i].pos.x, 10, 3, ' ') + L", " + NumToWstr(rectangs[i].pos.y, 10, 3, ' ') + L"), (";
-        dimensionsInfo += NumToWstr(rectangs[i].size.x, 10, 3, ' ') + L", " + NumToWstr(rectangs[i].size.y, 10, 3, ' ') + L")\n";
+        dimensionsInfo += NumToWstr(controls[i].pos.x, 10, 3, ' ') + L", " + NumToWstr(controls[i].pos.y, 10, 3, ' ') + L"), (";
+        dimensionsInfo += NumToWstr(controls[i].size.x, 10, 3, ' ') + L", " + NumToWstr(controls[i].size.y, 10, 3, ' ') + L")\n";
     }
 
     dimensionsInfo += L"\n";
@@ -706,7 +669,7 @@ void MainFrame::InitTerminalOutput()
         initialOutput += L"--------------------------------------------------------------------------\n\n";
     }
 
-    //if (!dimensionsInfo.empty()) initialOutput += dimensionsInfo;
+    if (!dimensionsInfo.empty()) initialOutput += dimensionsInfo;
     
 
     mainConsole.PrintLogAndConsole(initialOutput);
@@ -727,7 +690,7 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_mainFrame, "album-dl")
     InitControlPositions();
     InitControlDimensionRanges();
 
-    InitControlLabels();
+    //InitControlLabels();
 
     InitBindings();
 
@@ -736,8 +699,8 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_mainFrame, "album-dl")
     InitThemes();
     InitFonts();
 
-    InitBitrates();
-    InitTestValues();
+    //InitBitrates();
+    //InitTestValues();
 
     InitWindowSize();
     InitPosition();
@@ -902,18 +865,19 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     fURL.SetSize(fURL.GetMinSize().x + hIncreaseCell1, fURL.GetSize().y);
     fArtworkURL.SetSize(fArtworkURL.GetMinSize().x + hIncreaseCell1, fArtworkURL.GetSize().y);
 
-    std::vector<TextBox*> textBoxesCell1;
-    textBoxesCell1.push_back(&fWorkingDir);
-    textBoxesCell1.push_back(&fConverterDir);
-    textBoxesCell1.push_back(&fAlbumsDir);
-    textBoxesCell1.push_back(&fPreview);
+    std::vector<Rectang> textBoxesCell1;
+    textBoxesCell1.push_back(fWorkingDir.rectang);
+    textBoxesCell1.push_back(fConverterDir.rectang);
+    textBoxesCell1.push_back(fAlbumsDir.rectang);
+    textBoxesCell1.push_back(fPreview.rectang);
 
-    textBoxesCell1.push_back(&fArtist);
-    textBoxesCell1.push_back(&fAlbumName);
-    textBoxesCell1.push_back(&fAlbumYear);
-    textBoxesCell1.push_back(&fURL);
-    textBoxesCell1.push_back(&fArtworkURL);
-    wxSize maxDistance1 = FindMaxDistance(std::vector<Rectang>(), textBoxesCell1);
+    textBoxesCell1.push_back(fArtist.rectang);
+    textBoxesCell1.push_back(fAlbumName.rectang);
+    textBoxesCell1.push_back(fAlbumYear.rectang);
+    textBoxesCell1.push_back(fURL.rectang);
+    textBoxesCell1.push_back(fArtworkURL.rectang);
+    wxSize maxDistance1 = AreaTaken(textBoxesCell1);
+
     
 
 

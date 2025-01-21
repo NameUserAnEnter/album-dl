@@ -261,7 +261,9 @@ wxPoint TextBox::ComputeTextBoxPos(wxPoint labelBoxPos)
 
 void TextBox::UpdateRectang()
 {
-    rectang = Rectang(GetPosition().x, GetPosition().y, GetSize().x, GetSize().y);
+    wxPoint pos = GetPosition();
+    wxSize size = GetSize();
+    rectang = Rectang(pos.x, pos.y, size.x, size.y);
 }
 
 
