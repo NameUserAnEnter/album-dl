@@ -11,6 +11,10 @@ DropDown::DropDown()
 
     items.clear();
 
+
+
+
+
     minSize.x = 0;
     minSize.y = 0;
 
@@ -42,120 +46,6 @@ void DropDown::Init(wxWindowID id, wxSize size, wxWindow* parent, long style)
 
 
 
-
-void DropDown::OnLabelBoxMove(wxMoveEvent& event)
-{
-    listBox.SetPosition(wxPoint(labelOffset.left, labelOffset.top));
-}
-
-
-
-
-void DropDown::SetLabel(std::wstring label)
-{
-    if (!bInit) return;
-    labelBox.SetLabel(label);
-}
-
-void DropDown::AppendLabel(std::wstring suffix, bool popLast)
-{
-    if (!bInit) return;
-
-    std::wstring label = GetLabel();
-    if (popLast && label.size() > 0) label.pop_back();
-
-    labelBox.SetLabel(label + suffix);
-}
-
-std::wstring DropDown::GetLabel()
-{
-    if (!bInit) return L"";
-    return labelBox.GetLabel().ToStdWstring();
-}
-
-
-
-
-void DropDown::AppendItem(std::string item)
-{
-    if (!bInit) return;
-
-    listBox.Append(item);
-    items.push_back(item);
-}
-
-void DropDown::SetItems(std::vector<std::string> newItems)
-{
-    if (!bInit) return;
-
-    for (int i = 0; i < items.size(); i++)
-    {
-        listBox.Delete(i);
-    }
-    items.clear();
-
-    for (int i = 0; i < newItems.size(); i++)
-    {
-        AppendItem(newItems[i]);
-    }
-}
-
-
-std::string DropDown::GetItem(int index)
-{
-    if (!bInit) return "";
-
-    if (index >= items.size() || index < 0)
-    {
-        return "";
-    }
-
-    return items[index];
-}
-
-std::vector<std::string> DropDown::GetItems()
-{
-    std::vector<std::string> rv;
-    rv.clear();
-
-    if (!bInit) return rv;
-
-    rv = items;
-    return items;
-}
-
-
-
-
-void DropDown::SetSelected(unsigned int index)
-{
-    if (!bInit) return;
-
-    if (!items.empty())
-    {
-        if (index < items.size())
-        {
-            listBox.SetSelection(index);
-        }
-    }
-}
-
-void DropDown::SetValue(std::wstring value)
-{
-    listBox.SetValue(value);
-}
-
-std::string DropDown::GetSelected()
-{
-    if (!bInit) return "";
-
-    return GetItem(listBox.GetCurrentSelection());
-}
-
-
-
-
-
 wxSize DropDown::ComputeLabelBoxSize(wxSize listBoxSize)
 {
     return wxSize(labelOffset.left + listBoxSize.x + labelOffset.right, labelOffset.top + listBoxSize.y + labelOffset.bottom);
@@ -183,6 +73,10 @@ void DropDown::UpdateRectang()
     rectang = Rectang(pos.x, pos.y, size.x, size.y);
 }
 
+void DropDown::OnLabelBoxMove(wxMoveEvent& event)
+{
+    listBox.SetPosition(wxPoint(labelOffset.left, labelOffset.top));
+}
 
 
 
@@ -199,16 +93,12 @@ void DropDown::SetPosition(wxPoint newPos)
     UpdateRectang();
 }
 
-
-
 wxPoint DropDown::GetPosition()
 {
     if (!bInit) return wxPoint(-1, -1);
 
     return ComputeListBoxPos(labelBox.GetPosition());
 }
-
-
 
 void DropDown::SetSize(int width, int height)
 {
@@ -226,8 +116,6 @@ void DropDown::SetMaxSize(int width, int height)
     maxSize.x = width;
     maxSize.y = height;
 }
-
-
 
 void DropDown::SetSize(wxSize requestedSize)
 {
@@ -267,9 +155,6 @@ void DropDown::SetMaxSize(wxSize newMaxSize)
     maxSize = newMaxSize;
 }
 
-
-
-
 wxSize DropDown::GetSize()
 {
     if (!bInit) return wxSize(0, 0);
@@ -286,16 +171,11 @@ wxSize DropDown::GetMaxSize()
     return maxSize;
 }
 
-
-
 wxSize DropDown::GetDistance()
 {
     if (!bInit) return wxSize(0, 0);
     return wxSize(GetPosition().x + GetSize().x, GetPosition().y + GetSize().y);
 }
-
-
-
 
 
 
@@ -313,12 +193,6 @@ void DropDown::Hide()
     listBox.Hide();
 }
 
-
-
-
-
-
-
 void DropDown::Disable()
 {
     listBox.Disable();
@@ -327,5 +201,110 @@ void DropDown::Disable()
 void DropDown::Enable()
 {
     listBox.Enable();
+}
+
+
+
+void DropDown::SetLabel(std::wstring label)
+{
+    if (!bInit) return;
+    labelBox.SetLabel(label);
+}
+
+void DropDown::AppendLabel(std::wstring suffix, bool popLast)
+{
+    if (!bInit) return;
+
+    std::wstring label = GetLabel();
+    if (popLast && label.size() > 0) label.pop_back();
+
+    labelBox.SetLabel(label + suffix);
+}
+
+std::wstring DropDown::GetLabel()
+{
+    if (!bInit) return L"";
+    return labelBox.GetLabel().ToStdWstring();
+}
+
+
+
+
+
+
+void DropDown::AppendItem(std::string item)
+{
+    if (!bInit) return;
+
+    listBox.Append(item);
+    items.push_back(item);
+}
+
+void DropDown::SetItems(std::vector<std::string> newItems)
+{
+    if (!bInit) return;
+
+    for (int i = 0; i < items.size(); i++)
+    {
+        listBox.Delete(i);
+    }
+    items.clear();
+
+    for (int i = 0; i < newItems.size(); i++)
+    {
+        AppendItem(newItems[i]);
+    }
+}
+
+
+
+std::string DropDown::GetItem(int index)
+{
+    if (!bInit) return "";
+
+    if (index >= items.size() || index < 0)
+    {
+        return "";
+    }
+
+    return items[index];
+}
+
+std::vector<std::string> DropDown::GetItems()
+{
+    std::vector<std::string> rv;
+    rv.clear();
+
+    if (!bInit) return rv;
+
+    rv = items;
+    return items;
+}
+
+
+
+void DropDown::SetSelected(unsigned int index)
+{
+    if (!bInit) return;
+
+    if (!items.empty())
+    {
+        if (index < items.size())
+        {
+            listBox.SetSelection(index);
+        }
+    }
+}
+
+void DropDown::SetValue(std::wstring value)
+{
+    listBox.SetValue(value);
+}
+
+std::string DropDown::GetSelected()
+{
+    if (!bInit) return "";
+
+    return GetItem(listBox.GetCurrentSelection());
 }
 

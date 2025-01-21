@@ -126,10 +126,12 @@ private:
     std::vector<Rectang> GetRectangsInput();
     std::vector<Rectang> GetRectangsAll();
 
-    wxSize GetAreaLeftForTerminal();
+    wxSize GetAreaLeftForTerminal(int);
 
     void SetWindowSize();
     void AdjustWindowSize();
+
+    void SetControlPositions(int, int);
 
 
     void SaveSettings();

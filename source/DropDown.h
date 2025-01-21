@@ -6,21 +6,32 @@
 #include <wx/wx.h>
 #endif
 
+
 #include "encoding.h"
 #include "utils.h"
 #include "Rectang.h"
+
+
+
+
+
+
 
 class DropDown
 {
 private:
 	bool bInit;
 
+
 	RECT labelOffset;
 
 	std::vector<std::string> items;
 
+
+
 	wxSize minSize;
 	wxSize maxSize;
+
 public:
 	wxStaticBox labelBox;
 	wxComboBox listBox;
@@ -29,19 +40,6 @@ public:
 	Rectang rectang;
 
 	void Init(wxWindowID, wxSize, wxWindow*, long = NULL);
-
-	void AppendItem(std::string);
-	void SetItems(std::vector<std::string>);
-
-	std::string GetItem(int);
-	std::vector<std::string> GetItems();
-
-	void SetSelected(unsigned int);
-	void SetValue(std::wstring value);
-	std::string GetSelected();
-
-	void Disable();
-	void Enable();
 
 private:
 	wxSize ComputeLabelBoxSize(wxSize);
@@ -53,6 +51,7 @@ private:
 	void UpdateRectang();
 
 	void OnLabelBoxMove(wxMoveEvent&);
+
 public:
 	void SetPosition(int, int);
 	void SetPosition(wxPoint);
@@ -73,13 +72,26 @@ public:
 
 	wxSize GetDistance();
 
-
 	void Show();
 	void Hide();
 
+	void Disable();
+	void Enable();
+
 	void SetLabel(std::wstring);
 	void AppendLabel(std::wstring, bool = true);
-	std::wstring  GetLabel();
+	std::wstring GetLabel();
+	
+public:
+	void AppendItem(std::string);
+	void SetItems(std::vector<std::string>);
+
+	std::string GetItem(int);
+	std::vector<std::string> GetItems();
+
+	void SetSelected(unsigned int);
+	void SetValue(std::wstring value);
+	std::string GetSelected();
 };
 
 #endif

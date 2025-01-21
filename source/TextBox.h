@@ -29,10 +29,9 @@ private:
     std::wstring outputBuf;
     
     TEXT_ENCODING fieldEncoding;
-    std::wstring FormatText(std::wstring);
-
     wxSize minSize;
     wxSize maxSize;
+
 public:
     wxStaticBox labelBox;
     wxTextCtrl textField;
@@ -41,25 +40,6 @@ public:
     Rectang rectang;
 
     void Init(wxWindowID, wxSize, wxWindow*, long = NULL);
-
-    std::wstring* GetBuf();
-    void SetMutex(std::mutex*);
-    void FlushBuf();
-     
-    void SetText(std::wstring);
-    void SetTextNarrow(std::string);
-
-    void AddText(std::wstring);
-    void AddTextNarrow(std::string);
-
-    std::wstring GetContent();
-    long GetCursorPos();
-
-    void SetFocus();
-    void SetEditable(bool);
-
-    void SetForeground(wxColour);
-    void SetBackground(wxColour);
 
 private:
     wxSize ComputeLabelBoxSize(wxSize);
@@ -71,6 +51,7 @@ private:
     void UpdateRectang();
 
     void OnLabelBoxMove(wxMoveEvent&);
+
 public:
     void SetPosition(int, int);
     void SetPosition(wxPoint);
@@ -91,36 +72,50 @@ public:
 
     wxSize GetDistance();
 
-
     void Show();
     void Hide();
-
-
-
-    void SetFont(wxFont);
-    wxFont GetFont();
-    std::wstring GetFontFaceName();
-
-    void SetEncoding(TEXT_ENCODING);
-
-
-    bool IsEmpty();
-
-    void RemoveExceeding(unsigned int uMaxLines);
-
-    std::wstring GetText();
-
-    int GetNumberOfLines();
 
     void Disable();
     void Enable();
 
     void SetLabel(std::wstring);
     void AppendLabel(std::wstring, bool = true);
-    std::wstring  GetLabel();
+    std::wstring GetLabel();
+
+public:
+    void SetFont(wxFont);
+    wxFont GetFont();
+    std::wstring GetFontFaceName();
+
+    std::wstring FormatText(std::wstring);
+    void SetEncoding(TEXT_ENCODING);
+
+    bool IsEmpty();
+    int GetNumberOfLines();
+    void RemoveExceeding(unsigned int uMaxLines);
+    std::wstring GetText();
 
     void SetHint(std::wstring);
     std::wstring GetHint();
+
+    std::wstring* GetBuf();
+    void SetMutex(std::mutex*);
+    void FlushBuf();
+
+    void SetText(std::wstring);
+    void SetTextNarrow(std::string);
+
+    void AddText(std::wstring);
+    void AddTextNarrow(std::string);
+
+    std::wstring GetContent();
+    long GetCursorPos();
+
+    void SetFocus();
+    void SetEditable(bool);
+
+    void SetForeground(wxColour);
+    void SetBackground(wxColour);
 };
 
 

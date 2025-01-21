@@ -63,10 +63,9 @@ std::vector<Rectang> MainFrame::GetRectangsAll()
     return controls;
 }
 
-wxSize MainFrame::GetAreaLeftForTerminal()
+wxSize MainFrame::GetAreaLeftForTerminal(int terminalWidth)
 {
-    // Force minimal width, but adjust to height given by the input section
-    return wxSize(minTerminalWidth, AreaTakenInput().y - clientMargin.top);
+    return wxSize(terminalWidth, AreaTakenInput().y - clientMargin.top);
 }
 
 
@@ -104,6 +103,48 @@ void MainFrame::AdjustWindowSize()
 
     // These calculations attempt to preserve the proportions of client area seen by the developer building the program and the end user
     SetClientSize((devClientResX * userScreenResX) / devScreenResX, (devClientResY * userScreenResY) / devScreenResY);
+}
+
+void MainFrame::SetControlPositions(int sepH, int sepV)
+{
+    // Also sets the terminal size
+    //  _________________________________
+    // | input       | terminal          |
+    // | ____________|__________________ |    sepV
+    // ||directories |                  ||      |
+    // ||____________|/_________________||______|
+    // ||data        |\                 ||
+    // ||____________|                  ||
+    // ||buttons     |                  ||
+    // ||____________|__________________||
+    // |_____________|___________________|
+    //               ^
+    //               |_______ sepH
+
+    fWorkingDir.SetPosition(clientMargin.left,      clientMargin.top);
+    fConverterDir.SetPosition(clientMargin.left,    clientMargin.top + fieldHeight * 1);
+    fAlbumsDir.SetPosition(clientMargin.left,       clientMargin.top + fieldHeight * 2);
+    fPreview.SetPosition(clientMargin.left,         clientMargin.top + fieldHeight * 3);
+
+    fArtist.SetPosition(clientMargin.left,          clientMargin.top + fieldHeight * 3 + sepV + fieldHeight * 1);
+    fAlbumName.SetPosition(clientMargin.left,       clientMargin.top + fieldHeight * 3 + sepV + fieldHeight * 2);
+    fAlbumYear.SetPosition(clientMargin.left,       clientMargin.top + fieldHeight * 3 + sepV + fieldHeight * 3);
+
+    fURL.SetPosition(clientMargin.left,             clientMargin.top + fieldHeight * 3 + sepV + fieldHeight * 4);
+    fArtworkURL.SetPosition(clientMargin.left,      clientMargin.top + fieldHeight * 3 + sepV + fieldHeight * 5);
+
+    fBitrate.SetPosition(clientMargin.left,                                                 clientMargin.top + fieldHeight * 3 + sepV + fieldHeight * 6 + verticalDropDownOffset);
+    checkAlert.SetPosition(wxPoint(clientMargin.left + fBitrate.GetSize().x + buttonBreak,  clientMargin.top + fieldHeight * 3 + sepV + fieldHeight * 6 + verticalCheckBoxOffset));
+
+    buttonUpdate.SetPosition(wxPoint(0,     clientMargin.top + fieldHeight * 3 + sepV + fieldHeight * 6));
+    buttonDownload.SetPosition(wxPoint(0,   clientMargin.top + fieldHeight * 3 + sepV + fieldHeight * 6));
+
+    fOutput.SetPosition(wxPoint(AreaTakenInput().x + sepH, clientMargin.top));
+    fOutput.SetSize(GetAreaLeftForTerminal(minTerminalWidth));
+    // Force minimal width, but adjust to height given by the input section
+
+    buttonDownload.SetPosition(wxPoint(fOutput.GetPosition().x  - sepH - buttonDownload.GetSize().x,                                             buttonDownload.GetPosition().y));
+    buttonUpdate.SetPosition(wxPoint(fOutput.GetPosition().x    - sepH - buttonDownload.GetSize().x - buttonBreak - buttonUpdate.GetSize().x,    buttonUpdate.GetPosition().y));
 }
 
 
@@ -239,43 +280,7 @@ void MainFrame::InitControls()
 
 void MainFrame::InitControlPositions()
 {
-    // Also sets the terminal size
-    //  _________________________________
-    // | input       | terminal          |
-    // | ____________|__________________ |    fieldBreakV
-    // ||directories |                  ||      |
-    // ||____________|/_________________||______|
-    // ||data        |\                 ||
-    // ||____________|                  ||
-    // ||buttons     |                  ||
-    // ||____________|__________________||
-    // |_____________|___________________|
-    //               ^
-    //               |_______ fieldBreakH
-
-    fWorkingDir.SetPosition(clientMargin.left,      clientMargin.top);
-    fConverterDir.SetPosition(clientMargin.left,    clientMargin.top + fieldHeight * 1);
-    fAlbumsDir.SetPosition(clientMargin.left,       clientMargin.top + fieldHeight * 2);
-    fPreview.SetPosition(clientMargin.left,         clientMargin.top + fieldHeight * 3);
-
-    fArtist.SetPosition(clientMargin.left,          clientMargin.top + fieldHeight * 3 + fieldBreakV + fieldHeight * 1);
-    fAlbumName.SetPosition(clientMargin.left,       clientMargin.top + fieldHeight * 3 + fieldBreakV + fieldHeight * 2);
-    fAlbumYear.SetPosition(clientMargin.left,       clientMargin.top + fieldHeight * 3 + fieldBreakV + fieldHeight * 3);
-
-    fURL.SetPosition(clientMargin.left,             clientMargin.top + fieldHeight * 3 + fieldBreakV + fieldHeight * 4);
-    fArtworkURL.SetPosition(clientMargin.left,      clientMargin.top + fieldHeight * 3 + fieldBreakV + fieldHeight * 5);
-
-    fBitrate.SetPosition(clientMargin.left,                                                 clientMargin.top + fieldHeight * 3 + fieldBreakV + fieldHeight * 6 + verticalDropDownOffset);
-    checkAlert.SetPosition(wxPoint(clientMargin.left + fBitrate.GetSize().x + buttonBreak,  clientMargin.top + fieldHeight * 3 + fieldBreakV + fieldHeight * 6 + verticalCheckBoxOffset));
-
-    buttonUpdate.SetPosition(wxPoint(0,     clientMargin.top + fieldHeight * 3 + fieldBreakV + fieldHeight * 6));
-    buttonDownload.SetPosition(wxPoint(0,   clientMargin.top + fieldHeight * 3 + fieldBreakV + fieldHeight * 6));
-
-    fOutput.SetPosition(wxPoint(AreaTakenInput().x + fieldBreakH, clientMargin.top));
-    fOutput.SetSize(GetAreaLeftForTerminal());
-
-    buttonDownload.SetPosition(wxPoint(fOutput.GetPosition().x  - fieldBreakH - buttonDownload.GetSize().x,                                             buttonDownload.GetPosition().y));
-    buttonUpdate.SetPosition(wxPoint(fOutput.GetPosition().x    - fieldBreakH - buttonDownload.GetSize().x - buttonBreak - buttonUpdate.GetSize().x,    buttonUpdate.GetPosition().y));
+    SetControlPositions(fieldBreakH, fieldBreakV);
 }
 
 void MainFrame::InitControlDimensionRanges()
