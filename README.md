@@ -26,7 +26,8 @@ This program bases on the following projects:
 Press `Ctrl + S` or go to "File/Save settings" to save:
 - directores
 - window position/size
-- alert-on-done checkbox state
+- notify-when-done checkbox state
+- check-for-updates checkbox state
 - audio bitrate
 
 These settings are automatically loaded each time album-dl is opened.
@@ -79,16 +80,17 @@ Each execution's full output is stored in the `log` file, in `album-dl.exe` dire
 
 ## Execution stages
 album-dl goes through following stages after the "Download" button is pressed:
-1. downloading best audio quality .mp4's
-6. downloading the album artwork
-2. getting the track titles
-3. converting .mp4 files into .mp3's
-4. removing the .mp4's
-5. renaming the .mp3's
-7. attaching artwork.png to .mp3's metadata
-8. creating destination album subfolder in the albums directory
-9. moving .mp3's into the destination folder
-10. moving .png into the destination folder
+1. If update checkbox is selected, check for YT-DLP updates and update if newer version is available
+2. Download best audio quality .mp4 files
+3. Download the album artwork
+4. Get track titles from the playlist
+5. Convert .mp4 files into .mp3 files
+6. Remove .mp4 files
+7. Rename .mp3 files
+8. Attach artwork.png to .mp3 metadata
+9. Create destination album subfolder in the albums directory
+10. Move .mp3 files into the destination folder
+11. Move artwork.png into the destination folder
 
 ## `Trash` folder
 This program uses Windows commands to execute renaming and moving files as well as creating directories.
