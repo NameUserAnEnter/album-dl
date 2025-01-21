@@ -42,7 +42,7 @@ private:
     TextBox fPreview;
     
     wxButton buttonDownload;
-    wxButton buttonUpdate;          // update yt-dlp button
+    wxCheckBox checkUpdate;          // update yt-dlp
     wxCheckBox checkAlert;
     DropDown fBitrate;
 
@@ -68,6 +68,7 @@ private:
     wxSize maxOutputFieldSize;
 
     wxSize minButtonSize;
+    wxSize minCheckSize;
 
     Margin clientMargin;
 
@@ -88,10 +89,12 @@ private:
     void InitMenuAndStatusBar();
 
     void InitControls();
+    void InitControlLabels();
+
+
     void InitControlPositions();
     void InitControlDimensionRanges();
 
-    void InitControlLabels();
 
     void InitBindings();
 
@@ -120,9 +123,11 @@ private:
 
     wxSize AreaTaken(std::vector<Rectang>);     // replaced and does the same as FindMaxDistance
     
-    wxSize AreaTakenInput();                    // calls AreaTaken passing only input controls (no terminal) member rectangs
-    wxSize AreaTakenAll();                      // calls AreaTaken passing all controls' member rectangs
+    wxSize AreaTakenFields();       // calls AreaTaken passing only input fields (no terminal and buttons) member rectangs
+    wxSize AreaTakenInput();        // calls AreaTaken passing only input controls (no terminal) member rectangs
+    wxSize AreaTakenAll();          // calls AreaTaken passing all controls' member rectangs
 
+    std::vector<Rectang> GetRectangsFields();
     std::vector<Rectang> GetRectangsInput();
     std::vector<Rectang> GetRectangsAll();
 
@@ -139,7 +144,6 @@ private:
 private:
     // -- EVENT METHODS
     void OnButtonDownload(wxCommandEvent&);
-    void OnButtonUpdate(wxCommandEvent&);
 
     void OnPanelResize(wxSizeEvent&);
 
@@ -155,7 +159,6 @@ private:
     // --
 private:
     void GetAlbum();
-    void UpdateDownloader();
 
     void ExecuteBatchSession(bool = true);
     void UpdateOutput();

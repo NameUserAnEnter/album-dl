@@ -28,7 +28,7 @@ enum
     ID_fBitrate,
     ID_checkAlert,
     ID_checkUpdate,
-    ID_buttonUpdate,
+    //ID_buttonUpdate,
     ID_buttonDownload,
 
 

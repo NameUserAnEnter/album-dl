@@ -22,6 +22,11 @@ wxSize MainFrame::AreaTaken(std::vector<Rectang> controls = std::vector<Rectang>
     return AreaTaken;
 }
 
+wxSize MainFrame::AreaTakenFields()
+{
+    return AreaTaken(GetRectangsFields());
+}
+
 wxSize MainFrame::AreaTakenInput()
 {
     return AreaTaken(GetRectangsInput());
@@ -32,7 +37,7 @@ wxSize MainFrame::AreaTakenAll()
     return AreaTaken(GetRectangsAll());
 }
 
-std::vector<Rectang> MainFrame::GetRectangsInput()
+std::vector<Rectang> MainFrame::GetRectangsFields()
 {
     std::vector<Rectang> controls;
     controls.push_back(fWorkingDir.rectang);
@@ -47,9 +52,16 @@ std::vector<Rectang> MainFrame::GetRectangsInput()
     controls.push_back(fURL.rectang);
     controls.push_back(fArtworkURL.rectang);
 
+    return controls;
+}
+
+std::vector<Rectang> MainFrame::GetRectangsInput()
+{
+    std::vector<Rectang> controls = GetRectangsFields();
+
     controls.push_back(fBitrate.rectang);
     controls.push_back(Rectang(checkAlert.GetPosition().x, checkAlert.GetPosition().y, checkAlert.GetSize().x, checkAlert.GetSize().y));
-    controls.push_back(Rectang(buttonUpdate.GetPosition().x, buttonUpdate.GetPosition().y, buttonUpdate.GetSize().x, buttonUpdate.GetSize().y));
+    controls.push_back(Rectang(checkUpdate.GetPosition().x, checkUpdate.GetPosition().y, checkUpdate.GetSize().x, checkUpdate.GetSize().y));
     controls.push_back(Rectang(buttonDownload.GetPosition().x, buttonDownload.GetPosition().y, buttonDownload.GetSize().x, buttonDownload.GetSize().y));
 
     return controls;
@@ -133,18 +145,18 @@ void MainFrame::SetControlPositions(int sepH, int sepV)
     fURL.SetPosition(clientMargin.left,             clientMargin.top + fieldHeight * 3 + sepV + fieldHeight * 4);
     fArtworkURL.SetPosition(clientMargin.left,      clientMargin.top + fieldHeight * 3 + sepV + fieldHeight * 5);
 
-    fBitrate.SetPosition(clientMargin.left,                                                 clientMargin.top + fieldHeight * 3 + sepV + fieldHeight * 6 + verticalDropDownOffset);
-    checkAlert.SetPosition(wxPoint(clientMargin.left + fBitrate.GetSize().x + buttonBreak,  clientMargin.top + fieldHeight * 3 + sepV + fieldHeight * 6 + verticalCheckBoxOffset));
+    fBitrate.SetPosition(clientMargin.left,                                                                             clientMargin.top + fieldHeight * 3 + sepV + fieldHeight * 6 + verticalDropDownOffset);
+    
+    checkAlert.SetPosition(wxPoint(clientMargin.left + fBitrate.GetSize().x + buttonBreak,                              clientMargin.top + fieldHeight * 3 + sepV + fieldHeight * 6 + verticalCheckBoxOffset));
+    checkUpdate.SetPosition(wxPoint(clientMargin.left + fBitrate.GetSize().x + buttonBreak + checkAlert.GetSize().x,    clientMargin.top + fieldHeight * 3 + sepV + fieldHeight * 6 + verticalCheckBoxOffset));
 
-    buttonUpdate.SetPosition(wxPoint(0,     clientMargin.top + fieldHeight * 3 + sepV + fieldHeight * 6));
     buttonDownload.SetPosition(wxPoint(0,   clientMargin.top + fieldHeight * 3 + sepV + fieldHeight * 6));
 
     fOutput.SetPosition(wxPoint(AreaTakenInput().x + sepH, clientMargin.top));
     fOutput.SetSize(GetAreaLeftForTerminal(minTerminalWidth));
     // Force minimal width, but adjust to height given by the input section
 
-    buttonDownload.SetPosition(wxPoint(fOutput.GetPosition().x  - sepH - buttonDownload.GetSize().x,                                             buttonDownload.GetPosition().y));
-    buttonUpdate.SetPosition(wxPoint(fOutput.GetPosition().x    - sepH - buttonDownload.GetSize().x - buttonBreak - buttonUpdate.GetSize().x,    buttonUpdate.GetPosition().y));
+    buttonDownload.SetPosition(wxPoint(fOutput.GetPosition().x  - sepH - buttonDownload.GetSize().x, buttonDownload.GetPosition().y));
 }
 
 
@@ -208,6 +220,8 @@ void MainFrame::InitValues()
     maxTextBoxSize = wxSize(600, minTextBoxSize.y);
 
     minButtonSize = wxSize(100, 25);
+
+    minCheckSize = wxSize(25, 25);
 }
 
 void MainFrame::InitMenuAndStatusBar()
@@ -224,7 +238,7 @@ void MainFrame::InitMenuAndStatusBar()
 
     
     wxMenu* menuFile = new wxMenu;
-    menuFile->Append(ID_menuSave, "&Save settings\tCtrl+S", "Saves: directories, window position/size, alert-on-done and bitrate.");
+    menuFile->Append(ID_menuSave, "&Save settings\tCtrl+S", "Saves: directories, window position/size, notify-on-done and bitrate.");
     menuFile->AppendSeparator();
     menuFile->Append(ID_menuExit, "&Exit\tEsc", "Close this program.");
 
@@ -267,16 +281,54 @@ void MainFrame::InitControls()
 
     fBitrate.Init(ID_fBitrate,              minButtonSize, parent);
 
-    checkAlert.Create(parent,           ID_checkAlert, "");
-    buttonUpdate.Create(parent,         ID_buttonUpdate,   "");
+    checkAlert.Create(parent,           ID_checkAlert, "", wxDefaultPosition, wxSize(120, 25));
+    checkUpdate.Create(parent,          ID_checkUpdate,   "", wxDefaultPosition, wxSize(60, 25));
     buttonDownload.Create(parent,       ID_buttonDownload, "");
 
-    checkAlert.SetSize(minButtonSize);
-    buttonUpdate.SetSize(minButtonSize);
     buttonDownload.SetSize(minButtonSize);
     
     fOutput.Init(ID_fOutput, minTextBoxSize, parent, wxTE_MULTILINE | wxTE_READONLY);
 }
+
+void MainFrame::InitControlLabels()
+{
+    fWorkingDir.SetLabel(L"Working directory:");
+    fConverterDir.SetLabel(L"ffmpeg.exe directory:");
+    fAlbumsDir.SetLabel(L"Albums directory:");
+    fPreview.SetLabel(L"Album path (preview):");
+
+    fArtist.SetLabel(L"Artist");
+    fAlbumName.SetLabel(L"Album name:");
+    fAlbumYear.SetLabel(L"Album year:");
+
+    fURL.SetLabel(L"Playlist URL:");
+    fArtworkURL.SetLabel(L"Playlist URL with artwork:");
+
+    fBitrate.SetLabel(L"Audio bitrate:");
+    fBitrate.SetValue(L"----");
+
+    checkAlert.SetLabel(L"Notify when done");
+    checkUpdate.SetLabel(L"Update");
+
+    buttonDownload.SetLabel(L"Download");
+
+    fOutput.SetLabel(L"Output:");
+
+
+
+    // Set hints:
+    fConverterDir.SetHint(L"This location has to contain ffmpeg.exe");
+    fAlbumsDir.SetHint(L"The album will be moved to this location");
+    fPreview.SetEditable(false);
+    //fPreview.Disable();
+    fArtist.SetHint(L"optional: used for album path and filenames");
+    fAlbumName.SetHint(L"optional: used for album path");
+    fAlbumYear.SetHint(L"optional: used for album path");
+    fURL.SetHint(L"https://youtube.com/playlist?list=...");
+    fArtworkURL.SetHint(L"optional: use if the other URL is a normal playlist with no artwork thumbnail");
+}
+
+
 
 void MainFrame::InitControlPositions()
 {
@@ -317,49 +369,9 @@ void MainFrame::InitControlDimensionRanges()
 
 
 
-void MainFrame::InitControlLabels()
-{
-    fWorkingDir.SetLabel(L"Working directory:");
-    fConverterDir.SetLabel(L"ffmpeg.exe directory:");
-    fAlbumsDir.SetLabel(L"Albums directory:");
-    fPreview.SetLabel(L"Album path (preview):");
-
-    fArtist.SetLabel(L"Artist");
-    fAlbumName.SetLabel(L"Album name:");
-    fAlbumYear.SetLabel(L"Album year:");
-
-    fURL.SetLabel(L"Playlist URL:");
-    fArtworkURL.SetLabel(L"Playlist URL with artwork:");
-
-    fBitrate.SetLabel(L"Audio bitrate:");
-    fBitrate.SetValue(L"----");
-
-    checkAlert.SetLabel(L"Alert on done");
-    buttonUpdate.SetLabel(L"Update YT-DLP");
-    buttonDownload.SetLabel(L"Download");
-
-    fOutput.SetLabel(L"Output:");
-
-
-
-    // Set hints:
-    fConverterDir.SetHint(L"This location has to contain ffmpeg.exe");
-    fAlbumsDir.SetHint(L"The album will be moved to this location");
-    fPreview.SetEditable(false);
-    //fPreview.Disable();
-    fArtist.SetHint(L"optional: used for album path and filenames");
-    fAlbumName.SetHint(L"optional: used for album path");
-    fAlbumYear.SetHint(L"optional: used for album path");
-    fURL.SetHint(L"https://youtube.com/playlist?list=...");
-    fArtworkURL.SetHint(L"optional: use if the other URL is a normal playlist with no artwork thumbnail");
-}
-
-
-
 void MainFrame::InitBindings()
 {
     Bind(wxEVT_BUTTON, &MainFrame::OnButtonDownload, this, ID_buttonDownload);
-    Bind(wxEVT_BUTTON, &MainFrame::OnButtonUpdate, this, ID_buttonUpdate);
 
     mainPanel.Bind(wxEVT_SIZE, &MainFrame::OnPanelResize, this, ID_framePanel);
 
@@ -531,6 +543,12 @@ void MainFrame::InitTestValues()
     //fURL.SetText(L"https://www.youtube.com/playlist?list=PLHTo__bpnlYURCrPK2lf1onaXhWKlzcYl");
     //fArtworkURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_l-QlUzRsn3KV4PvzkGxWgeUbiae67USgo");
 
+    //fArtist.SetText(L"Deftones");
+    //fAlbumName.SetText(L"Around The Fur");
+    //fAlbumYear.SetText(L"1997");
+    //fURL.SetText(L"https://www.youtube.com/playlist?list=PLbUIPZJL6vw-3om2INMgmkAkKeaZnkag2");
+    //fArtworkURL.SetText(L"https://www.youtube.com/playlist?list=OLAK5uy_nRSkRJt8rcj69IxpxI4GP1ilibtxJmoBg");
+
     // --
 }
 
@@ -697,7 +715,7 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_mainFrame, "album-dl")
 
     InitFocus();
     
-    InitDimensionsInfo();
+    //InitDimensionsInfo();
     InitVerifyExecutables();
     InitTerminalOutput();
     // --
@@ -798,19 +816,6 @@ void MainFrame::OnButtonDownload(wxCommandEvent& event)
     workingThread = std::move(std::thread(&MainFrame::GetAlbum, this));
 }
 
-void MainFrame::OnButtonUpdate(wxCommandEvent& event)
-{
-    if (!bDone) return;
-    if (!ValidateFieldsUpdate()) return;
-
-
-    DisableFields();
-    bDone = false;
-
-    if (workingThread.joinable()) workingThread.join();
-    workingThread = std::move(std::thread(&MainFrame::UpdateDownloader, this));
-}
-
 void MainFrame::OnPanelResize(wxSizeEvent& event)
 {
     // direction doesn't matter
@@ -854,26 +859,13 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     fURL.SetSize(fURL.GetMinSize().x + hIncreaseCell1, fURL.GetSize().y);
     fArtworkURL.SetSize(fArtworkURL.GetMinSize().x + hIncreaseCell1, fArtworkURL.GetSize().y);
 
-    std::vector<Rectang> textBoxesCell1;
-    textBoxesCell1.push_back(fWorkingDir.rectang);
-    textBoxesCell1.push_back(fConverterDir.rectang);
-    textBoxesCell1.push_back(fAlbumsDir.rectang);
-    textBoxesCell1.push_back(fPreview.rectang);
+    wxSize maxDistance1 = AreaTakenFields();
 
-    textBoxesCell1.push_back(fArtist.rectang);
-    textBoxesCell1.push_back(fAlbumName.rectang);
-    textBoxesCell1.push_back(fAlbumYear.rectang);
-    textBoxesCell1.push_back(fURL.rectang);
-    textBoxesCell1.push_back(fArtworkURL.rectang);
-    wxSize maxDistance1 = AreaTaken(textBoxesCell1);
-
-    
 
 
     // CELL 2
     fOutput.SetPosition(maxDistance1.x + fieldBreakH, fOutput.GetPosition().y);
     fOutput.SetSize(fOutput.GetMinSize().x + hIncreaseCell2, fOutput.GetMinSize().y + vIncreaseCell2);
-
 
 
 
@@ -903,9 +895,9 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
 
 
         buttonDownload.SetPosition(wxPoint(buttonDownload.GetPosition().x, vOffset3 + fieldHeight * 5));
+        checkUpdate.SetPosition(wxPoint(checkUpdate.GetPosition().x, vOffset3 + fieldHeight * 5));
         checkAlert.SetPosition(wxPoint(checkAlert.GetPosition().x, vOffset3 + fieldHeight * 5 + verticalCheckBoxOffset));
         fBitrate.SetPosition(fBitrate.GetPosition().x, vOffset3 + fieldHeight * 5 + verticalDropDownOffset);
-        buttonUpdate.SetPosition(wxPoint(buttonUpdate.GetPosition().x, vOffset3 + fieldHeight * 5));
     }
 
 
@@ -916,16 +908,9 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
     Rect b1_1, b1_2, b2_1, b2_2;
     wxSize refreshMargin(0, 0);
 
-    int buttonX;
-    int hOffset4 = newClientWidth;
-    hOffset4 -= clientMargin.right;
-    hOffset4 -= fOutput.GetSize().x;
-    hOffset4 -= fieldBreakH;
+    int hOffset4 = newClientWidth - clientMargin.right - fOutput.GetSize().x - fieldBreakH - buttonDownload.GetSize().x;
+    int buttonX = hOffset4;
 
-    
-    
-    hOffset4 -= (buttonDownload.GetSize().x);
-    buttonX = hOffset4;
     if (hOffset4 <= clientMargin.left + minTextBoxSize.x - buttonDownload.GetSize().x)
     {
         buttonX = clientMargin.left + minTextBoxSize.x - buttonDownload.GetSize().x;
@@ -941,25 +926,6 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
                     buttonDownload.GetSize().x + refreshMargin.x * 2,
                     buttonDownload.GetSize().y + refreshMargin.y * 2 };
 
-
-    hOffset4 -= buttonBreak;
-    hOffset4 -= buttonUpdate.GetSize().x;
-    buttonX = hOffset4;
-    if (hOffset4 <= clientMargin.left + minTextBoxSize.x - buttonDownload.GetSize().x - buttonBreak - buttonUpdate.GetSize().x)
-    {
-        buttonX = clientMargin.left + minTextBoxSize.x - buttonDownload.GetSize().x - buttonBreak - buttonUpdate.GetSize().x;
-    }
-
-    b2_1 = Rect { buttonUpdate.GetPosition().x - refreshMargin.x,
-                    buttonUpdate.GetPosition().y - refreshMargin.y,
-                    buttonUpdate.GetSize().x + refreshMargin.x * 2,
-                    buttonUpdate.GetSize().y + refreshMargin.y * 2 };
-    buttonUpdate.SetPosition(wxPoint(buttonX, buttonUpdate.GetPosition().y));
-    b2_2 = Rect { buttonUpdate.GetPosition().x - refreshMargin.x,
-                    buttonUpdate.GetPosition().y - refreshMargin.y,
-                    buttonUpdate.GetSize().x + refreshMargin.x * 2,
-                    buttonUpdate.GetSize().y + refreshMargin.y * 2 };
-
     // Compare smoothness with this bool
     bool bRefreshWholeClientArea = true;
     if (bRefreshWholeClientArea)
@@ -969,19 +935,10 @@ void MainFrame::OnPanelResize(wxSizeEvent& event)
         return;
     }
     //buttonDownload.Refresh();
-    //buttonUpdate.Refresh();
     //return;
     
-    // Refresh only dirty regions around the two buttons
-    Rect reg;
-
-
-
-    reg = RectUnion(b1_1, b1_2);
-    RefreshRect(wxRect(reg.x, reg.y, reg.width, reg.height));
-
-
-    reg = RectUnion(b2_1, b2_2);
+    // Refresh only dirty regions around the button
+    Rect reg = RectUnion(b1_1, b1_2);
     RefreshRect(wxRect(reg.x, reg.y, reg.width, reg.height));
 }
 // --
@@ -1027,6 +984,11 @@ void MainFrame::GetAlbum()
     mainConsole.PrintLogAndConsoleNarrow("----------------------------   Program start.      ----------------------------\n");
     //--------------------------------------------------
 
+    if (checkUpdate.GetValue() == true)
+    {
+        mainConsole.AddCmd(L"\"" + workingDirectory + downloaderExec + L"\" --update", WINDOWS1250);
+        ExecuteBatchSession();
+    }
 
     //--------------------------------------------------
     mainConsole.AddCmd(DownloadStage(), WINDOWS1250);
@@ -1082,33 +1044,6 @@ void MainFrame::GetAlbum()
 
     
     
-    SetStatusText("Done");
-    if (checkAlert.GetValue() == true) MessageDialog("Script has finished.", "Done");
-    mainConsole.PrintLogAndConsoleNarrow("\n");
-    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Program finished.   ----------------------------\n");
-
-
-    bDone = true;
-    EnableFields();
-}
-
-void MainFrame::UpdateDownloader()
-{
-    //--------------------------------------------------
-    if (!fOutput.IsEmpty()) mainConsole.PrintLogAndConsoleNarrow("\n\n");
-
-    SetStatusText("Checking for YT-DLP updates...");
-    mainConsole.PrintLogAndConsoleNarrow("----------------------------   Program start.      ----------------------------\n");
-    //--------------------------------------------------
-
-    std::wstring args = L"--update";
-    std::wstring updateCmd = L"";
-    updateCmd += L"\"" + workingDirectory + downloaderExec + L"\"" + L' ' + args;
-
-    mainConsole.AddCmd(updateCmd, WINDOWS1250);
-    ExecuteBatchSession();
-
-
     SetStatusText("Done");
     if (checkAlert.GetValue() == true) MessageDialog("Script has finished.", "Done");
     mainConsole.PrintLogAndConsoleNarrow("\n");
@@ -1819,7 +1754,8 @@ void MainFrame::OpenSettings()
         windowY,
         windowWidth,
         windowHeight,
-        alertDone,
+        checkedNotify,
+        checkedUpdate,
         bitrateValue,
         none
     };
@@ -1844,10 +1780,16 @@ void MainFrame::OpenSettings()
                     if (currentId == windowWidth  && isStrNum(currentWord)) SetSize(std::stoi(currentWord), GetSize().y);
                     if (currentId == windowHeight && isStrNum(currentWord)) SetSize(GetSize().x, std::stoi(currentWord));
 
-                    if (currentId == alertDone)
+                    if (currentId == checkedNotify)
                     {
                         if (currentWord == "0") checkAlert.SetValue(false);
                         if (currentWord == "1") checkAlert.SetValue(true);
+                    }
+
+                    if (currentId == checkedUpdate)
+                    {
+                        if (currentWord == "0") checkUpdate.SetValue(false);
+                        if (currentWord == "1") checkUpdate.SetValue(true);
                     }
 
                     if (currentId == bitrateValue)
@@ -1902,6 +1844,7 @@ void MainFrame::SaveSettings()
 
 
     decoded += NumToWstr(checkAlert.GetValue()) + L"\n";
+    decoded += NumToWstr(checkUpdate.GetValue()) + L"\n";
 
     decoded += toWide(fBitrate.GetSelected()) + L"\n";
 
