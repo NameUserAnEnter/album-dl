@@ -31,17 +31,6 @@ void Control::Init(wxWindowID id, wxSize size, wxWindow* parent, long style)
 
 
     labelBox.Bind(wxEVT_MOVE, &Control::OnLabelBoxMove, this, labelBox.GetId());
-
-
-    
-
-
-
-
-
-
-    //bInit = true;
-    //UpdateRectang();
 }
 
 
@@ -66,19 +55,41 @@ wxPoint Control::ComputeTextBoxPos(wxPoint labelBoxPos)
     return wxPoint(labelBoxPos.x + labelOffset.left, labelBoxPos.y + labelOffset.top);
 }
 
+void Control::OnLabelBoxMove(wxMoveEvent& event)
+{
+    control->SetPosition(wxPoint(labelOffset.left, labelOffset.top));
+}
+
+void Control::SetLabel(std::wstring label)
+{
+    if (!bInit) return;
+    labelBox.SetLabel(label);
+}
+
+void Control::AppendLabel(std::wstring suffix, bool popLast)
+{
+    if (!bInit) return;
+
+    std::wstring label = GetLabel();
+    if (popLast && label.size() > 0) label.pop_back();
+
+    labelBox.SetLabel(label + suffix);
+}
+
+std::wstring Control::GetLabel()
+{
+    if (!bInit) return L"";
+    return labelBox.GetLabel().ToStdWstring();
+}
+
+
+
 void Control::UpdateRectang()
 {
     wxPoint pos = GetPosition();
     wxSize size = GetSize();
     rectang = Rectang(pos.x, pos.y, size.x, size.y);
 }
-
-void Control::OnLabelBoxMove(wxMoveEvent& event)
-{
-    control->SetPosition(wxPoint(labelOffset.left, labelOffset.top));
-}
-
-
 
 void Control::SetPosition(int x, int y)
 {
@@ -201,29 +212,5 @@ void Control::Disable()
 void Control::Enable()
 {
     control->Enable();
-}
-
-
-
-void Control::SetLabel(std::wstring label)
-{
-    if (!bInit) return;
-    labelBox.SetLabel(label);
-}
-
-void Control::AppendLabel(std::wstring suffix, bool popLast)
-{
-    if (!bInit) return;
-
-    std::wstring label = GetLabel();
-    if (popLast && label.size() > 0) label.pop_back();
-
-    labelBox.SetLabel(label + suffix);
-}
-
-std::wstring Control::GetLabel()
-{
-    if (!bInit) return L"";
-    return labelBox.GetLabel().ToStdWstring();
 }
 

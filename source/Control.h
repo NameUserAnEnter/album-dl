@@ -25,11 +25,6 @@ protected:
 
     RECT labelOffset;
 
-
-
-
-
-
     wxSize minSize;
     wxSize maxSize;
 
@@ -49,9 +44,15 @@ protected:
     wxSize ComputeTextBoxSize(wxSize);
     wxPoint ComputeTextBoxPos(wxPoint);
 
-    void UpdateRectang();
-
     void OnLabelBoxMove(wxMoveEvent&);
+
+public:
+    void SetLabel(std::wstring);
+    void AppendLabel(std::wstring, bool = true);
+    std::wstring GetLabel();
+
+protected:
+    void UpdateRectang();
 
 public:
     void SetPosition(int, int);
@@ -78,10 +79,6 @@ public:
 
     void Disable();
     void Enable();
-
-    void SetLabel(std::wstring);
-    void AppendLabel(std::wstring, bool = true);
-    std::wstring GetLabel();
 };
 
 
