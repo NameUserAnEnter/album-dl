@@ -19,11 +19,12 @@
 
 class Control
 {
-private:
+protected:
     bool bInit;
     bool bAcceptReturn;
 
     RECT labelOffset;
+
 
 
 
@@ -35,13 +36,13 @@ private:
 public:
     wxStaticBox labelBox;
     wxControl* control;
-    Control();
+    Control(wxControl*);
 
     Rectang rectang;
 
     void Init(wxWindowID, wxSize, wxWindow*, long = NULL);
 
-private:
+protected:
     wxSize ComputeLabelBoxSize(wxSize);
     wxPoint ComputeLabelBoxPos(wxPoint);
 

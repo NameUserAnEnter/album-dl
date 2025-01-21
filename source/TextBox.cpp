@@ -1,36 +1,18 @@
 #include "TextBox.h"
 
-TextBox::TextBox()
+TextBox::TextBox() : Control(&textField)
 {
-    bInit = false;
-
-    labelOffset.left = 3;
-    labelOffset.right = 3;
-    labelOffset.top = 15;
-    labelOffset.bottom = 3;
-
     bAcceptReturn = false;
     fieldEncoding = UNICODE_NONE;
 
+
     bufMutex = nullptr;
     outputBuf.clear();
-
-    minSize.x = 0;
-    minSize.y = 0;
-
-    maxSize.x = -1;
-    maxSize.y = -1;
 }
 
 void TextBox::Init(wxWindowID id, wxSize size, wxWindow* parent, long style)
 {
-    std::wstring label = L"";
-
-    labelBox.Create(
-        parent, wxID_ANY, label, wxDefaultPosition, ComputeLabelBoxSize(size));
-
-
-    labelBox.Bind(wxEVT_MOVE, &TextBox::OnLabelBoxMove, this, labelBox.GetId());
+    Control::Init(id, size, parent, style);
 
     textField.Create(
         &labelBox, id, L"",
@@ -43,192 +25,6 @@ void TextBox::Init(wxWindowID id, wxSize size, wxWindow* parent, long style)
     bInit = true;
     UpdateRectang();
 }
-
-
-
-wxSize TextBox::ComputeLabelBoxSize(wxSize textBoxSize)
-{
-    return wxSize(labelOffset.left + textBoxSize.x + labelOffset.right, labelOffset.top + textBoxSize.y + labelOffset.bottom);
-}
-
-wxPoint TextBox::ComputeLabelBoxPos(wxPoint textBoxPos)
-{
-    return wxPoint(textBoxPos.x - labelOffset.left, textBoxPos.y - labelOffset.top);
-}
-
-wxSize TextBox::ComputeTextBoxSize(wxSize labelBoxSize)
-{
-    return wxSize(labelBoxSize.x - (labelOffset.left + labelOffset.right), labelBoxSize.y - (labelOffset.top + labelOffset.bottom));
-}
-
-wxPoint TextBox::ComputeTextBoxPos(wxPoint labelBoxPos)
-{
-    return wxPoint(labelBoxPos.x + labelOffset.left, labelBoxPos.y + labelOffset.top);
-}
-
-void TextBox::UpdateRectang()
-{
-    wxPoint pos = GetPosition();
-    wxSize size = GetSize();
-    rectang = Rectang(pos.x, pos.y, size.x, size.y);
-}
-
-void TextBox::OnLabelBoxMove(wxMoveEvent& event)
-{
-    textField.SetPosition(wxPoint(labelOffset.left, labelOffset.top));
-}
-
-
-
-void TextBox::SetPosition(int x, int y)
-{
-    SetPosition(wxPoint(x, y));
-}
-
-void TextBox::SetPosition(wxPoint newPos)
-{
-    if (!bInit) return;
-
-    labelBox.SetPosition(ComputeLabelBoxPos(newPos));
-    UpdateRectang();
-}
-
-wxPoint TextBox::GetPosition()
-{
-    if (!bInit) return wxPoint(-1, -1);
-
-    return ComputeTextBoxPos(labelBox.GetPosition());
-}
-
-void TextBox::SetSize(int width, int height)
-{
-    SetSize(wxSize(width, height));
-}
-
-void TextBox::SetMinSize(int width, int height)
-{
-    minSize.x = width;
-    minSize.y = height;
-}
-
-void TextBox::SetMaxSize(int width, int height)
-{
-    maxSize.x = width;
-    maxSize.y = height;
-}
-
-void TextBox::SetSize(wxSize requestedSize)
-{
-    if (!bInit) return;
-    wxSize newSize = textField.GetSize();
-
-    if (requestedSize.x >= minSize.x && (requestedSize.x <= maxSize.x || maxSize.x == -1))
-    {
-        newSize.x = requestedSize.x;
-    }
-    else if (requestedSize.x < minSize.x) newSize.x = minSize.x;
-    else if (requestedSize.x > maxSize.x && maxSize.x != -1) newSize.x = maxSize.x;
-
-
-    if (requestedSize.y >= minSize.y && (requestedSize.y <= maxSize.y || maxSize.y == -1))
-    {
-        newSize.y = requestedSize.y;
-    }
-    else if (requestedSize.y < minSize.y) newSize.y = minSize.y;
-    else if (requestedSize.y > maxSize.y && maxSize.y != -1) newSize.y = maxSize.y;
-
-
-
-    labelBox.SetSize(ComputeLabelBoxSize(newSize));
-    textField.SetSize(newSize);
-
-    UpdateRectang();
-}
-
-void TextBox::SetMinSize(wxSize newMinSize)
-{
-    minSize = newMinSize;
-}
-
-void TextBox::SetMaxSize(wxSize newMaxSize)
-{
-    maxSize = newMaxSize;
-}
-
-wxSize TextBox::GetSize()
-{
-    if (!bInit) return wxSize(0, 0);
-    return textField.GetSize();
-}
-
-wxSize TextBox::GetMinSize()
-{
-    return minSize;
-}
-
-wxSize TextBox::GetMaxSize()
-{
-    return maxSize;
-}
-
-wxSize TextBox::GetDistance()
-{
-    if (!bInit) return wxSize(0, 0);
-    return wxSize(GetPosition().x + GetSize().x, GetPosition().y + GetSize().y);
-}
-
-
-
-void TextBox::Show()
-{
-    if (!bInit) return;
-    labelBox.Show();
-    textField.Show();
-}
-
-void TextBox::Hide()
-{
-    if (!bInit) return;
-    labelBox.Hide();
-    textField.Hide();
-}
-
-void TextBox::Disable()
-{
-    textField.Disable();
-}
-
-void TextBox::Enable()
-{
-    textField.Enable();
-}
-
-
-
-void TextBox::SetLabel(std::wstring label)
-{
-    if (!bInit) return;
-    labelBox.SetLabel(label);
-}
-
-void TextBox::AppendLabel(std::wstring suffix, bool popLast)
-{
-    if (!bInit) return;
-
-    std::wstring label = GetLabel();
-    if (popLast && label.size() > 0) label.pop_back();
-
-    labelBox.SetLabel(label + suffix);
-}
-
-std::wstring TextBox::GetLabel()
-{
-    if (!bInit) return L"";
-    return labelBox.GetLabel().ToStdWstring();
-}
-
-
-
 
 
 

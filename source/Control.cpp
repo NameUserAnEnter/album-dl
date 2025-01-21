@@ -1,6 +1,6 @@
 #include "Control.h"
 
-Control::Control()
+Control::Control(wxControl* ctrl)
 {
     bInit = false;
 
@@ -11,7 +11,7 @@ Control::Control()
 
 
 
-
+    control = ctrl;
 
 
 
@@ -33,7 +33,7 @@ void Control::Init(wxWindowID id, wxSize size, wxWindow* parent, long style)
     labelBox.Bind(wxEVT_MOVE, &Control::OnLabelBoxMove, this, labelBox.GetId());
 
 
-
+    
 
 
 
