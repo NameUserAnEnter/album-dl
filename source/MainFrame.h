@@ -112,9 +112,10 @@ private:
 
     void InitControlRectangs();
     void InitControls();
-    void InitControlLabels();
     void InitControlPositions();
     void InitControlDimensionRanges();
+
+    void InitControlLabels();
 
     void InitBindings();
 
@@ -142,6 +143,8 @@ private:
 
 
     wxSize FindMaxDistance(std::vector<Rectang>, std::vector<TextBox*>, std::vector<DropDown*>, std::vector<wxWindow*>);
+    wxSize areaTaken(std::vector<Rectang>);     // supposed to replace and do the same as FindMaxDistance
+    wxSize clientAreaTaken();                   // calls areaTaken passing all controls' member rectangs
     void SetFullSize();
 
 

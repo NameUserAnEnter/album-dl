@@ -51,12 +51,35 @@ wxSize MainFrame::FindMaxDistance(
     return maxDistance;
 }
 
+wxSize MainFrame::areaTaken(std::vector<Rectang> controls = std::vector<Rectang>())
+{
+    wxSize areaTaken = wxSize(0, 0);
+
+    for (int i = 0; i < controls.size(); i++)
+    {
+        Rectang control = controls[i];
+        if (control.pos.x + control.size.x > areaTaken.x) areaTaken.x = control.pos.x + control.size.x;
+        if (control.pos.y + control.size.y > areaTaken.y) areaTaken.y = control.pos.y + control.size.y;
+    }
+
+    return areaTaken;
+}
+
+wxSize MainFrame::clientAreaTaken()
+{
+    std::vector<Rectang> controls;
+    //controls.push_back(fWorkingDir.rectang);
+    // ...
+
+    return areaTaken(controls);
+}
+
 void MainFrame::SetFullSize()
 {
-    wxSize maxDistance = FindMaxDistance(rectangs);
+    wxSize area = areaTaken(rectangs);
 
-    int ClientWidth = maxDistance.x + clientMargin.right;
-    int ClientHeight = maxDistance.y + clientMargin.bottom;
+    int ClientWidth = area.x + clientMargin.right;
+    int ClientHeight = area.y + clientMargin.bottom;
 
     SetClientSize(ClientWidth, ClientHeight);
 }
@@ -203,10 +226,10 @@ void MainFrame::InitControlRectangs()
 
 
 
-    wxSize maxDistance = FindMaxDistance(rectangs);
+    wxSize area = areaTaken(rectangs);
 
-    OutputBoxSize = wxSize(700, maxDistance.y - clientMargin.top);
-    rectangs.push_back(Rectang(maxDistance.x + fieldBreakH, clientMargin.top, OutputBoxSize));
+    OutputBoxSize = wxSize(700, area.y - clientMargin.top);
+    rectangs.push_back(Rectang(area.x + fieldBreakH, clientMargin.top, OutputBoxSize));
 }
 
 void MainFrame::InitControls()
@@ -240,43 +263,6 @@ void MainFrame::InitControls()
     buttonDownload.SetSize(minButtonSize);
     
     fOutput.Init(ID_fOutput, rectangs.back().size, parent, wxTE_MULTILINE | wxTE_READONLY);
-}
-
-void MainFrame::InitControlLabels()
-{
-    fWorkingDir.SetLabel(L"Working directory:");
-    fConverterDir.SetLabel(L"ffmpeg.exe directory:");
-    fAlbumsDir.SetLabel(L"Albums directory:");
-    fPreview.SetLabel(L"Album path (preview):");
-    
-    fArtist.SetLabel(L"Artist");
-    fAlbumName.SetLabel(L"Album name:");
-    fAlbumYear.SetLabel(L"Album year:");
-
-    fURL.SetLabel(L"Playlist URL:");
-    fArtworkURL.SetLabel(L"Playlist URL with artwork:");
-
-    fBitrate.SetLabel(L"Audio bitrate:");
-    fBitrate.SetValue(L"----");
-
-    checkAlert.SetLabel(L"Alert on done");
-    buttonUpdateYtDlp.SetLabel(L"Update YT-DLP");
-    buttonDownload.SetLabel(L"Download");
-
-    fOutput.SetLabel(L"Output:");
-
-
-
-    // Set hints:
-    fConverterDir.SetHint(L"This location has to contain ffmpeg.exe");
-    fAlbumsDir.SetHint(L"The album will be moved to this location");
-    fPreview.SetEditable(false);
-    //fPreview.Disable();
-    fArtist.SetHint(    L"optional: used for album path and filenames");
-    fAlbumName.SetHint( L"optional: used for album path");
-    fAlbumYear.SetHint( L"optional: used for album path");
-    fURL.SetHint(       L"https://youtube.com/playlist?list=...");
-    fArtworkURL.SetHint(L"optional: use if the other URL is a normal playlist with no artwork thumbnail");
 }
 
 void MainFrame::InitControlPositions()
@@ -333,6 +319,45 @@ void MainFrame::InitControlDimensionRanges()
     fArtworkURL.SetMaxSize(maxTextBoxSize);
 
     fOutput.SetMaxSize(-1, -1);
+}
+
+
+
+void MainFrame::InitControlLabels()
+{
+    fWorkingDir.SetLabel(L"Working directory:");
+    fConverterDir.SetLabel(L"ffmpeg.exe directory:");
+    fAlbumsDir.SetLabel(L"Albums directory:");
+    fPreview.SetLabel(L"Album path (preview):");
+
+    fArtist.SetLabel(L"Artist");
+    fAlbumName.SetLabel(L"Album name:");
+    fAlbumYear.SetLabel(L"Album year:");
+
+    fURL.SetLabel(L"Playlist URL:");
+    fArtworkURL.SetLabel(L"Playlist URL with artwork:");
+
+    fBitrate.SetLabel(L"Audio bitrate:");
+    fBitrate.SetValue(L"----");
+
+    checkAlert.SetLabel(L"Alert on done");
+    buttonUpdateYtDlp.SetLabel(L"Update YT-DLP");
+    buttonDownload.SetLabel(L"Download");
+
+    fOutput.SetLabel(L"Output:");
+
+
+
+    // Set hints:
+    fConverterDir.SetHint(L"This location has to contain ffmpeg.exe");
+    fAlbumsDir.SetHint(L"The album will be moved to this location");
+    fPreview.SetEditable(false);
+    //fPreview.Disable();
+    fArtist.SetHint(L"optional: used for album path and filenames");
+    fAlbumName.SetHint(L"optional: used for album path");
+    fAlbumYear.SetHint(L"optional: used for album path");
+    fURL.SetHint(L"https://youtube.com/playlist?list=...");
+    fArtworkURL.SetHint(L"optional: use if the other URL is a normal playlist with no artwork thumbnail");
 }
 
 
@@ -669,9 +694,10 @@ MainFrame::MainFrame() : wxFrame(NULL, ID_mainFrame, "album-dl")
 
     InitControlRectangs();         // SET INITIAL FIELDS DIMENSIONS
     InitControls();                   // SET LABELS AND CONSTRUCT FIELDS
-    InitControlLabels();
     InitControlPositions();
     InitControlDimensionRanges();
+
+    InitControlLabels();
 
     InitBindings();
 
