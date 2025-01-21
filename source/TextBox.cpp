@@ -38,7 +38,7 @@ void TextBox::Init(wxWindowID id, wxSize size, wxWindow* parent, long style)
         size,
         style);
 
-    //rectang = Rectang(textField.GetPosition().x, textField.GetPosition().y, textField.GetSize().x, textField.GetSize().y);
+    UpdateRectang();
 
 
     bInit = true;
@@ -259,6 +259,11 @@ wxPoint TextBox::ComputeTextBoxPos(wxPoint labelBoxPos)
     return wxPoint(labelBoxPos.x + labelOffset.left, labelBoxPos.y + labelOffset.top);
 }
 
+void TextBox::UpdateRectang()
+{
+    rectang = Rectang(GetPosition().x, GetPosition().y, GetSize().x, GetSize().y);
+}
+
 
 
 
@@ -272,6 +277,7 @@ void TextBox::SetPosition(wxPoint newPos)
     if (!bInit) return;
 
     labelBox.SetPosition(ComputeLabelBoxPos(newPos));
+    UpdateRectang();
 }
 
 
@@ -328,6 +334,8 @@ void TextBox::SetSize(wxSize requestedSize)
 
     labelBox.SetSize(ComputeLabelBoxSize(newSize));
     textField.SetSize(newSize);
+
+    UpdateRectang();
 }
 
 void TextBox::SetMinSize(wxSize newMinSize)

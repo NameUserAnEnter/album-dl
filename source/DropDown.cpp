@@ -34,7 +34,7 @@ void DropDown::Init(wxWindowID id, wxSize size, wxWindow* parent, long style)
         size, 0, NULL,
         style);
 
-    //rectang = Rectang(listBox.GetPosition().x, listBox.GetPosition().y, listBox.GetSize().x, listBox.GetSize().y);
+    UpdateRectang();
     listBox.SetEditable(false);
 
 	bInit = true;
@@ -176,6 +176,11 @@ wxPoint DropDown::ComputeListBoxPos(wxPoint labelBoxPos)
     return wxPoint(labelBoxPos.x + labelOffset.left, labelBoxPos.y + labelOffset.top);
 }
 
+void DropDown::UpdateRectang()
+{
+    rectang = Rectang(GetPosition().x, GetPosition().y, GetSize().x, GetSize().y);
+}
+
 
 
 void DropDown::SetPosition(int x, int y)
@@ -188,6 +193,7 @@ void DropDown::SetPosition(wxPoint newPos)
     if (!bInit) return;
 
     labelBox.SetPosition(ComputeLabelBoxPos(newPos));
+    UpdateRectang();
 }
 
 
@@ -244,6 +250,8 @@ void DropDown::SetSize(wxSize requestedSize)
 
     labelBox.SetSize(ComputeLabelBoxSize(newSize));
     listBox.SetSize(newSize);
+
+    UpdateRectang();
 }
 
 void DropDown::SetMinSize(wxSize newMinSize)

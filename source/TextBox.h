@@ -38,7 +38,7 @@ public:
     wxTextCtrl textField;
     TextBox();
 
-    //Rectang rectang;
+    Rectang rectang;
 
     void Init(wxWindowID, wxSize, wxWindow*, long = NULL);
 
@@ -67,6 +67,8 @@ private:
 
     wxSize ComputeTextBoxSize(wxSize);
     wxPoint ComputeTextBoxPos(wxPoint);
+
+    void UpdateRectang();
 
     void OnLabelBoxMove(wxMoveEvent&);
 public:

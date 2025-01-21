@@ -196,12 +196,9 @@ void MainFrame::InitControlRectangs()
 
 
     // Here control dimensions are set to minimal sizes and positions the program will allow during runtime
-    wxSize TextBoxSize;
-    wxSize OutputBoxSize;
-    wxSize ButtonSize;
+    Point TextBoxSize = Point(minTextBoxSize.x, minTextBoxSize.y);
+    Point ButtonSize = Point(minButtonSize.x, minButtonSize.y);
 
-    TextBoxSize = minTextBoxSize;
-    ButtonSize = minButtonSize;
 
     rectangs.clear();
 
@@ -228,7 +225,7 @@ void MainFrame::InitControlRectangs()
 
     wxSize area = areaTaken(rectangs);
 
-    OutputBoxSize = wxSize(700, area.y - clientMargin.top);
+    Point OutputBoxSize = Point(700, area.y - clientMargin.top);
     rectangs.push_back(Rectang(area.x + fieldBreakH, clientMargin.top, OutputBoxSize));
 }
 
@@ -262,31 +259,31 @@ void MainFrame::InitControls()
     buttonUpdateYtDlp.SetSize(minButtonSize);
     buttonDownload.SetSize(minButtonSize);
     
-    fOutput.Init(ID_fOutput, rectangs.back().size, parent, wxTE_MULTILINE | wxTE_READONLY);
+    fOutput.Init(ID_fOutput, wxSize(rectangs.back().size.x, rectangs.back().size.x), parent, wxTE_MULTILINE | wxTE_READONLY);
 }
 
 void MainFrame::InitControlPositions()
 {
     unsigned int index = 0;
-    fWorkingDir.SetPosition(rectangs[index].pos); index++;
-    fConverterDir.SetPosition(rectangs[index].pos); index++;
-    fAlbumsDir.SetPosition(rectangs[index].pos); index++;
-    fPreview.SetPosition(rectangs[index].pos); index++;
+    fWorkingDir.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
+    fConverterDir.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
+    fAlbumsDir.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
+    fPreview.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
 
-    fArtist.SetPosition(rectangs[index].pos); index++;
-    fAlbumName.SetPosition(rectangs[index].pos); index++;
-    fAlbumYear.SetPosition(rectangs[index].pos); index++;
+    fArtist.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
+    fAlbumName.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
+    fAlbumYear.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
 
-    fURL.SetPosition(rectangs[index].pos); index++;
-    fArtworkURL.SetPosition(rectangs[index].pos); index++;
+    fURL.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
+    fArtworkURL.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
 
-    fBitrate.SetPosition(rectangs[index].pos); index++;
+    fBitrate.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
 
-    checkAlert.SetPosition(rectangs[index].pos); index++;
-    buttonUpdateYtDlp.SetPosition(rectangs[index].pos); index++;
-    buttonDownload.SetPosition(rectangs[index].pos); index++;
+    checkAlert.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
+    buttonUpdateYtDlp.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
+    buttonDownload.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
 
-    fOutput.SetPosition(rectangs[index].pos); index++;
+    fOutput.SetPosition(wxPoint(rectangs[index].pos.x, rectangs[index].pos.y)); index++;
 }
 
 void MainFrame::InitControlDimensionRanges()

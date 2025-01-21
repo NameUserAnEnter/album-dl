@@ -26,7 +26,7 @@ public:
 	wxComboBox listBox;
 	DropDown();
 
-	//Rectang rectang;
+	Rectang rectang;
 
 	void Init(wxWindowID, wxSize, wxWindow*, long = NULL);
 
@@ -49,6 +49,8 @@ private:
 
 	wxSize ComputeListBoxSize(wxSize);
 	wxPoint ComputeListBoxPos(wxPoint);
+
+	void UpdateRectang();
 
 	void OnLabelBoxMove(wxMoveEvent&);
 public:

@@ -19,29 +19,6 @@
 #include <mutex>
 #include <chrono>
 
-struct Rectang
-{
-    wxPoint pos;
-    wxSize size;
-
-    Rectang(int x, int y, wxSize _size)
-    {
-        pos = wxPoint(x, y);
-        size = _size;
-    }
-
-    Rectang(wxPoint _pos, wxSize _size) : pos(_pos), size(_size)
-    {
-        //
-    }
-
-    Rectang()
-    {
-        pos = wxPoint(0, 0);
-        size = wxSize(0, 0);
-    }
-};
-
 class MainFrame : public wxFrame
 {
 public:
